@@ -1,10 +1,12 @@
 🎮 LootRadar (白嫖雷达)
 
 🌟 About The Project / 项目简介
+
 LootRadar is a sleek, cross-platform web application that automatically tracks 100% free games and limited-time giveaways across the internet. Whether you are a PC gamer (Steam, Epic, GOG) or a Mobile gamer (iOS, Android), LootRadar ensures you never miss a freebie.
 白嫖雷达 是一个设计精美、跨平台的 Web 应用，旨在自动追踪全网 100% 免费的游戏和限时福利。无论你是 PC 玩家（Steam, Epic, GOG）还是手机玩家（iOS, Android），这款雷达都能确保你不错过任何“喜加一”的机会。
 
 ✨ Key Features / 核心亮点
+
 🌐 Cross-Platform Tracking (全平台追踪): Supports PC (Steam, Epic, GOG, Ubisoft, Itch.io) and Mobile (Android, iOS).
 💰 Loot Library & Savings Calculator (个人白嫖库): Automatically tracks claimed games and calculates your total lifetime savings! Data is stored 100% locally for your privacy.
 📱 PWA Ready (渐进式 Web 应用): Installable directly to your Home Screen on both iOS and Android for a native app-like experience. Includes smart installation guides.
@@ -13,6 +15,7 @@ LootRadar is a sleek, cross-platform web application that automatically tracks 1
 🛡️ Anti-Bot Scraping Engine (防拦截数据引擎): Utilizes multiple smart proxies to fetch reliable data from GamerPower and Reddit (r/googleplaydeals, r/AppHookup, etc.).
 
 🚀 How to Use / 如何使用
+
 This is a pure frontend application with no backend or build tools required.
 这是一个纯前端项目，不需要任何后端或构建工具。
 Clone or download this repository. (克隆或下载此仓库)
@@ -23,6 +26,7 @@ To host it for free (如何免费部署):
 You can easily host this project using GitHub Pages, Vercel, or Netlify by simply pointing to the root directory.
 
 🛠️ Tech Stack / 技术栈
+
 Frontend: HTML5, Vanilla JavaScript (ES6)
 Styling: Tailwind CSS (via CDN)
 Typography & Icons: Google Fonts (Orbitron, Inter), Phosphor Icons

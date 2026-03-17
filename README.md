@@ -34,4 +34,12 @@ Reddit API via Proxies (Mobile Giveaways)
 Data is aggregated from third-party sources and community posts. Availability and pricing may vary by region and time. Always verify that the price is "Free" on the actual store page before claiming. This project is an independent tracker and is not affiliated with Epic Games, Steam, Google, or Apple.
 本站数据通过第三方 API 与社区自动抓取。限免活动随时可能结束，且可能存在区域限制。在最终商店页面点击领取前，请务必亲自核对价格是否为免费。 本项目为独立开源工具，与 Steam、Epic、Apple 等官方平台无任何赞助或关联。
 
+📄 License & Attribution / 许可与致谢
+
+This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0).
+If you fork, modify, or host this project, you must provide proper citation and credit to the original creator.
+
+本项目采用 GNU Affero General Public License v3.0 (AGPL-3.0) 开源协议。
+如果您复刻、修改或部署此项目，您必须在显著位置注明原作者并提供致谢（Citation）。
+
 Built with ❤️ for gamers worldwide. Have FUN playing!

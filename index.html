@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LootRadar | Free Games Tracker</title>
-
+    
     <!-- App Icons / Home Screen Shortcuts -->
     <link rel="icon" href="https://wsrv.nl/?url=https://i.ibb.co/TM0jH5Wz/gamelooticon.png&w=192&h=192&fit=cover&bg=000000&output=png">
     <link rel="apple-touch-icon" href="https://wsrv.nl/?url=https://i.ibb.co/TM0jH5Wz/gamelooticon.png&w=180&h=180&fit=cover&bg=000000&output=png">
@@ -48,14 +48,14 @@
 
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Orbitron:wght@500;700;900&family=ZCOOL+QingKe+HuangYou&display=swap" rel="stylesheet">
-
+    
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
     <style>
         /* Custom UI Enhancements */
         body { -webkit-tap-highlight-color: transparent; overscroll-behavior-y: contain; }
-
+        
         #app-container, .library-scroll-area {
             scrollbar-width: thin;
             scrollbar-color: #3b82f6 #e2e8f0;
@@ -83,8 +83,8 @@
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
-            padding-bottom: 6px !important;
-            margin-bottom: -6px !important;
+            padding-bottom: 6px !important; 
+            margin-bottom: -6px !important; 
             line-height: 1.4 !important;
         }
 
@@ -223,7 +223,7 @@
     <div id="install-modal" class="hidden fixed inset-0 z-50 items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">
         <div class="glass-panel w-full max-w-sm rounded-3xl p-6 relative overflow-hidden animate-[pop_0.3s_ease-out_forwards]">
             <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/20 dark:bg-neon-blue/20 rounded-full blur-2xl pointer-events-none"></div>
-
+            
             <div class="text-center mb-6">
                 <div class="w-20 h-20 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-2xl mx-auto flex items-center justify-center mb-4 shadow-lg shadow-blue-500/30 transform rotate-3">
                     <i class="ph-fill ph-radar text-4xl text-white"></i>
@@ -233,7 +233,7 @@
                     Install to access instantly from your home screen! We will permanently track your claimed games and calculate your total lifetime savings.
                 </p>
             </div>
-
+            
             <div class="space-y-3">
                 <div class="flex items-center gap-3 text-sm font-medium dark:text-gray-200 bg-gray-100 dark:bg-white/5 p-3 rounded-xl">
                     <i class="ph-fill ph-gamepad text-purple-500 text-xl"></i> <span id="ui-install-b1">Track Claimed History</span>
@@ -267,7 +267,7 @@
     <div id="disclaimer-modal" class="hidden fixed inset-0 z-50 items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
         <div id="disclaimer-panel" class="glass-panel w-full max-w-sm rounded-3xl p-5 relative overflow-hidden">
             <div class="absolute -top-10 -right-10 w-32 h-32 bg-purple-500/20 dark:bg-neon-purple/20 rounded-full blur-2xl pointer-events-none"></div>
-
+            
             <div class="flex justify-between items-center mb-4 relative z-10">
                 <h3 id="ui-disc-title" class="text-lg font-display font-black dark:text-white flex items-center gap-2">
                     <i class="ph-fill ph-warning-circle text-blue-500 dark:text-neon-blue"></i> Disclaimer
@@ -276,7 +276,7 @@
                     <i class="ph-bold ph-x"></i>
                 </button>
             </div>
-
+            
             <div class="space-y-3 text-[13px] leading-snug font-medium text-gray-600 dark:text-gray-300 relative z-10 max-h-[55vh] overflow-y-auto pr-2 no-scrollbar">
                 <div class="flex gap-2.5 items-start"><i class="ph-fill ph-robot text-base text-gray-400 mt-0.5 flex-shrink-0"></i><span id="ui-disc-1"></span></div>
                 <div class="flex gap-2.5 items-start"><i class="ph-fill ph-warning text-base text-yellow-500 mt-0.5 flex-shrink-0"></i><span id="ui-disc-2"></span></div>
@@ -285,7 +285,7 @@
                 <div class="flex gap-2.5 items-start"><i class="ph-fill ph-clock-countdown text-base text-orange-400 mt-0.5 flex-shrink-0"></i><span id="ui-disc-5"></span></div>
                 <div class="flex gap-2.5 items-start"><i class="ph-fill ph-buildings text-base text-indigo-400 mt-0.5 flex-shrink-0"></i><span id="ui-disc-6"></span></div>
                 <div class="flex gap-2.5 items-start"><i class="ph-fill ph-database text-base text-teal-400 mt-0.5 flex-shrink-0"></i><span id="ui-disc-7"></span></div>
-
+                
                 <div class="mt-3 pt-3 border-t border-gray-200 dark:border-gray-800 flex gap-2 items-center justify-center text-center">
                     <span id="ui-disc-8" class="font-display font-bold text-sm text-transparent bg-clip-text bg-gradient-to-r from-green-500 to-blue-500 dark:from-neon-blue dark:to-neon-purple tracking-wide"></span>
                     <i class="ph-fill ph-game-controller text-xl text-purple-500 animate-bounce"></i>
@@ -294,7 +294,7 @@
         </div>
     </div>
 
-    <!-- My Library Modal (已升级为从右侧平滑滑入，从右侧滑出关闭) -->
+    <!-- My Library Modal (由右至左滑入，由左至右滑出关闭) -->
     <div id="library-modal" class="hidden fixed inset-0 z-50 flex-col bg-slate-50 dark:bg-dark-bg transition-transform duration-300 transform translate-x-full">
         <!-- 固定在顶部的 Header -->
         <div class="glass-header px-4 py-4 flex items-center justify-between z-30">
@@ -306,7 +306,7 @@
                 <i class="ph-bold ph-x text-xl"></i>
             </button>
         </div>
-
+        
         <!-- 固定在顶部的统计与筛选面板 -->
         <div class="bg-slate-50/95 dark:bg-dark-bg/95 backdrop-blur-xl z-20 border-b border-gray-200 dark:border-gray-800 pt-4 pb-5 px-4 sm:px-6 lg:px-8 shadow-sm">
             <div class="max-w-7xl mx-auto">
@@ -363,7 +363,7 @@
             <div class="max-w-7xl mx-auto">
                 <div id="library-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-4 pb-12">
                 </div>
-
+                
                 <div id="library-empty" class="hidden flex-col items-center justify-center py-16 text-center">
                     <i class="ph-fill ph-confetti text-6xl text-gray-300 dark:text-gray-700 mb-4"></i>
                     <p class="text-gray-500 dark:text-gray-400 font-medium" id="ui-lib-empty">Your library is empty. Start claiming free games!</p>
@@ -381,162 +381,162 @@
 
         const i18n = {
             en: {
-                title: "LootRadar", subtitle: "Tracking free games across the multiverse",
-                loading: ["Scanning the matrix for loot...", "Hacking the Epic Games vault...", "Bribing Gabe Newell for keys...", "Locating hidden Prime drops...", "Waking up the server hamsters...", "Reticulating splines...", "Brewing coffee for the bots..."],
+                title: "LootRadar", subtitle: "Tracking free games across the multiverse", 
+                loading: ["Scanning the matrix for loot...", "Hacking the Epic Games vault...", "Bribing Gabe Newell for keys...", "Locating hidden Prime drops...", "Waking up the server hamsters...", "Reticulating splines...", "Brewing coffee for the bots..."], 
                 error: "Failed to connect to the servers.", empty: "No freebies found right now.", ptrPull: "Pull to refresh...", ptrRelease: "Release to scan...", free: "FREE", worth: "Was ", getBtn: "Claim Now", claimedBtn: "Claimed", platformAll: "All Platforms", platformPC: "PC (Other)", newTip: "NEW", prime: "Prime", ubisoft: "Ubisoft", epicPhone: "Epic Game Phone",
                 savedSince: "Total saved since install", libTitle: "My Loot Library", libTotal: "Total Games", libSaved: "Total Saved", libEmpty: "Your library is empty. Start claiming free games!", libNoFilter: "No games match this platform.",
                 instTitle: "Install LootRadar", instDesc: "Install to access instantly! We will track your claimed games and calculate your total lifetime savings.", instB1: "Track Claimed History", instB2: "Calculate Total Savings", instBtn: "Install App", instDismiss: "Maybe Later",
                 instIos1: "1. Tap the Share icon below", instIos2: "2. Select 'Add to Home Screen'", instGotIt: "Got it!",
                 sortNewest: "Date: Newest First", sortOldest: "Date: Oldest First", sortPriceHigh: "Price: High to Low", sortPriceLow: "Price: Low to Low", sortPlatform: "Platform (A-Z)",
-                discTitle: "Notice & Disclaimer",
-                disc1: "Games are fetched via third-party APIs and web scraping.",
-                disc2: "Information may sometimes be displayed incorrectly or incompletely.",
-                disc3: "We don't represent ALL free games, and some might be region-locked.",
-                disc4: "Buttons and platform icons might occasionally misidentify.",
+                discTitle: "Notice & Disclaimer", 
+                disc1: "Games are fetched via third-party APIs and web scraping.", 
+                disc2: "Information may sometimes be displayed incorrectly or incompletely.", 
+                disc3: "We don't represent ALL free games, and some might be region-locked.", 
+                disc4: "Buttons and platform icons might occasionally misidentify.", 
                 disc5: "Offers are time-limited. Always verify the price is 'Free' or '0.00' on the store page before claiming.",
                 disc6: "We are an independent tracker and are not affiliated with or endorsed by Steam, Epic Games, Google, Apple, or other listed platforms.",
                 disc7: "Your data (claimed games, savings) is stored locally on your device, it's not public. Total savings are calculated from the time of installation. Uninstalling the app will permanently delete this history.",
                 disc8: "Most importantly, remember to have FUN playing!"
             },
             zh: {
-                title: "白嫖雷达", subtitle: "全网免费游戏限免实时追踪平台",
-                loading: ["正在扫描白嫖资源...", "正在黑入 Epic 游戏金库...", "正在给 G 胖塞钱...", "正在定位 Prime 隐藏掉落...", "正在叫醒服务器的小仓鼠...", "正在给雷达加注燃料...", "不要走开，马上就好..."],
+                title: "白嫖雷达", subtitle: "全网免费游戏限免实时追踪平台", 
+                loading: ["正在扫描白嫖资源...", "正在黑入 Epic 游戏金库...", "正在给 G 胖塞钱...", "正在定位 Prime 隐藏掉落...", "正在叫醒服务器的小仓鼠...", "正在给雷达加注燃料...", "不要走开，马上就好..."], 
                 error: "连接服务器失败，请稍后再试。", empty: "该平台当前暂无免费游戏。", ptrPull: "下拉刷新...", ptrRelease: "松开开始扫描...", free: "免费", worth: "原价 ", getBtn: "立即领取", claimedBtn: "已入库", platformAll: "全部平台", platformPC: "PC通用", newTip: "新发布", prime: "Prime特权", ubisoft: "育碧", epicPhone: "Epic Game Phone",
                 savedSince: "自安装起累计省下", libTitle: "我的白嫖库", libTotal: "游戏总数", libSaved: "累计省下", libEmpty: "你的游戏库空空如也，快去白嫖吧！", libNoFilter: "没有找到符合该平台的游戏。",
                 instTitle: "安装 白嫖雷达", instDesc: "添加到桌面以快速访问！我们将为您永久记录入库游戏并计算省下的总金额。", instB1: "记录领取历史与封面", instB2: "计算终身省下的金钱", instBtn: "立即安装", instDismiss: "以后再说",
                 instIos1: "1. 点击浏览器底部的『分享』图标", instIos2: "2. 选择『添加到主屏幕』", instGotIt: "我知道了",
                 sortNewest: "入库时间: 最新的在前", sortOldest: "入库时间: 最旧的在前", sortPriceHigh: "节省金额: 从高到低", sortPriceLow: "节省金额: 从低到高", sortPlatform: "平台名称 (A-Z)",
-                discTitle: "免责声明",
-                disc1: "游戏数据是通过 API 和社区爬虫自动抓取得到的。",
-                disc2: "部分游戏可能有错误显示，或者没有完整显示信息。",
-                disc3: "里面的游戏不代表全网所有的免费游戏，也有可能会遇到区域限制（锁区）的游戏。",
-                disc4: "领取按钮和平台图标偶尔可能会错误显示。",
+                discTitle: "免责声明", 
+                disc1: "游戏数据是通过 API 和社区爬虫自动抓取得到的。", 
+                disc2: "部分游戏可能有错误显示，或者没有完整显示信息。", 
+                disc3: "里面的游戏不代表全网所有的免费游戏，也有可能会遇到区域限制（锁区）的游戏。", 
+                disc4: "领取按钮和平台图标偶尔可能会错误显示。", 
                 disc5: "限免活动随时可能结束。在最终商店页面确认领取或购买前，请务必再次核对价格是否为『免费』或『0』。",
                 disc6: "本站为独立追踪工具，与 Steam、Epic Games、Google、Apple 等提到的任何官方游戏平台无关联及赞助关系。",
                 disc7: "您的数据（领取记录与省下的金额）仅保存在本地设备中，不会被公开。累计节省金额自应用安装之日起计算。若卸载应用或清除缓存，这些记录将被永久删除。",
                 disc8: "最重要的是，玩游戏记得要开心玩！"
             },
             es: {
-                title: "RadarLoot", subtitle: "Rastreando juegos gratis en el multiverso",
-                loading: ["Buscando botín en la matrix...", "Hackeando la bóveda de Epic...", "Sobornando a Gabe Newell...", "Localizando drops ocultos...", "Despertando a los hámsters..."],
+                title: "RadarLoot", subtitle: "Rastreando juegos gratis en el multiverso", 
+                loading: ["Buscando botín en la matrix...", "Hackeando la bóveda de Epic...", "Sobornando a Gabe Newell...", "Localizando drops ocultos...", "Despertando a los hámsters..."], 
                 error: "Error de conexión.", empty: "No hay juegos gratis ahora.", ptrPull: "Tira para refrescar...", ptrRelease: "Suelta para escanear...", free: "GRATIS", worth: "Era ", getBtn: "Reclamar", claimedBtn: "Reclamado", platformAll: "Todas", platformPC: "PC (Otro)", newTip: "NUEVO", prime: "Prime", ubisoft: "Ubisoft", epicPhone: "Epic Game Phone",
                 savedSince: "Ahorrado desde la instalación", libTitle: "Mi Biblioteca", libTotal: "Juegos", libSaved: "Ahorrado", libEmpty: "¡Tu biblioteca está vacía!", libNoFilter: "Ningún juego coincide con este filtro.",
                 instTitle: "Instalar RadarLoot", instDesc: "¡Instálalo para acceso rápido! Rastrearemos tus juegos reclamados y el ahorro total.", instB1: "Historial de juegos", instB2: "Ahorro total", instBtn: "Instalar App", instDismiss: "Más tarde",
                 instIos1: "1. Toca el ícono de Compartir abajo", instIos2: "2. Selecciona 'Agregar a inicio'", instGotIt: "¡Entendido!",
                 sortNewest: "Fecha: Más recientes", sortOldest: "Fecha: Más antiguos", sortPriceHigh: "Precio: Mayor a Menor", sortPriceLow: "Precio: Menor a Mayor", sortPlatform: "Plataforma (A-Z)",
-                discTitle: "Aviso legal",
-                disc1: "Los juegos se obtienen a través de API y web scraping.",
-                disc2: "La información puede mostrarse de forma incorrecta o incompleta.",
-                disc3: "No representamos TODOS los juegos, y algunos pueden tener restricciones regionales.",
-                disc4: "Los botones y plataformas podrían identificarse erróneamente.",
+                discTitle: "Aviso legal", 
+                disc1: "Los juegos se obtienen a través de API y web scraping.", 
+                disc2: "La información puede mostrarse de forma incorrecta o incompleta.", 
+                disc3: "No representamos TODOS los juegos, y algunos pueden tener restricciones regionales.", 
+                disc4: "Los botones y plataformas podrían identificarse erróneamente.", 
                 disc5: "Las ofertas tienen tiempo limitado. Verifica siempre que el precio final sea 'Gratis' en la tienda antes de reclamar.",
                 disc6: "Somos un rastreador independiente y no estamos afiliados ni respaldados por Steam, Epic Games, Apple, Google, u otras plataformas.",
                 disc7: "Tus datos se almacenan localmente y no son públicos. El ahorro total se calcula desde el momento de la instalación. Desinstalar la aplicación eliminará este historial permanentemente.",
                 disc8: "Lo más importante: ¡Recuerda DIVERTIRTE jugando!"
             },
             fr: {
-                title: "RadarButin", subtitle: "Suivi des jeux gratuits dans le multivers",
-                loading: ["Recherche de butin...", "Piratage du coffre Epic...", "Soudoyant Gabe Newell...", "Localisation des drops cachés...", "Réveil des hamsters..."],
+                title: "RadarButin", subtitle: "Suivi des jeux gratuits dans le multivers", 
+                loading: ["Recherche de butin...", "Piratage du coffre Epic...", "Soudoyant Gabe Newell...", "Localisation des drops cachés...", "Réveil des hamsters..."], 
                 error: "Échec de connexion.", empty: "Aucun jeu gratuit.", ptrPull: "Tirez pour rafraîchir...", ptrRelease: "Relâchez...", free: "GRATUIT", worth: "Était ", getBtn: "Obtenir", claimedBtn: "Obtenu", platformAll: "Toutes", platformPC: "PC (Autre)", newTip: "NOUVEAU", prime: "Prime", ubisoft: "Ubisoft", epicPhone: "Epic Game Phone",
                 savedSince: "Économisé depuis l'installation", libTitle: "Ma Bibliothèque", libTotal: "Total Jeux", libSaved: "Économisé", libEmpty: "Votre bibliothèque est vide !", libNoFilter: "Aucun jeu ne correspond à ce filtre.",
                 instTitle: "Installer RadarButin", instDesc: "Installez pour un accès instantané ! Nous suivrons vos jeux et vos économies.", instB1: "Historique des jeux", instB2: "Calcul des économies", instBtn: "Installer", instDismiss: "Plus tard",
                 instIos1: "1. Touchez l'icône Partager ci-dessous", instIos2: "2. Sélectionnez 'Sur l'écran d'accueil'", instGotIt: "J'ai compris",
                 sortNewest: "Date: Plus récents", sortOldest: "Date: Plus anciens", sortPriceHigh: "Prix: Décroissant", sortPriceLow: "Prix: Croissant", sortPlatform: "Plateforme (A-Z)",
-                discTitle: "Avertissement",
-                disc1: "Les jeux sont récupérés via des API et du scraping Web.",
-                disc2: "Les informations peuvent parfois être incorrectes ou incomplètes.",
-                disc3: "Nous ne représentons pas TOUS les jeux, certains peuvent être limités par région.",
-                disc4: "Les boutons et icônes peuvent parfois se tromper.",
+                discTitle: "Avertissement", 
+                disc1: "Les jeux sont récupérés via des API et du scraping Web.", 
+                disc2: "Les informations peuvent parfois être incorrectes ou incomplètes.", 
+                disc3: "Nous ne représentons pas TOUS les jeux, certains peuvent être limités par région.", 
+                disc4: "Les boutons et icônes peuvent parfois se tromper.", 
                 disc5: "Les offres expirent. Vérifiez toujours que le prix est 'Gratuit' ou '0.00' sur la boutique avant de confirmer.",
                 disc6: "Nous sommes un tracker indépendant et ne sommes pas affiliés à Steam, Epic, Google, Apple ou d'autres plateformes.",
                 disc7: "Vos données sont stockées localement et ne sont pas publiques. Les économies totales sont calculées à partir de l'installation. La désinstallation supprimera définitivement cet historique.",
                 disc8: "Le plus important : N'oubliez pas de vous AMUSER !"
             },
             de: {
-                title: "LootRadar", subtitle: "Verfolgung kostenloser Spiele",
-                loading: ["Scanne Matrix nach Loot...", "Hacke den Epic Games Tresor...", "Besteche Gabe Newell...", "Suche versteckte Drops...", "Wecke die Server-Hamster..."],
+                title: "LootRadar", subtitle: "Verfolgung kostenloser Spiele", 
+                loading: ["Scanne Matrix nach Loot...", "Hacke den Epic Games Tresor...", "Besteche Gabe Newell...", "Suche versteckte Drops...", "Wecke die Server-Hamster..."], 
                 error: "Verbindungsfehler.", empty: "Keine kostenlosen Spiele.", ptrPull: "Ziehen zum Aktualisieren...", ptrRelease: "Loslassen...", free: "GRATIS", worth: "War ", getBtn: "Holen", claimedBtn: "Beansprucht", platformAll: "Alle", platformPC: "PC (Andere)", newTip: "NEU", prime: "Prime", ubisoft: "Ubisoft", epicPhone: "Epic Game Phone",
                 savedSince: "Gespart seit der Installation", libTitle: "Meine Bibliothek", libTotal: "Spiele", libSaved: "Gespart", libEmpty: "Deine Bibliothek ist leer!", libNoFilter: "Keine Spiele für diesen Filter gefunden.",
                 instTitle: "Installiere LootRadar", instDesc: "Installiere für sofortigen Zugriff! Wir speichern deine Spiele und Ersparnisse.", instB1: "Spielverlauf speichern", instB2: "Ersparnisse berechnen", instBtn: "App installieren", instDismiss: "Später",
                 instIos1: "1. Tippe unten auf das Teilen-Symbol", instIos2: "2. Wähle 'Zum Home-Bildschirm'", instGotIt: "Verstanden",
                 sortNewest: "Datum: Neueste zuerst", sortOldest: "Datum: Älteste zuerst", sortPriceHigh: "Preis: Absteigend", sortPriceLow: "Preis: Aufsteigend", sortPlatform: "Plattform (A-Z)",
-                discTitle: "Haftungsausschluss",
-                disc1: "Spiele werden über APIs und Web-Scraping bezogen.",
-                disc2: "Informationen können manchmal falsch oder unvollständig angezeigt werden.",
-                disc3: "Wir listen nicht ALLE Spiele auf, und es kann regionale Beschränkungen geben.",
-                disc4: "Buttons und Symbole können manchmal falsch identifiziert werden.",
+                discTitle: "Haftungsausschluss", 
+                disc1: "Spiele werden über APIs und Web-Scraping bezogen.", 
+                disc2: "Informationen können manchmal falsch oder unvollständig angezeigt werden.", 
+                disc3: "Wir listen nicht ALLE Spiele auf, und es kann regionale Beschränkungen geben.", 
+                disc4: "Buttons und Symbole können manchmal falsch identifiziert werden.", 
                 disc5: "Angebote sind zeitlich begrenzt. Überprüfe immer, ob der Preis im Shop 'Gratis' ist, bevor du kaufst.",
                 disc6: "Wir sind ein unabhängiger Tracker und stehen in keiner Verbindung zu Steam, Epic Games, Google, Apple usw.",
                 disc7: "Deine Daten werden lokal gespeichert und sind nicht öffentlich. Die Ersparnisse werden ab der Installation berechnet. Bei Deinstallation wird dieser Verlauf gelöscht.",
                 disc8: "Das Wichtigste: Vergiss nicht, beim Spielen SPASS zu haben!"
             },
             ru: {
-                title: "РадарЛута", subtitle: "Отслеживание бесплатных игр",
-                loading: ["Поиск лута в матрице...", "Взлом хранилища Epic...", "Подкуп Гейба Ньюэлла...", "Поиск скрытых дропов...", "Будим серверных хомяков..."],
+                title: "РадарЛута", subtitle: "Отслеживание бесплатных игр", 
+                loading: ["Поиск лута в матрице...", "Взлом хранилища Epic...", "Подкуп Гейба Ньюэлла...", "Поиск скрытых дропов...", "Будим серверных хомяков..."], 
                 error: "Ошибка подключения.", empty: "Нет бесплатных игр.", ptrPull: "Потяните для обновления...", ptrRelease: "Отпустите...", free: "БЕСПЛАТНО", worth: "Было ", getBtn: "Забрать", claimedBtn: "Получено", platformAll: "Все", platformPC: "ПК (Другое)", newTip: "НОВОЕ", prime: "Prime", ubisoft: "Ubisoft", epicPhone: "Epic Game Phone",
                 savedSince: "Сэкономлено после установки", libTitle: "Моя Библиотека", libTotal: "Всего игр", libSaved: "Сэкономлено", libEmpty: "Ваша библиотека пуста!", libNoFilter: "Нет игр, соответствующих фильтру.",
                 instTitle: "Установить Радар", instDesc: "Установите для быстрого доступа! Мы сохраним вашу историю и посчитаем экономию.", instB1: "История игр", instB2: "Сумма экономии", instBtn: "Установить", instDismiss: "Позже",
                 instIos1: "1. Нажмите иконку 'Поделиться' внизу", instIos2: "2. Выберите 'На экран «Домой»'", instGotIt: "Понятно",
                 sortNewest: "Сначала новые", sortOldest: "Сначала старые", sortPriceHigh: "Цена: по убыванию", sortPriceLow: "Цена: по возрастанию", sortPlatform: "Платформа (А-Я)",
-                discTitle: "Отказ от ответственности",
-                disc1: "Игры получены через API и парсинг веб-сайтов.",
-                disc2: "Информация может отображаться некорректно или не полностью.",
-                disc3: "Мы не представляем ВСЕ игры, могут быть региональные ограничения.",
-                disc4: "Кнопки и иконки иногда могут отображаться с ошибками.",
+                discTitle: "Отказ от ответственности", 
+                disc1: "Игры получены через API и парсинг веб-сайтов.", 
+                disc2: "Информация может отображаться некорректно или не полностью.", 
+                disc3: "Мы не представляем ВСЕ игры, могут быть региональные ограничения.", 
+                disc4: "Кнопки и иконки иногда могут отображаться с ошибками.", 
                 disc5: "Акции имеют срок действия. Всегда проверяйте, что цена 'Бесплатно' или '0' перед получением игры.",
                 disc6: "Мы независимый трекер и не связаны со Steam, Epic Games, Google, Apple или другими платформами.",
                 disc7: "Ваши данные хранятся локально и не публичны. Экономия рассчитывается с момента установки. Удаление приложения навсегда удалит эту историю.",
                 disc8: "Самое главное - играйте и получайте УДОВОЛЬСТВИЕ!"
             },
             ja: {
-                title: "ルートレーダー", subtitle: "無料ゲームをリアルタイムで追跡",
-                loading: ["ルートをスキャン中...", "Epicの金庫をハッキング中...", "ゲイブを買収中...", "隠しドロップを検索中...", "サーバーのハムスターを起こしています..."],
+                title: "ルートレーダー", subtitle: "無料ゲームをリアルタイムで追跡", 
+                loading: ["ルートをスキャン中...", "Epicの金庫をハッキング中...", "ゲイブを買収中...", "隠しドロップを検索中...", "サーバーのハムスターを起こしています..."], 
                 error: "接続エラー", empty: "現在無料ゲームはありません", ptrPull: "引っ張って更新...", ptrRelease: "離してスキャン...", free: "無料", worth: "元の価格 ", getBtn: "今すぐ入手", claimedBtn: "取得済み", platformAll: "すべて", platformPC: "PC(その他)", newTip: "新着", prime: "Prime", ubisoft: "Ubisoft", epicPhone: "Epic Game Phone",
                 savedSince: "インストールからの節約額", libTitle: "マイライブラリ", libTotal: "ゲーム数", libSaved: "節約総額", libEmpty: "ライブラリは空です！", libNoFilter: "この条件に合うゲームはありません。",
                 instTitle: "アプリをインストール", instDesc: "ホーム画面に追加して素早くアクセス！取得履歴と節約額を記録します。", instB1: "取得履歴の保存", instB2: "節約額の計算", instBtn: "インストール", instDismiss: "後で",
                 instIos1: "1. 下の「共有」アイコンをタップ", instIos2: "2. 「ホーム画面に追加」を選択", instGotIt: "了解",
                 sortNewest: "取得日: 新しい順", sortOldest: "取得日: 古い順", sortPriceHigh: "価格: 高い順", sortPriceLow: "価格: 低い順", sortPlatform: "プラットフォーム (A-Z)",
-                discTitle: "免責事項",
-                disc1: "ゲームはAPIとWebスクレイピングを通じて取得されます。",
-                disc2: "情報が誤って表示されたり、不完全な場合があります。",
-                disc3: "すべての無料ゲームを網羅しているわけではなく、地域制限がある場合もあります。",
-                disc4: "ボタンやプラットフォームのアイコンが時折誤認識されることがあります。",
+                discTitle: "免責事項", 
+                disc1: "ゲームはAPIとWebスクレイピングを通じて取得されます。", 
+                disc2: "情報が誤って表示されたり、不完全な場合があります。", 
+                disc3: "すべての無料ゲームを網羅しているわけではなく、地域制限がある場合もあります。", 
+                disc4: "ボタンやプラットフォームのアイコンが時折誤認識されることがあります。", 
                 disc5: "配布には期限があります。最終的なストアページで価格が「無料」であることを必ず確認してください。",
                 disc6: "当サイトは独立したツールであり、Steam、Epic Games、Apple、Googleなどの公式プラットフォームとは提携していません。",
                 disc7: "データはデバイスにローカルに保存され、公開されません。節約総額はインストール時から計算されます。アプリをアンインストールすると履歴は永久に削除されます。",
                 disc8: "最も重要なこと：ゲームを楽しむことを忘れないでください！"
             },
             ko: {
-                title: "루트 레이더", subtitle: "무료 게임 실시간 추적",
-                loading: ["전리품 스캔 중...", "Epic 금고 해킹 중...", "Gabe Newell 매수 중...", "숨겨진 드롭 찾는 중...", "서버 햄스터 깨우는 중..."],
+                title: "루트 레이더", subtitle: "무료 게임 실시간 추적", 
+                loading: ["전리품 스캔 중...", "Epic 금고 해킹 중...", "Gabe Newell 매수 중...", "숨겨진 드롭 찾는 중...", "서버 햄스터 깨우는 중..."], 
                 error: "연결 오류", empty: "무료 게임이 없습니다.", ptrPull: "당겨서 새로고침...", ptrRelease: "놓아서 스캔...", free: "무료", worth: "원가 ", getBtn: "받기", claimedBtn: "라이브러리 추가됨", platformAll: "모든 플랫폼", platformPC: "PC (기타)", newTip: "신규", prime: "Prime", ubisoft: "Ubisoft", epicPhone: "Epic Game Phone",
                 savedSince: "설치 후 절약한 금액", libTitle: "내 라이브러리", libTotal: "총 게임", libSaved: "총 절약액", libEmpty: "라이브러리가 비어 있습니다!", libNoFilter: "이 필터와 일치하는 게임이 없습니다.",
-                instTitle: "앱 설치", 기Desc: "홈 화면에 추가하세요! 획득 기록과 절약한 금액을 저장해 줍니다.", instB1: "획득 기록 저장", instB2: "절약액 계산", instBtn: "설치하기", instDismiss: "나중에",
+                instTitle: "앱 설치", instDesc: "홈 화면에 추가하세요! 획득 기록과 절약한 금액을 저장해 줍니다.", instB1: "획득 기록 저장", instB2: "절약액 계산", instBtn: "설치하기", instDismiss: "나중에",
                 instIos1: "1. 하단의 '공유' 아이콘을 탭하세요", instIos2: "2. '홈 화면에 추가'를 선택하세요", instGotIt: "확인",
                 sortNewest: "획득일: 최신순", sortOldest: "획득일: 오래된순", sortPriceHigh: "가격: 높은순", sortPriceLow: "가격: 낮은순", sortPlatform: "플랫폼 (A-Z)",
-                discTitle: "면책 조항",
-                disc1: "게임은 API 및 웹 스크래핑을 통해 가져옵니다.",
-                disc2: "정보가 잘못 표시되거나 불완전할 수 있습니다.",
-                disc3: "모든 게임을 나열하지 않으며 일부 지역 제한이 있을 수 있습니다.",
-                disc4: "버튼과 플랫폼 아이콘이 가끔 잘못 식별될 수 있습니다.",
+                discTitle: "면책 조항", 
+                disc1: "게임은 API 및 웹 스크래핑을 통해 가져옵니다.", 
+                disc2: "정보가 잘못 표시되거나 불완전할 수 있습니다.", 
+                disc3: "모든 게임을 나열하지 않으며 일부 지역 제한이 있을 수 있습니다.", 
+                disc4: "버튼과 플랫폼 아이콘이 가끔 잘못 식별될 수 있습니다.", 
                 disc5: "무료 배포는 조기 종료될 수 있습니다. 획득하기 전에 상점에서 가격이 '무료'인지 반드시 확인하세요.",
                 disc6: "당사는 독립적인 추적 도구이며 Steam, Epic Games, Google, Apple과 제휴하거나 보증을 받지 않습니다.",
                 disc7: "데이터는 기기에 로컬로 저장되며 공개되지 않습니다. 총 절약액은 설치 시점부터 계산됩니다. 앱을 제거하면 이 기록이 영구적으로 삭제됩니다.",
                 disc8: "가장 중요한 것은 게임을 재미있게 즐기는 것입니다!"
             },
             pt: {
-                title: "RadarLoot", subtitle: "Rastreando jogos grátis",
-                loading: ["Escaneando loot...", "Hackeando o cofre da Epic...", "Subornando o Gabe Newell...", "Localizando drops ocultos...", "Acordando os hamsters..."],
+                title: "RadarLoot", subtitle: "Rastreando jogos grátis", 
+                loading: ["Escaneando loot...", "Hackeando o cofre da Epic...", "Subornando o Gabe Newell...", "Localizando drops ocultos...", "Acordando os hamsters..."], 
                 error: "Erro de conexão.", empty: "Sem jogos grátis.", ptrPull: "Puxe para atualizar...", ptrRelease: "Solte para escanear...", free: "GRÁTIS", worth: "Era ", getBtn: "Resgatar", claimedBtn: "Resgatado", platformAll: "Todas", platformPC: "PC (Outro)", newTip: "NOVO", prime: "Prime", ubisoft: "Ubisoft", epicPhone: "Epic Game Phone",
                 savedSince: "Economizado desde a instalação", libTitle: "Minha Biblioteca", libTotal: "Jogos", libSaved: "Economizou", libEmpty: "Sua biblioteca está vazia!", libNoFilter: "Nenhum jogo encontrado neste filtro.",
                 instTitle: "Instalar RadarLoot", instDesc: "Instale para acesso rápido! Salvaremos seu histórico e sua economia total.", instB1: "Histórico de jogos", instB2: "Economia total", instBtn: "Instalar", instDismiss: "Mais tarde",
                 instIos1: "1. Toque no ícone Compartilhar abaixo", instIos2: "2. Selecione 'Adicionar à Tela de Início'", instGotIt: "Entendi!",
                 sortNewest: "Data: Mais Recentes", sortOldest: "Data: Mais Antigos", sortPriceHigh: "Preço: Maior a Menor", sortPriceLow: "Preço: Menor a Maior", sortPlatform: "Plataforma (A-Z)",
-                discTitle: "Aviso Legal",
-                disc1: "Os jogos são obtidos via APIs e web scraping.",
-                disc2: "As informações podem ocasionalmente ser exibidas incorretamente ou incompletas.",
-                disc3: "Não representamos TODOS os jogos, e alguns podem ter restrições regionais.",
-                disc4: "Botões e ícones de plataforma podem ocasionalmente ser identificados erroneamente.",
+                discTitle: "Aviso Legal", 
+                disc1: "Os jogos são obtidos via APIs e web scraping.", 
+                disc2: "As informações podem ocasionalmente ser exibidas incorretamente ou incompletas.", 
+                disc3: "Não representamos TODOS os jogos, e alguns podem ter restrições regionais.", 
+                disc4: "Botões e ícones de plataforma podem ocasionalmente ser identificados erroneamente.", 
                 disc5: "As ofertas têm tempo limitado. Sempre verifique se o preço final é 'Grátis' ou '0.00' na página da loja antes de confirmar.",
                 disc6: "Somos um rastreador independente e não somos afiliados ou endossados pela Steam, Epic Games, Google, Apple ou outras.",
                 disc7: "Seus dados são armazenados localmente e não são públicos. A economia total é calculada a partir do momento da instalação. Desinstalar o app excluirá permanentemente este histórico.",
@@ -563,13 +563,13 @@
             { id: 'EpicPhone', icon: 'ph-game-controller', matches: [], excludes: [], customRule: (text) => {
                 const hasEpic = text.includes('epic games') || text.includes('epicgames.com');
                 const hasMobile = text.includes('android') || text.includes('ios') || text.includes('mobile');
-                return hasEpic && hasMobile;
+                return hasEpic && hasMobile; 
             }},
             { id: 'Prime', icon: 'ph-amazon-logo', matches: ['prime', 'amazon'], excludes: [] },
             { id: 'GOG', icon: 'ph-disc', matches: ['gog', 'gog.com'], excludes: [] },
             { id: 'Ubisoft', icon: 'ph-gamepad', matches: ['ubisoft', 'uplay'], excludes: [] },
-            { id: 'iOS', icon: 'ph-app-store-logo', matches: ['ios', 'app store', 'apps.apple.com'], excludes: ['epic games', 'epicgames.com', 'steampowered.com', 'gog.com'] },
-            { id: 'Android', icon: 'ph-android-logo', matches: ['android', 'google play', 'play.google.com'], excludes: ['epic games', 'epicgames.com', 'steampowered.com', 'gog.com'] },
+            { id: 'iOS', icon: 'ph-app-store-logo', matches: ['ios', 'app store', 'apps.apple.com'], excludes: ['epic games', 'epicgames.com', 'steampowered.com', 'gog.com'] }, 
+            { id: 'Android', icon: 'ph-android-logo', matches: ['android', 'google play', 'play.google.com'], excludes: ['epic games', 'epicgames.com', 'steampowered.com', 'gog.com'] }, 
             { id: 'Itch', icon: 'ph-alien', matches: ['itch.io'], excludes: [] },
             { id: 'Console', icon: 'ph-playstation-logo', matches: ['xbox', 'ps4', 'ps5', 'switch'], excludes: [] }
         ];
@@ -584,7 +584,7 @@
             e.preventDefault();
             deferredPrompt = e;
             const isDismissed = localStorage.getItem('lootradar_prompt_dismissed');
-
+            
             if(!isDismissed && !isRunningAsShortcut()) {
                 setTimeout(() => {
                     document.getElementById('ios-install-steps').classList.add('hidden');
@@ -615,7 +615,7 @@
 
             const ua = window.navigator.userAgent.toLowerCase();
             const isIOS = /iphone|ipad|ipod/.test(ua);
-
+            
             if (isIOS) {
                 setTimeout(() => {
                     document.getElementById('ios-install-steps').classList.remove('hidden');
@@ -626,7 +626,7 @@
                     const modal = document.getElementById('install-modal');
                     modal.classList.remove('hidden');
                     modal.classList.add('flex');
-                }, 2500);
+                }, 2500); 
             }
         }
 
@@ -643,8 +643,8 @@
             updateWalletUI();
             setupPullToRefresh();
             fetchGames();
-
-            checkAndShowIOSPrompt();
+            
+            checkAndShowIOSPrompt(); 
 
             document.addEventListener('click', (e) => {
                 const btn = document.getElementById('lang-dropdown-btn');
@@ -658,13 +658,13 @@
         function toggleLangMenu(e, forceClose = false) {
             if (e) e.stopPropagation();
             const menu = document.getElementById('lang-menu');
-
+            
             if (forceClose || !menu.classList.contains('hidden')) {
                 menu.classList.remove('animate-slideDown');
                 menu.classList.add('animate-popOut');
                 setTimeout(() => {
                     menu.classList.add('hidden');
-                }, 200);
+                }, 200); 
             } else {
                 menu.classList.remove('hidden');
                 menu.classList.remove('animate-popOut');
@@ -678,21 +678,21 @@
                 renderLibrary();
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
-                void modal.offsetWidth;
+                void modal.offsetWidth; 
                 modal.classList.remove('translate-x-full');
             } else {
                 modal.classList.add('translate-x-full');
                 setTimeout(() => {
                     modal.classList.add('hidden');
                     modal.classList.remove('flex');
-                }, 300);
+                }, 300); 
             }
         }
 
         function toggleDisclaimer() {
             const modal = document.getElementById('disclaimer-modal');
             const panel = document.getElementById('disclaimer-panel');
-
+            
             if (modal.classList.contains('hidden')) {
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
@@ -702,7 +702,7 @@
             } else {
                 panel.classList.remove('animate-[pop_0.3s_ease-out_forwards]');
                 panel.classList.add('animate-popOut');
-                modal.classList.add('opacity-0');
+                modal.classList.add('opacity-0'); 
                 setTimeout(() => {
                     modal.classList.add('hidden');
                     modal.classList.remove('flex');
@@ -710,27 +710,46 @@
             }
         }
 
-        async function fetchWithFallbacks(url) {
-            const urlsToTry = [
-                url,
-                `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
-                `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
+        // 🚨 核心防丢数据引擎：通过代理轮询与严密的 JSON 校验，确保手机抓取和电脑一样多！
+        async function fetchWithFallbacks(url, isReddit = false) {
+            const proxies = [
+                '', // 尝试直接请求
+                'https://corsproxy.io/?', // 极为强大的防 CORS 拦截器
+                'https://api.codetabs.com/v1/proxy?quest=',
+                'https://api.allorigins.win/raw?url='
             ];
-            for (const fetchUrl of urlsToTry) {
+            
+            for (const proxy of proxies) {
                 try {
-                    const res = await fetch(fetchUrl);
-                    if (res.ok) return await res.json();
-                } catch (e) {}
+                    const fetchUrl = proxy ? proxy + encodeURIComponent(url) : url;
+                    // 强制无缓存抓取，打破手机浏览器顽固缓存机制
+                    const res = await fetch(fetchUrl, { cache: "no-store" }); 
+                    if (res.ok) {
+                        const data = await res.json();
+                        
+                        // 数据指纹识别：坚决阻挡 Cloudflare 等错误拦截页面
+                        if (isReddit) {
+                            if (data && data.kind === 'Listing' && data.data && data.data.children) {
+                                return data;
+                            }
+                        } else {
+                            if (data && Array.isArray(data)) {
+                                return data;
+                            }
+                        }
+                    }
+                } catch (e) {} 
             }
-            return null;
+            return null; 
         }
 
         async function fetchRedditDeals() {
             try {
+                // 并发使用智能轮询引擎请求，彻底解决 Android 和 iOS 数据丢失
                 const [gpJson, fgaJson, iosJson] = await Promise.all([
-                    fetchWithFallbacks('https://www.reddit.com/r/googleplaydeals/new.json?limit=100'),
-                    fetchWithFallbacks('https://www.reddit.com/r/FreeGamesOnAndroid/new.json?limit=50'),
-                    fetchWithFallbacks('https://www.reddit.com/r/AppHookup/search.json?q=flair_name%3A%22iOS%20Universal%22%20OR%20flair_name%3A%22iOS%20Game%22&restrict_sr=1&sort=new&limit=100')
+                    fetchWithFallbacks('https://www.reddit.com/r/googleplaydeals/new.json?limit=100', true),
+                    fetchWithFallbacks('https://www.reddit.com/r/FreeGamesOnAndroid/new.json?limit=50', true),
+                    fetchWithFallbacks('https://www.reddit.com/r/AppHookup/search.json?q=flair_name%3A%22iOS%20Universal%22%20OR%20flair_name%3A%22iOS%20Game%22&restrict_sr=1&sort=new&limit=100', true)
                 ]);
 
                 let androidDeals = [], iosDeals = [];
@@ -754,14 +773,15 @@
         }
 
         function processRedditPost(post, platform) {
-            const priceMatch = post.title.match(/\$([0-9.]+)/);
+            // 精准匹配美元、欧元、英镑
+            const priceMatch = post.title.match(/(?:\$|€|£)\s?([0-9.]+)/);
             let imgUrl = platform === 'iOS' ? 'https://images.unsplash.com/photo-1591337676887-a21bfc42dd5b?auto=format&fit=crop&w=400&q=80' : 'https://images.unsplash.com/photo-1607252654015-f84f1b578d51?auto=format&fit=crop&w=400&q=80';
             if (post.preview && post.preview.images && post.preview.images[0]) imgUrl = post.preview.images[0].source.url.replace(/&amp;/g, '&');
             else if (post.thumbnail && post.thumbnail.startsWith('http')) imgUrl = post.thumbnail;
 
             return {
                 id: 'rdt_' + post.id, title: post.title.replace(/\[.*?\]/g, '').trim(), image: imgUrl, description: `Community discovered ${platform} deal via Reddit. Direct App Store link.`,
-                worth: priceMatch ? `$${priceMatch[1]}` : 'N/A', platforms: platform, open_giveaway: post.url, published_date: new Date(post.created_utc * 1000).toISOString()
+                worth: priceMatch ? priceMatch[0] : 'N/A', platforms: platform, open_giveaway: post.url, published_date: new Date(post.created_utc * 1000).toISOString()
             };
         }
 
@@ -773,9 +793,9 @@
             if (refreshIcon) refreshIcon.classList.add('animate-spin', 'text-blue-500', 'dark:text-neon-blue');
 
             try {
-                const gpData = await fetchWithFallbacks('https://www.gamerpower.com/api/giveaways');
+                const gpData = await fetchWithFallbacks('https://www.gamerpower.com/api/giveaways', false);
                 let validGpData = [];
-
+                
                 if (gpData && Array.isArray(gpData)) {
                     validGpData = gpData.filter(game => {
                         const title = (game.title || '').toLowerCase();
@@ -784,19 +804,19 @@
                 }
 
                 const redditData = await fetchRedditDeals();
-
+                
                 let allGames = [...validGpData, ...redditData];
-
+                
                 const uniqueMap = new Map();
                 allGames.forEach(g => {
-                    const key = g.open_giveaway;
+                    const key = g.open_giveaway; 
                     if (!uniqueMap.has(key)) uniqueMap.set(key, g);
                 });
-
+                
                 allGames = Array.from(uniqueMap.values());
                 allGames.sort((a, b) => new Date(b.published_date) - new Date(a.published_date));
                 state.games = allGames;
-
+                
                 renderTabs(); renderGames();
             } catch (error) {
                 document.getElementById('games-grid').innerHTML = '';
@@ -813,23 +833,23 @@
             const id = String(game.id);
             const alreadyClaimed = !!state.claimedGames[id];
             const isLegacySave = typeof state.claimedGames[id] === 'boolean';
-
+            
             if (!alreadyClaimed || isLegacySave) {
                 let value = 0;
                 if (game.worth && game.worth !== 'N/A') {
                     const parsed = parseFloat(game.worth.replace(/[^0-9.]/g, ''));
                     if (!isNaN(parsed)) value = parsed;
                 }
-
+                
                 state.claimedGames[id] = {
                     title: game.title, image: game.image, worth: game.worth, platforms: game.platforms || 'PC', open_giveaway: game.open_giveaway, value: value, date: new Date().toISOString()
                 };
-
+                
                 if (!alreadyClaimed) state.totalSaved += value;
-
+                
                 localStorage.setItem('lootradar_claimed_v2', JSON.stringify(state.claimedGames));
                 localStorage.setItem('lootradar_saved_money', state.totalSaved.toString());
-
+                
                 updateWalletUI(); renderGames();
             }
         };
@@ -842,7 +862,7 @@
             const empty = document.getElementById('library-empty');
             const t = i18n[state.lang];
             const allClaimed = Object.values(state.claimedGames).filter(g => typeof g === 'object');
-
+            
             document.getElementById('lib-total-count').innerText = Object.keys(state.claimedGames).length;
             document.getElementById('lib-total-saved').innerText = `$${state.totalSaved.toFixed(2)}`;
 
@@ -852,7 +872,7 @@
                 const label = p.id === 'All' ? t.platformAll : (labelMap[p.id] || p.id);
                 return `<option value="${p.id}" ${state.libFilter === p.id ? 'selected' : ''}>&nbsp;&nbsp;&nbsp;${label}</option>`;
             }).join('');
-
+            
             document.getElementById('opt-sort-newest').innerHTML = `&nbsp;&nbsp;&nbsp;${t.sortNewest}`;
             document.getElementById('opt-sort-oldest').innerHTML = `&nbsp;&nbsp;&nbsp;${t.sortOldest}`;
             document.getElementById('opt-sort-price-high').innerHTML = `&nbsp;&nbsp;&nbsp;${t.sortPriceHigh}`;
@@ -889,7 +909,7 @@
 
             empty.classList.add('hidden');
             empty.classList.remove('flex');
-
+            
             grid.innerHTML = filteredGames.map(game => {
                 const mockGameForIcon = { platforms: game.platforms, open_giveaway: game.open_giveaway };
                 const libPlatformIcon = getPlatformIconHtml(mockGameForIcon);
@@ -916,7 +936,7 @@
             const container = document.getElementById('wallet-container');
             el.innerText = `$${state.totalSaved.toFixed(2)}`;
             container.classList.remove('animate-pop');
-            void container.offsetWidth;
+            void container.offsetWidth; 
             container.classList.add('animate-pop');
         }
 
@@ -937,10 +957,10 @@
             const plat = (game.platforms || '').toLowerCase();
             const link = (game.open_giveaway || '').toLowerCase();
             const strictText = plat + " " + link;
-
+            
             if (customRule) return customRule(strictText);
             if (matchKeywords.length === 0) return true;
-
+            
             if (excludeKeywords && excludeKeywords.length > 0) {
                 if (excludeKeywords.some(keyword => strictText.includes(keyword))) return false;
             }
@@ -966,7 +986,7 @@
                     count = matchedGames.length;
                     if (count > 0 && (now - new Date(matchedGames[0].published_date).getTime() < 172800000)) hasNew = true;
                 }
-
+                
                 if (count === 0 && plat.id !== 'All') return;
 
                 const isSelected = state.currentPlatform === plat.id;
@@ -988,11 +1008,11 @@
             const emptyState = document.getElementById('empty-state');
             const t = i18n[state.lang];
             grid.innerHTML = '';
-
+            
             const currentPlatObj = platforms.find(p => p.id === state.currentPlatform);
             const filteredGames = state.currentPlatform === 'All' ? state.games : state.games.filter(g => isPlatformMatch(g, currentPlatObj.matches, currentPlatObj.excludes, currentPlatObj.requires, currentPlatObj.customRule));
 
-            if (filteredGames.length === 0) { emptyState.classList.remove('hidden'); return; }
+            if (filteredGames.length === 0) { emptyState.classList.remove('hidden'); return; } 
             else { emptyState.classList.add('hidden'); }
 
             const now = new Date().getTime();
@@ -1066,7 +1086,7 @@
             if(combined.includes('xbox') || combined.includes('ps4') || combined.includes('ps5') || combined.includes('switch') || combined.includes('playstation')) return '<i class="ph-fill ph-playstation-logo"></i> Console';
             if(combined.includes('android') || combined.includes('google play') || combined.includes('play.google.com')) return '<i class="ph-fill ph-android-logo"></i> Android';
             if(combined.includes('ios') || combined.includes('app store') || combined.includes('apps.apple.com')) return '<i class="ph-fill ph-app-store-logo"></i> iOS';
-
+            
             return '<i class="ph-fill ph-desktop"></i> PC';
         }
 
@@ -1075,22 +1095,22 @@
             document.getElementById('loading-state').classList.toggle('hidden', !show);
             document.getElementById('error-state').classList.add('hidden');
             const loadingTextEl = document.getElementById('ui-loading');
-
+            
             if (show) {
                 document.getElementById('games-grid').innerHTML = '';
                 const phrases = Array.isArray(i18n[state.lang].loading) ? i18n[state.lang].loading : [i18n[state.lang].loading];
                 let i = 0;
                 loadingTextEl.innerText = phrases[0];
                 loadingTextEl.style.opacity = 1;
-
+                
                 loadingInterval = setInterval(() => {
-                    loadingTextEl.style.opacity = 0;
+                    loadingTextEl.style.opacity = 0; 
                     setTimeout(() => {
                         i = (i + 1) % phrases.length;
                         loadingTextEl.innerText = phrases[i];
-                        loadingTextEl.style.opacity = 1;
-                    }, 300);
-                }, 2500);
+                        loadingTextEl.style.opacity = 1; 
+                    }, 300); 
+                }, 2500); 
             } else {
                 clearInterval(loadingInterval);
             }
@@ -1103,14 +1123,13 @@
 
         function applyTheme() {
             const html = document.documentElement, themeIcon = document.getElementById('theme-icon');
-            if (state.theme === 'dark') { html.classList.add('dark'); themeIcon.className = "ph-fill ph-sun text-lg md:text-xl text-yellow-400"; }
+            if (state.theme === 'dark') { html.classList.add('dark'); themeIcon.className = "ph-fill ph-sun text-lg md:text-xl text-yellow-400"; } 
             else { html.classList.remove('dark'); themeIcon.className = "ph-fill ph-moon text-lg md:text-xl text-gray-600"; }
         }
 
         function updateLanguageUI() {
             const t = i18n[state.lang];
-
-            // 安全地更新 DOM 元素，防止找不到元素时抛出错误
+            
             const safeSetText = (id, text) => {
                 const el = document.getElementById(id);
                 if (el) el.innerText = text;
@@ -1122,33 +1141,33 @@
             safeSetText('ui-error', t.error);
             safeSetText('ui-empty', t.empty);
             safeSetText('lang-btn', state.lang);
-
+            
             const walletContainer = document.getElementById('wallet-container');
             if (walletContainer) walletContainer.title = t.savedSince;
-
+            
             safeSetText('ui-lib-title', t.libTitle);
             safeSetText('ui-lib-total', t.libTotal);
             safeSetText('ui-lib-saved', t.libSaved);
             safeSetText('ui-lib-empty', t.libEmpty);
-
+            
             safeSetText('ui-install-title', t.instTitle);
             safeSetText('ui-install-desc', t.instDesc);
             safeSetText('ui-install-b1', t.instB1);
             safeSetText('ui-install-b2', t.instB2);
             safeSetText('ui-install-dismiss', t.instDismiss);
-
+            
             safeSetText('ui-inst-ios1', t.instIos1);
             safeSetText('ui-inst-ios2', t.instIos2);
-
+            
             const mainActionBtn = document.getElementById('main-install-action');
             if (mainActionBtn) {
                 const isIOS = /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
                 mainActionBtn.innerText = isIOS ? t.instGotIt : t.instBtn;
             }
-
+            
             const discTitleEl = document.getElementById('ui-disc-title');
             if (discTitleEl) discTitleEl.innerHTML = `<i class="ph-fill ph-warning-circle text-blue-500 dark:text-neon-blue"></i> ${t.discTitle}`;
-
+            
             safeSetText('ui-disc-1', t.disc1);
             safeSetText('ui-disc-2', t.disc2);
             safeSetText('ui-disc-3', t.disc3);
@@ -1175,7 +1194,7 @@
                     if(e.cancelable) e.preventDefault();
                     const resistance = pullDistance * 0.4;
                     ptrIndicator.style.height = `${Math.min(resistance, threshold + 20)}px`;
-                    if (resistance > threshold) { ptrText.innerText = i18n[state.lang].ptrRelease; icon.classList.replace('ph-arrow-down', 'ph-arrow-circle-up'); }
+                    if (resistance > threshold) { ptrText.innerText = i18n[state.lang].ptrRelease; icon.classList.replace('ph-arrow-down', 'ph-arrow-circle-up'); } 
                     else { ptrText.innerText = i18n[state.lang].ptrPull; icon.classList.replace('ph-arrow-circle-up', 'ph-arrow-down'); }
                 }
             }, { passive: false });
@@ -1185,7 +1204,7 @@
                 isPulling = false;
                 const pullDistance = (currentY - startY) * 0.4;
                 if (pullDistance > threshold) {
-                    ptrIndicator.style.height = '50px';
+                    ptrIndicator.style.height = '50px'; 
                     const t = i18n[state.lang];
                     ptrText.innerText = Array.isArray(t.loading) ? t.loading[0] : t.loading;
                     icon.className = "ph ph-spinner-gap animate-spin text-xl";

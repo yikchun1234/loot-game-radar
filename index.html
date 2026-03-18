@@ -104,7 +104,6 @@
 
     <div class="ambient-bg"></div>
 
-    <!-- Main Scroll Container -->
     <div id="app-container" class="h-full w-full overflow-y-auto overflow-x-hidden relative">
 
         <!-- Pull to Refresh Indicator -->
@@ -118,7 +117,6 @@
         <!-- Header -->
         <header class="glass-header sticky top-0 z-40 px-4 py-3 sm:px-6 lg:px-8">
             <div class="max-w-7xl mx-auto flex items-center justify-between">
-                <!-- Logo -->
                 <div class="flex items-center gap-2 md:gap-3 cursor-pointer group" onclick="document.getElementById('app-container').scrollTo({top: 0, behavior: 'smooth'})">
                     <div class="relative">
                         <i class="ph-fill ph-radar text-3xl md:text-4xl text-blue-600 dark:text-neon-blue transition-transform duration-700 group-hover:rotate-180"></i>
@@ -131,34 +129,28 @@
 
                 <!-- Controls -->
                 <div class="flex items-center gap-1 md:gap-3 relative">
-                    <!-- Lifetime Savings Wallet -->
                     <div id="wallet-container" class="flex items-center bg-green-500/10 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-xl font-display font-bold text-sm border border-green-500/20 shadow-inner" title="Total saved since install">
                         <i class="ph-fill ph-piggy-bank mr-1.5 text-lg"></i>
                         <span id="saved-amount">$0.00</span>
                     </div>
 
-                    <!-- Library Button -->
                     <button onclick="toggleLibrary()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-transform active:scale-90 text-blue-600 dark:text-neon-blue" title="My Loot Library">
                         <span class="flex items-center justify-center text-xl md:text-2xl drop-shadow-md pb-0.5">🎮</span>
                     </button>
 
-                    <!-- Language Dropdown Trigger -->
                     <div class="relative">
                         <button id="lang-dropdown-btn" onclick="toggleLangMenu(event)" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-transform active:scale-90 font-bold text-sm uppercase" title="Change Language">
                             <span id="lang-btn">EN</span>
                         </button>
-                        <!-- Dropdown Menu -->
                         <div id="lang-menu" class="hidden absolute right-0 mt-2 w-32 bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden z-50 origin-top">
                             <!-- Populated by JS -->
                         </div>
                     </div>
 
-                    <!-- Theme Button -->
                     <button onclick="toggleTheme()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-transform active:scale-90" title="Toggle Theme">
                         <i id="theme-icon" class="ph-fill ph-moon text-lg md:text-xl text-yellow-500"></i>
                     </button>
 
-                    <!-- 免责声明按钮 -->
                     <button onclick="toggleDisclaimer()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-transform active:scale-90" title="Disclaimer / Info">
                         <i class="ph-bold ph-info text-lg md:text-xl text-gray-400 hover:text-blue-500 dark:hover:text-neon-blue transition-colors"></i>
                     </button>
@@ -219,7 +211,7 @@
         </main>
     </div>
 
-    <!-- PWA Install Modal (Smart UI switching between iOS and Android) -->
+    <!-- PWA Install Modal -->
     <div id="install-modal" class="hidden fixed inset-0 z-50 items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">
         <div class="glass-panel w-full max-w-sm rounded-3xl p-6 relative overflow-hidden animate-[pop_0.3s_ease-out_forwards]">
             <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/20 dark:bg-neon-blue/20 rounded-full blur-2xl pointer-events-none"></div>
@@ -263,7 +255,7 @@
         </div>
     </div>
 
-    <!-- 免责声明 Modal (包含淡出收回动画) -->
+    <!-- 免责声明 Modal -->
     <div id="disclaimer-modal" class="hidden fixed inset-0 z-50 items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
         <div id="disclaimer-panel" class="glass-panel w-full max-w-sm rounded-3xl p-5 relative overflow-hidden">
             <div class="absolute -top-10 -right-10 w-32 h-32 bg-purple-500/20 dark:bg-neon-purple/20 rounded-full blur-2xl pointer-events-none"></div>
@@ -294,9 +286,9 @@
         </div>
     </div>
 
-    <!-- My Library Modal (由右至左滑入，由左至右滑出关闭) -->
+    <!-- My Library Modal -->
     <div id="library-modal" class="hidden fixed inset-0 z-50 flex-col bg-slate-50 dark:bg-dark-bg transition-transform duration-300 transform translate-x-full">
-        <!-- 固定在顶部的 Header -->
+        <!-- Header -->
         <div class="glass-header px-4 py-4 flex items-center justify-between z-30">
             <h2 class="text-xl md:text-2xl font-display font-black dark:text-white flex items-center gap-2">
                 <i class="ph-fill ph-gamepad text-purple-500"></i>
@@ -307,7 +299,7 @@
             </button>
         </div>
         
-        <!-- 固定在顶部的统计与筛选面板 -->
+        <!-- Controls Panel -->
         <div class="bg-slate-50/95 dark:bg-dark-bg/95 backdrop-blur-xl z-20 border-b border-gray-200 dark:border-gray-800 pt-4 pb-5 px-4 sm:px-6 lg:px-8 shadow-sm">
             <div class="max-w-7xl mx-auto">
                 <div class="flex flex-wrap gap-4 mb-4">
@@ -358,7 +350,7 @@
             </div>
         </div>
 
-        <!-- 独立滚动的游戏卡片区域 -->
+        <!-- Library Scroll Area -->
         <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 relative z-0 library-scroll-area">
             <div class="max-w-7xl mx-auto">
                 <div id="library-grid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-4 pb-12">
@@ -710,46 +702,28 @@
             }
         }
 
-        // 🚨 核心防丢数据引擎：通过代理轮询与严密的 JSON 校验，确保手机抓取和电脑一样多！
-        async function fetchWithFallbacks(url, isReddit = false) {
-            const proxies = [
-                '', // 尝试直接请求
-                'https://corsproxy.io/?', // 极为强大的防 CORS 拦截器
-                'https://api.codetabs.com/v1/proxy?quest=',
-                'https://api.allorigins.win/raw?url='
+        // 🚨 已恢复极其稳定的防拦截抓取引擎 (去除 Epic 预告逻辑，恢复 Reddit 百分百抓取)
+        async function fetchWithFallbacks(url) {
+            const urlsToTry = [
+                url,
+                `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+                `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
             ];
-            
-            for (const proxy of proxies) {
+            for (const fetchUrl of urlsToTry) {
                 try {
-                    const fetchUrl = proxy ? proxy + encodeURIComponent(url) : url;
-                    // 强制无缓存抓取，打破手机浏览器顽固缓存机制
-                    const res = await fetch(fetchUrl, { cache: "no-store" }); 
-                    if (res.ok) {
-                        const data = await res.json();
-                        
-                        // 数据指纹识别：坚决阻挡 Cloudflare 等错误拦截页面
-                        if (isReddit) {
-                            if (data && data.kind === 'Listing' && data.data && data.data.children) {
-                                return data;
-                            }
-                        } else {
-                            if (data && Array.isArray(data)) {
-                                return data;
-                            }
-                        }
-                    }
-                } catch (e) {} 
+                    const res = await fetch(fetchUrl);
+                    if (res.ok) return await res.json();
+                } catch (e) {}
             }
-            return null; 
+            return null;
         }
 
         async function fetchRedditDeals() {
             try {
-                // 并发使用智能轮询引擎请求，彻底解决 Android 和 iOS 数据丢失
                 const [gpJson, fgaJson, iosJson] = await Promise.all([
-                    fetchWithFallbacks('https://www.reddit.com/r/googleplaydeals/new.json?limit=100', true),
-                    fetchWithFallbacks('https://www.reddit.com/r/FreeGamesOnAndroid/new.json?limit=50', true),
-                    fetchWithFallbacks('https://www.reddit.com/r/AppHookup/search.json?q=flair_name%3A%22iOS%20Universal%22%20OR%20flair_name%3A%22iOS%20Game%22&restrict_sr=1&sort=new&limit=100', true)
+                    fetchWithFallbacks('https://www.reddit.com/r/googleplaydeals/new.json?limit=100'),
+                    fetchWithFallbacks('https://www.reddit.com/r/FreeGamesOnAndroid/new.json?limit=50'),
+                    fetchWithFallbacks('https://www.reddit.com/r/AppHookup/search.json?q=flair_name%3A%22iOS%20Universal%22%20OR%20flair_name%3A%22iOS%20Game%22&restrict_sr=1&sort=new&limit=100')
                 ]);
 
                 let androidDeals = [], iosDeals = [];
@@ -773,7 +747,6 @@
         }
 
         function processRedditPost(post, platform) {
-            // 精准匹配美元、欧元、英镑
             const priceMatch = post.title.match(/(?:\$|€|£)\s?([0-9.]+)/);
             let imgUrl = platform === 'iOS' ? 'https://images.unsplash.com/photo-1591337676887-a21bfc42dd5b?auto=format&fit=crop&w=400&q=80' : 'https://images.unsplash.com/photo-1607252654015-f84f1b578d51?auto=format&fit=crop&w=400&q=80';
             if (post.preview && post.preview.images && post.preview.images[0]) imgUrl = post.preview.images[0].source.url.replace(/&amp;/g, '&');
@@ -793,7 +766,7 @@
             if (refreshIcon) refreshIcon.classList.add('animate-spin', 'text-blue-500', 'dark:text-neon-blue');
 
             try {
-                const gpData = await fetchWithFallbacks('https://www.gamerpower.com/api/giveaways', false);
+                const gpData = await fetchWithFallbacks('https://www.gamerpower.com/api/giveaways');
                 let validGpData = [];
                 
                 if (gpData && Array.isArray(gpData)) {
@@ -885,7 +858,7 @@
                 const currentPlatObj = platforms.find(p => p.id === state.libFilter);
                 if (currentPlatObj) {
                     filteredGames = filteredGames.filter(g => {
-                        return isPlatformMatch({platforms: g.platforms, open_giveaway: g.open_giveaway}, currentPlatObj.matches, currentPlatObj.excludes, currentPlatObj.requires, currentPlatObj.customRule);
+                        return isPlatformMatch(g, currentPlatObj.matches, currentPlatObj.excludes, currentPlatObj.requires, currentPlatObj.customRule);
                     });
                 }
             }
@@ -958,7 +931,7 @@
             const link = (game.open_giveaway || '').toLowerCase();
             const strictText = plat + " " + link;
             
-            if (customRule) return customRule(strictText);
+            if (customRule) return customRule(strictText, game);
             if (matchKeywords.length === 0) return true;
             
             if (excludeKeywords && excludeKeywords.length > 0) {

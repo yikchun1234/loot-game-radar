@@ -104,7 +104,6 @@
 
     <div class="ambient-bg"></div>
 
-    <!-- Main Scroll Container -->
     <div id="app-container" class="h-full w-full overflow-y-auto overflow-x-hidden relative">
 
         <!-- Pull to Refresh Indicator -->
@@ -118,7 +117,6 @@
         <!-- Header -->
         <header class="glass-header sticky top-0 z-40 px-4 py-3 sm:px-6 lg:px-8">
             <div class="max-w-7xl mx-auto flex items-center justify-between">
-                <!-- Logo -->
                 <div class="flex items-center gap-2 md:gap-3 cursor-pointer group" onclick="document.getElementById('app-container').scrollTo({top: 0, behavior: 'smooth'})">
                     <div class="relative">
                         <i class="ph-fill ph-radar text-3xl md:text-4xl text-blue-600 dark:text-neon-blue transition-transform duration-700 group-hover:rotate-180"></i>
@@ -131,34 +129,28 @@
 
                 <!-- Controls -->
                 <div class="flex items-center gap-1 md:gap-3 relative">
-                    <!-- Lifetime Savings Wallet -->
                     <div id="wallet-container" class="flex items-center bg-green-500/10 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-xl font-display font-bold text-sm border border-green-500/20 shadow-inner" title="Total saved since install">
                         <i class="ph-fill ph-piggy-bank mr-1.5 text-lg"></i>
                         <span id="saved-amount">$0.00</span>
                     </div>
 
-                    <!-- Library Button -->
                     <button onclick="toggleLibrary()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-transform active:scale-90 text-blue-600 dark:text-neon-blue" title="My Loot Library">
                         <span class="flex items-center justify-center text-xl md:text-2xl drop-shadow-md pb-0.5">🎮</span>
                     </button>
 
-                    <!-- Language Dropdown Trigger -->
                     <div class="relative">
                         <button id="lang-dropdown-btn" onclick="toggleLangMenu(event)" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-transform active:scale-90 font-bold text-sm uppercase" title="Change Language">
                             <span id="lang-btn">EN</span>
                         </button>
-                        <!-- Dropdown Menu -->
                         <div id="lang-menu" class="hidden absolute right-0 mt-2 w-32 bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden z-50 origin-top">
                             <!-- Populated by JS -->
                         </div>
                     </div>
 
-                    <!-- Theme Button -->
                     <button onclick="toggleTheme()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-transform active:scale-90" title="Toggle Theme">
                         <i id="theme-icon" class="ph-fill ph-moon text-lg md:text-xl text-yellow-500"></i>
                     </button>
 
-                    <!-- 免责声明按钮 -->
                     <button onclick="toggleDisclaimer()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-transform active:scale-90" title="Disclaimer / Info">
                         <i class="ph-bold ph-info text-lg md:text-xl text-gray-400 hover:text-blue-500 dark:hover:text-neon-blue transition-colors"></i>
                     </button>
@@ -219,7 +211,7 @@
         </main>
     </div>
 
-    <!-- PWA Install Modal (Smart UI switching between iOS and Android) -->
+    <!-- PWA Install Modal -->
     <div id="install-modal" class="hidden fixed inset-0 z-50 items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">
         <div class="glass-panel w-full max-w-sm rounded-3xl p-6 relative overflow-hidden animate-[pop_0.3s_ease-out_forwards]">
             <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/20 dark:bg-neon-blue/20 rounded-full blur-2xl pointer-events-none"></div>
@@ -263,7 +255,7 @@
         </div>
     </div>
 
-    <!-- 免责声明 Modal (包含淡出收回动画) -->
+    <!-- 免责声明 Modal -->
     <div id="disclaimer-modal" class="hidden fixed inset-0 z-50 items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity duration-300 opacity-0">
         <div id="disclaimer-panel" class="glass-panel w-full max-w-sm rounded-3xl p-5 relative overflow-hidden">
             <div class="absolute -top-10 -right-10 w-32 h-32 bg-purple-500/20 dark:bg-neon-purple/20 rounded-full blur-2xl pointer-events-none"></div>
@@ -294,7 +286,7 @@
         </div>
     </div>
 
-    <!-- My Library Modal (由右至左滑入，由左至右滑出关闭) -->
+    <!-- My Library Modal -->
     <div id="library-modal" class="hidden fixed inset-0 z-50 flex-col bg-slate-50 dark:bg-dark-bg transition-transform duration-300 transform translate-x-full">
         <!-- 固定在顶部的 Header -->
         <div class="glass-header px-4 py-4 flex items-center justify-between z-30">
@@ -379,11 +371,13 @@
             { code: 'ko', name: '한국어' }, { code: 'ru', name: 'Русский' }, { code: 'pt', name: 'Português' }
         ];
 
+        // 🚨 升级字典：加入 Upcoming 的多语言支持
         const i18n = {
             en: {
                 title: "LootRadar", subtitle: "Tracking free games across the multiverse", 
                 loading: ["Scanning the matrix for loot...", "Hacking the Epic Games vault...", "Bribing Gabe Newell for keys...", "Locating hidden Prime drops...", "Waking up the server hamsters...", "Reticulating splines...", "Brewing coffee for the bots..."], 
                 error: "Failed to connect to the servers.", empty: "No freebies found right now.", ptrPull: "Pull to refresh...", ptrRelease: "Release to scan...", free: "FREE", worth: "Was ", getBtn: "Claim Now", claimedBtn: "Claimed", platformAll: "All Platforms", platformPC: "PC (Other)", newTip: "NEW", prime: "Prime", ubisoft: "Ubisoft", epicPhone: "Epic Game Phone",
+                upcomingTab: "Upcoming", upcomingTip: "UPCOMING", comingBtn: "Coming Soon", // Upcoming Additions
                 savedSince: "Total saved since install", libTitle: "My Loot Library", libTotal: "Total Games", libSaved: "Total Saved", libEmpty: "Your library is empty. Start claiming free games!", libNoFilter: "No games match this platform.",
                 instTitle: "Install LootRadar", instDesc: "Install to access instantly! We will track your claimed games and calculate your total lifetime savings.", instB1: "Track Claimed History", instB2: "Calculate Total Savings", instBtn: "Install App", instDismiss: "Maybe Later",
                 instIos1: "1. Tap the Share icon below", instIos2: "2. Select 'Add to Home Screen'", instGotIt: "Got it!",
@@ -402,6 +396,7 @@
                 title: "白嫖雷达", subtitle: "全网免费游戏限免实时追踪平台", 
                 loading: ["正在扫描白嫖资源...", "正在黑入 Epic 游戏金库...", "正在给 G 胖塞钱...", "正在定位 Prime 隐藏掉落...", "正在叫醒服务器的小仓鼠...", "正在给雷达加注燃料...", "不要走开，马上就好..."], 
                 error: "连接服务器失败，请稍后再试。", empty: "该平台当前暂无免费游戏。", ptrPull: "下拉刷新...", ptrRelease: "松开开始扫描...", free: "免费", worth: "原价 ", getBtn: "立即领取", claimedBtn: "已入库", platformAll: "全部平台", platformPC: "PC通用", newTip: "新发布", prime: "Prime特权", ubisoft: "育碧", epicPhone: "Epic Game Phone",
+                upcomingTab: "下期预告", upcomingTip: "即将限免", comingBtn: "敬请期待", // Upcoming Additions
                 savedSince: "自安装起累计省下", libTitle: "我的白嫖库", libTotal: "游戏总数", libSaved: "累计省下", libEmpty: "你的游戏库空空如也，快去白嫖吧！", libNoFilter: "没有找到符合该平台的游戏。",
                 instTitle: "安装 白嫖雷达", instDesc: "添加到桌面以快速访问！我们将为您永久记录入库游戏并计算省下的总金额。", instB1: "记录领取历史与封面", instB2: "计算终身省下的金钱", instBtn: "立即安装", instDismiss: "以后再说",
                 instIos1: "1. 点击浏览器底部的『分享』图标", instIos2: "2. 选择『添加到主屏幕』", instGotIt: "我知道了",
@@ -420,6 +415,7 @@
                 title: "RadarLoot", subtitle: "Rastreando juegos gratis en el multiverso", 
                 loading: ["Buscando botín en la matrix...", "Hackeando la bóveda de Epic...", "Sobornando a Gabe Newell...", "Localizando drops ocultos...", "Despertando a los hámsters..."], 
                 error: "Error de conexión.", empty: "No hay juegos gratis ahora.", ptrPull: "Tira para refrescar...", ptrRelease: "Suelta para escanear...", free: "GRATIS", worth: "Era ", getBtn: "Reclamar", claimedBtn: "Reclamado", platformAll: "Todas", platformPC: "PC (Otro)", newTip: "NUEVO", prime: "Prime", ubisoft: "Ubisoft", epicPhone: "Epic Game Phone",
+                upcomingTab: "Próximamente", upcomingTip: "PRÓXIMO", comingBtn: "Pronto", // Upcoming
                 savedSince: "Ahorrado desde la instalación", libTitle: "Mi Biblioteca", libTotal: "Juegos", libSaved: "Ahorrado", libEmpty: "¡Tu biblioteca está vacía!", libNoFilter: "Ningún juego coincide con este filtro.",
                 instTitle: "Instalar RadarLoot", instDesc: "¡Instálalo para acceso rápido! Rastrearemos tus juegos reclamados y el ahorro total.", instB1: "Historial de juegos", instB2: "Ahorro total", instBtn: "Instalar App", instDismiss: "Más tarde",
                 instIos1: "1. Toca el ícono de Compartir abajo", instIos2: "2. Selecciona 'Agregar a inicio'", instGotIt: "¡Entendido!",
@@ -438,6 +434,7 @@
                 title: "RadarButin", subtitle: "Suivi des jeux gratuits dans le multivers", 
                 loading: ["Recherche de butin...", "Piratage du coffre Epic...", "Soudoyant Gabe Newell...", "Localisation des drops cachés...", "Réveil des hamsters..."], 
                 error: "Échec de connexion.", empty: "Aucun jeu gratuit.", ptrPull: "Tirez pour rafraîchir...", ptrRelease: "Relâchez...", free: "GRATUIT", worth: "Était ", getBtn: "Obtenir", claimedBtn: "Obtenu", platformAll: "Toutes", platformPC: "PC (Autre)", newTip: "NOUVEAU", prime: "Prime", ubisoft: "Ubisoft", epicPhone: "Epic Game Phone",
+                upcomingTab: "À venir", upcomingTip: "BIENTÔT", comingBtn: "Bientôt", // Upcoming
                 savedSince: "Économisé depuis l'installation", libTitle: "Ma Bibliothèque", libTotal: "Total Jeux", libSaved: "Économisé", libEmpty: "Votre bibliothèque est vide !", libNoFilter: "Aucun jeu ne correspond à ce filtre.",
                 instTitle: "Installer RadarButin", instDesc: "Installez pour un accès instantané ! Nous suivrons vos jeux et vos économies.", instB1: "Historique des jeux", instB2: "Calcul des économies", instBtn: "Installer", instDismiss: "Plus tard",
                 instIos1: "1. Touchez l'icône Partager ci-dessous", instIos2: "2. Sélectionnez 'Sur l'écran d'accueil'", instGotIt: "J'ai compris",
@@ -456,6 +453,7 @@
                 title: "LootRadar", subtitle: "Verfolgung kostenloser Spiele", 
                 loading: ["Scanne Matrix nach Loot...", "Hacke den Epic Games Tresor...", "Besteche Gabe Newell...", "Suche versteckte Drops...", "Wecke die Server-Hamster..."], 
                 error: "Verbindungsfehler.", empty: "Keine kostenlosen Spiele.", ptrPull: "Ziehen zum Aktualisieren...", ptrRelease: "Loslassen...", free: "GRATIS", worth: "War ", getBtn: "Holen", claimedBtn: "Beansprucht", platformAll: "Alle", platformPC: "PC (Andere)", newTip: "NEU", prime: "Prime", ubisoft: "Ubisoft", epicPhone: "Epic Game Phone",
+                upcomingTab: "Demnächst", upcomingTip: "BALD", comingBtn: "Demnächst", // Upcoming
                 savedSince: "Gespart seit der Installation", libTitle: "Meine Bibliothek", libTotal: "Spiele", libSaved: "Gespart", libEmpty: "Deine Bibliothek ist leer!", libNoFilter: "Keine Spiele für diesen Filter gefunden.",
                 instTitle: "Installiere LootRadar", instDesc: "Installiere für sofortigen Zugriff! Wir speichern deine Spiele und Ersparnisse.", instB1: "Spielverlauf speichern", instB2: "Ersparnisse berechnen", instBtn: "App installieren", instDismiss: "Später",
                 instIos1: "1. Tippe unten auf das Teilen-Symbol", instIos2: "2. Wähle 'Zum Home-Bildschirm'", instGotIt: "Verstanden",
@@ -474,6 +472,7 @@
                 title: "РадарЛута", subtitle: "Отслеживание бесплатных игр", 
                 loading: ["Поиск лута в матрице...", "Взлом хранилища Epic...", "Подкуп Гейба Ньюэлла...", "Поиск скрытых дропов...", "Будим серверных хомяков..."], 
                 error: "Ошибка подключения.", empty: "Нет бесплатных игр.", ptrPull: "Потяните для обновления...", ptrRelease: "Отпустите...", free: "БЕСПЛАТНО", worth: "Было ", getBtn: "Забрать", claimedBtn: "Получено", platformAll: "Все", platformPC: "ПК (Другое)", newTip: "НОВОЕ", prime: "Prime", ubisoft: "Ubisoft", epicPhone: "Epic Game Phone",
+                upcomingTab: "Скоро", upcomingTip: "СКОРО", comingBtn: "Ожидается", // Upcoming
                 savedSince: "Сэкономлено после установки", libTitle: "Моя Библиотека", libTotal: "Всего игр", libSaved: "Сэкономлено", libEmpty: "Ваша библиотека пуста!", libNoFilter: "Нет игр, соответствующих фильтру.",
                 instTitle: "Установить Радар", instDesc: "Установите для быстрого доступа! Мы сохраним вашу историю и посчитаем экономию.", instB1: "История игр", instB2: "Сумма экономии", instBtn: "Установить", instDismiss: "Позже",
                 instIos1: "1. Нажмите иконку 'Поделиться' внизу", instIos2: "2. Выберите 'На экран «Домой»'", instGotIt: "Понятно",
@@ -492,6 +491,7 @@
                 title: "ルートレーダー", subtitle: "無料ゲームをリアルタイムで追跡", 
                 loading: ["ルートをスキャン中...", "Epicの金庫をハッキング中...", "ゲイブを買収中...", "隠しドロップを検索中...", "サーバーのハムスターを起こしています..."], 
                 error: "接続エラー", empty: "現在無料ゲームはありません", ptrPull: "引っ張って更新...", ptrRelease: "離してスキャン...", free: "無料", worth: "元の価格 ", getBtn: "今すぐ入手", claimedBtn: "取得済み", platformAll: "すべて", platformPC: "PC(その他)", newTip: "新着", prime: "Prime", ubisoft: "Ubisoft", epicPhone: "Epic Game Phone",
+                upcomingTab: "次回予告", upcomingTip: "予告", comingBtn: "まもなく", // Upcoming
                 savedSince: "インストールからの節約額", libTitle: "マイライブラリ", libTotal: "ゲーム数", libSaved: "節約総額", libEmpty: "ライブラリは空です！", libNoFilter: "この条件に合うゲームはありません。",
                 instTitle: "アプリをインストール", instDesc: "ホーム画面に追加して素早くアクセス！取得履歴と節約額を記録します。", instB1: "取得履歴の保存", instB2: "節約額の計算", instBtn: "インストール", instDismiss: "後で",
                 instIos1: "1. 下の「共有」アイコンをタップ", instIos2: "2. 「ホーム画面に追加」を選択", instGotIt: "了解",
@@ -510,6 +510,7 @@
                 title: "루트 레이더", subtitle: "무료 게임 실시간 추적", 
                 loading: ["전리품 스캔 중...", "Epic 금고 해킹 중...", "Gabe Newell 매수 중...", "숨겨진 드롭 찾는 중...", "서버 햄스터 깨우는 중..."], 
                 error: "연결 오류", empty: "무료 게임이 없습니다.", ptrPull: "당겨서 새로고침...", ptrRelease: "놓아서 스캔...", free: "무료", worth: "원가 ", getBtn: "받기", claimedBtn: "라이브러리 추가됨", platformAll: "모든 플랫폼", platformPC: "PC (기타)", newTip: "신규", prime: "Prime", ubisoft: "Ubisoft", epicPhone: "Epic Game Phone",
+                upcomingTab: "예정", upcomingTip: "예정", comingBtn: "출시 예정", // Upcoming
                 savedSince: "설치 후 절약한 금액", libTitle: "내 라이브러리", libTotal: "총 게임", libSaved: "총 절약액", libEmpty: "라이브러리가 비어 있습니다!", libNoFilter: "이 필터와 일치하는 게임이 없습니다.",
                 instTitle: "앱 설치", instDesc: "홈 화면에 추가하세요! 획득 기록과 절약한 금액을 저장해 줍니다.", instB1: "획득 기록 저장", instB2: "절약액 계산", instBtn: "설치하기", instDismiss: "나중에",
                 instIos1: "1. 하단의 '공유' 아이콘을 탭하세요", instIos2: "2. '홈 화면에 추가'를 선택하세요", instGotIt: "확인",
@@ -528,6 +529,7 @@
                 title: "RadarLoot", subtitle: "Rastreando jogos grátis", 
                 loading: ["Escaneando loot...", "Hackeando o cofre da Epic...", "Subornando o Gabe Newell...", "Localizando drops ocultos...", "Acordando os hamsters..."], 
                 error: "Erro de conexão.", empty: "Sem jogos grátis.", ptrPull: "Puxe para atualizar...", ptrRelease: "Solte para escanear...", free: "GRÁTIS", worth: "Era ", getBtn: "Resgatar", claimedBtn: "Resgatado", platformAll: "Todas", platformPC: "PC (Outro)", newTip: "NOVO", prime: "Prime", ubisoft: "Ubisoft", epicPhone: "Epic Game Phone",
+                upcomingTab: "Em Breve", upcomingTip: "EM BREVE", comingBtn: "Em Breve", // Upcoming
                 savedSince: "Economizado desde a instalação", libTitle: "Minha Biblioteca", libTotal: "Jogos", libSaved: "Economizou", libEmpty: "Sua biblioteca está vazia!", libNoFilter: "Nenhum jogo encontrado neste filtro.",
                 instTitle: "Instalar RadarLoot", instDesc: "Instale para acesso rápido! Salvaremos seu histórico e sua economia total.", instB1: "Histórico de jogos", instB2: "Economia total", instBtn: "Instalar", instDismiss: "Mais tarde",
                 instIos1: "1. Toque no ícone Compartilhar abaixo", instIos2: "2. Selecione 'Adicionar à Tela de Início'", instGotIt: "Entendi!",
@@ -556,11 +558,13 @@
             libFilter: 'All'
         };
 
+        // 🚨 更新：在 All 后面插入了全新的 Upcoming Tab！并且注入了 game 对象用于精准判定
         const platforms = [
             { id: 'All', icon: 'ph-infinity', matches: [], excludes: [] },
+            { id: 'Upcoming', icon: 'ph-calendar-star', matches: [], excludes: [], customRule: (text, game) => game && game.isUpcoming === true },
             { id: 'Steam', icon: 'ph-steam-logo', matches: ['steam', 'steampowered.com'], excludes: [] },
             { id: 'Epic', icon: 'ph-game-controller', matches: ['epic games', 'epicgames.com'], excludes: ['android', 'ios', 'mobile'] },
-            { id: 'EpicPhone', icon: 'ph-game-controller', matches: [], excludes: [], customRule: (text) => {
+            { id: 'EpicPhone', icon: 'ph-game-controller', matches: [], excludes: [], customRule: (text, game) => {
                 const hasEpic = text.includes('epic games') || text.includes('epicgames.com');
                 const hasMobile = text.includes('android') || text.includes('ios') || text.includes('mobile');
                 return hasEpic && hasMobile; 
@@ -710,11 +714,11 @@
             }
         }
 
-        // 🚨 核心防丢数据引擎：通过代理轮询与严密的 JSON 校验，确保手机抓取和电脑一样多！
-        async function fetchWithFallbacks(url, isReddit = false) {
+        // 🚨 升级版代理引擎：彻底突破手机浏览器顽固缓存，自动根据 API 类型进行精准指纹校验
+        async function fetchWithFallbacks(url, apiType = 'gamerpower') {
             const proxies = [
-                '', // 尝试直接请求
-                'https://corsproxy.io/?', // 极为强大的防 CORS 拦截器
+                '', // 直连优先
+                'https://corsproxy.io/?', // 最强企业级代理，突破一切防火墙
                 'https://api.codetabs.com/v1/proxy?quest=',
                 'https://api.allorigins.win/raw?url='
             ];
@@ -722,34 +726,85 @@
             for (const proxy of proxies) {
                 try {
                     const fetchUrl = proxy ? proxy + encodeURIComponent(url) : url;
-                    // 强制无缓存抓取，打破手机浏览器顽固缓存机制
                     const res = await fetch(fetchUrl, { cache: "no-store" }); 
                     if (res.ok) {
                         const data = await res.json();
                         
-                        // 数据指纹识别：坚决阻挡 Cloudflare 等错误拦截页面
-                        if (isReddit) {
-                            if (data && data.kind === 'Listing' && data.data && data.data.children) {
-                                return data;
-                            }
-                        } else {
-                            if (data && Array.isArray(data)) {
-                                return data;
-                            }
-                        }
+                        // 坚决阻挡被拦截的假数据
+                        if (apiType === 'reddit' && data && data.kind === 'Listing') return data;
+                        if (apiType === 'epic' && data && data.data && data.data.Catalog) return data;
+                        if (apiType === 'gamerpower' && Array.isArray(data)) return data;
                     }
                 } catch (e) {} 
             }
             return null; 
         }
 
+        // 🚨 全新模块：Epic 官方底层 API 下期预告抓取引擎
+        async function fetchEpicUpcoming() {
+            try {
+                const url = 'https://store-site-backend-static-ipv4.ak.epicgames.com/freeGamesPromotions?locale=en-US&country=US&allowCountries=US';
+                const data = await fetchWithFallbacks(url, 'epic');
+                if (!data) return [];
+
+                const elements = data.data.Catalog.searchStore.elements;
+                const upcomingDeals = [];
+
+                elements.forEach(el => {
+                    if (!el.promotions || !el.promotions.upcomingPromotionalOffers || el.promotions.upcomingPromotionalOffers.length === 0) return;
+                    
+                    const upcomingOffers = el.promotions.upcomingPromotionalOffers[0].promotionalOffers;
+                    if (!upcomingOffers || upcomingOffers.length === 0) return;
+
+                    const offer = upcomingOffers[0];
+                    const startDate = new Date(offer.startDate);
+                    
+                    // 如果活动已经开始了，就不要放在预告里了
+                    if (startDate < new Date()) return;
+                    
+                    const originalPrice = el.price?.totalPrice?.fmtPrice?.originalPrice || 'N/A';
+                    
+                    let imgUrl = '';
+                    const keyImages = el.keyImages;
+                    if (keyImages && keyImages.length > 0) {
+                        const image = keyImages.find(img => img.type === 'OfferImageWide' || img.type === 'DieselStoreFrontWide' || img.type === 'Thumbnail');
+                        imgUrl = image ? image.url : keyImages[0].url;
+                    }
+
+                    // 兼容神秘大作（Mystery Game）缺少 slug 的情况
+                    let link = el.productSlug ? `https://store.epicgames.com/en-US/p/${el.productSlug}` : 'https://store.epicgames.com/en-US/free-games';
+
+                    // 格式化即将开始的日期 (例如：Nov 14 / 11月14日)
+                    const dateOptions = { month: 'short', day: 'numeric' };
+                    const formattedDate = startDate.toLocaleDateString(state.lang === 'zh' ? 'zh-CN' : 'en-US', dateOptions);
+
+                    upcomingDeals.push({
+                        id: 'epic_upc_' + el.id,
+                        title: el.title,
+                        image: imgUrl,
+                        description: `Epic Games Store upcoming freebie. Opens on ${formattedDate}.`,
+                        worth: originalPrice === '0' ? 'N/A' : originalPrice,
+                        platforms: 'Epic Games',
+                        open_giveaway: link,
+                        // 使用当前时间强制让预告排在最前面
+                        published_date: new Date().toISOString(), 
+                        isUpcoming: true,
+                        startDate: formattedDate
+                    });
+                });
+
+                return upcomingDeals;
+            } catch (e) {
+                return [];
+            }
+        }
+
         async function fetchRedditDeals() {
             try {
-                // 并发使用智能轮询引擎请求，彻底解决 Android 和 iOS 数据丢失
                 const [gpJson, fgaJson, iosJson] = await Promise.all([
-                    fetchWithFallbacks('https://www.reddit.com/r/googleplaydeals/new.json?limit=100', true),
-                    fetchWithFallbacks('https://www.reddit.com/r/FreeGamesOnAndroid/new.json?limit=50', true),
-                    fetchWithFallbacks('https://www.reddit.com/r/AppHookup/search.json?q=flair_name%3A%22iOS%20Universal%22%20OR%20flair_name%3A%22iOS%20Game%22&restrict_sr=1&sort=new&limit=100', true)
+                    fetchWithFallbacks('https://www.reddit.com/r/googleplaydeals/new.json?limit=100', 'reddit'),
+                    fetchWithFallbacks('https://www.reddit.com/r/FreeGamesOnAndroid/new.json?limit=50', 'reddit'),
+                    fetchWithFallbacks('https://www.reddit.com/r/AppHookup/search.json?q=flair_name%3A%22iOS%20Universal%22%20OR%20flair_name%3A%22iOS%20Game%22&restrict_sr=1&sort=new&limit=100', 'reddit')
                 ]);
 
                 let androidDeals = [], iosDeals = [];
@@ -773,7 +828,6 @@
         }
 
         function processRedditPost(post, platform) {
-            // 精准匹配美元、欧元、英镑
             const priceMatch = post.title.match(/(?:\$|€|£)\s?([0-9.]+)/);
             let imgUrl = platform === 'iOS' ? 'https://images.unsplash.com/photo-1591337676887-a21bfc42dd5b?auto=format&fit=crop&w=400&q=80' : 'https://images.unsplash.com/photo-1607252654015-f84f1b578d51?auto=format&fit=crop&w=400&q=80';
             if (post.preview && post.preview.images && post.preview.images[0]) imgUrl = post.preview.images[0].source.url.replace(/&amp;/g, '&');
@@ -793,19 +847,22 @@
             if (refreshIcon) refreshIcon.classList.add('animate-spin', 'text-blue-500', 'dark:text-neon-blue');
 
             try {
-                const gpData = await fetchWithFallbacks('https://www.gamerpower.com/api/giveaways', false);
+                // 并发请求所有数据，大幅提升速度！
+                const [gpData, redditData, epicUpcomingData] = await Promise.all([
+                    fetchWithFallbacks('https://www.gamerpower.com/api/giveaways', 'gamerpower'),
+                    fetchRedditDeals(),
+                    fetchEpicUpcoming()
+                ]);
+
                 let validGpData = [];
-                
                 if (gpData && Array.isArray(gpData)) {
                     validGpData = gpData.filter(game => {
                         const title = (game.title || '').toLowerCase();
                         return !title.includes('gamerpower');
                     });
                 }
-
-                const redditData = await fetchRedditDeals();
                 
-                let allGames = [...validGpData, ...redditData];
+                let allGames = [...epicUpcomingData, ...validGpData, ...redditData];
                 
                 const uniqueMap = new Map();
                 allGames.forEach(g => {
@@ -830,6 +887,12 @@
 
         window.handleClaim = function(gameObjStr) {
             const game = JSON.parse(decodeURIComponent(gameObjStr));
+            
+            // 🚨 下期预告不能被提前加入到“我的白嫖库”中
+            if (game.isUpcoming) {
+                return; 
+            }
+
             const id = String(game.id);
             const alreadyClaimed = !!state.claimedGames[id];
             const isLegacySave = typeof state.claimedGames[id] === 'boolean';
@@ -868,7 +931,7 @@
 
             const filterSelect = document.getElementById('lib-filter-select');
             filterSelect.innerHTML = platforms.map(p => {
-                const labelMap = { 'Prime': t.prime, 'Ubisoft': t.ubisoft, 'EpicPhone': t.epicPhone };
+                const labelMap = { 'Prime': t.prime, 'Ubisoft': t.ubisoft, 'EpicPhone': t.epicPhone, 'Upcoming': t.upcomingTab };
                 const label = p.id === 'All' ? t.platformAll : (labelMap[p.id] || p.id);
                 return `<option value="${p.id}" ${state.libFilter === p.id ? 'selected' : ''}>&nbsp;&nbsp;&nbsp;${label}</option>`;
             }).join('');
@@ -885,7 +948,7 @@
                 const currentPlatObj = platforms.find(p => p.id === state.libFilter);
                 if (currentPlatObj) {
                     filteredGames = filteredGames.filter(g => {
-                        return isPlatformMatch({platforms: g.platforms, open_giveaway: g.open_giveaway}, currentPlatObj.matches, currentPlatObj.excludes, currentPlatObj.requires, currentPlatObj.customRule);
+                        return isPlatformMatch(g, currentPlatObj.matches, currentPlatObj.excludes, currentPlatObj.requires, currentPlatObj.customRule);
                     });
                 }
             }
@@ -953,12 +1016,13 @@
             if(!document.getElementById('library-modal').classList.contains('hidden')) renderLibrary();
         }
 
+        // 🚨 更新：传入了完整的 game 对象给 customRule，支持 Upcoming 特殊标签判定
         function isPlatformMatch(game, matchKeywords, excludeKeywords = [], requireKeywords = [], customRule = null) {
             const plat = (game.platforms || '').toLowerCase();
             const link = (game.open_giveaway || '').toLowerCase();
             const strictText = plat + " " + link;
             
-            if (customRule) return customRule(strictText);
+            if (customRule) return customRule(strictText, game);
             if (matchKeywords.length === 0) return true;
             
             if (excludeKeywords && excludeKeywords.length > 0) {
@@ -993,7 +1057,7 @@
                 const baseClasses = "relative snap-start flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-full font-medium transition-all duration-300 cursor-pointer text-sm border";
                 const activeClasses = isSelected ? "bg-blue-600 text-white border-blue-600 dark:bg-blue-600/20 dark:text-neon-blue dark:border-neon-blue shadow-[0_4px_15px_rgba(59,130,246,0.4)] dark:shadow-[0_0_15px_rgba(0,243,255,0.3)] transform -translate-y-[2px]" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:-translate-y-[2px] hover:shadow-md dark:bg-dark-card dark:text-gray-400 dark:border-gray-800 dark:hover:border-gray-600 dark:hover:shadow-[0_4px_10px_rgba(0,0,0,0.5)]";
 
-                const labelMap = { 'Prime': t.prime, 'Ubisoft': t.ubisoft, 'EpicPhone': t.epicPhone };
+                const labelMap = { 'Prime': t.prime, 'Ubisoft': t.ubisoft, 'EpicPhone': t.epicPhone, 'Upcoming': t.upcomingTab };
                 const label = plat.id === 'All' ? t.platformAll : (labelMap[plat.id] || plat.id);
                 const btn = document.createElement('button');
                 btn.className = `${baseClasses} ${activeClasses}`;
@@ -1020,6 +1084,7 @@
                 const isNew = (now - new Date(game.published_date).getTime()) < 172800000;
                 const pIcon = getPlatformIconHtml(game);
                 const isClaimed = !!state.claimedGames[String(game.id)];
+                const isUpcoming = game.isUpcoming;
                 const gameObjStr = encodeURIComponent(JSON.stringify(game));
 
                 const card = document.createElement('a');
@@ -1029,15 +1094,27 @@
                 card.style.animation = `fadeUp 0.5s ease forwards ${index * 0.05}s`;
                 card.style.opacity = '0'; card.style.transform = 'translateY(20px)';
 
-                const btnStyle = isClaimed ? `bg-green-100 text-green-700 border-2 border-green-200 shadow-[0_4px_0_#bbf7d0] dark:bg-[#112211] dark:text-green-400 dark:border-green-900/50 dark:shadow-[0_4px_0_#052e16]` : `bg-white text-blue-600 border-2 border-blue-100 shadow-[0_4px_0_#bfdbfe] dark:bg-[#151b22] dark:text-neon-blue dark:border-gray-700 dark:shadow-[0_4px_0_#0b0c10] group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 group-hover:shadow-[0_6px_20px_rgba(37,99,235,0.4)] group-hover:-translate-y-1 dark:group-hover:bg-neon-blue dark:group-hover:text-black dark:group-hover:border-neon-blue dark:group-hover:shadow-[0_0_20px_rgba(0,243,255,0.4)] dark:group-hover:-translate-y-1 group-active:translate-y-[4px] group-active:shadow-[0_0_0_transparent] dark:group-active:translate-y-[4px] dark:group-active:shadow-[0_0_0_transparent]`;
-                const btnContent = isClaimed ? `<i class="ph-bold ph-check-circle mr-1 text-lg"></i> ${t.claimedBtn}` : `${t.getBtn} <i class="ph-bold ph-caret-right ml-1 transition-transform group-hover:translate-x-1"></i>`;
+                // 🚨 为 Upcoming 设计了专属的橙色预告主题
+                let btnStyle, btnContent, topTag, priceDisplay;
+                
+                if (isUpcoming) {
+                    btnStyle = `bg-orange-100 text-orange-700 border-2 border-orange-200 shadow-[0_4px_0_#fed7aa] dark:bg-[#2a1300] dark:text-orange-400 dark:border-orange-900/50 dark:shadow-[0_4px_0_#431407] group-hover:bg-orange-500 group-hover:text-white group-hover:border-orange-500 dark:group-hover:bg-orange-500 dark:group-hover:text-black dark:group-hover:border-orange-500 group-active:translate-y-[4px] group-active:shadow-[0_0_0_transparent] dark:group-active:translate-y-[4px] dark:group-active:shadow-[0_0_0_transparent]`;
+                    btnContent = `<i class="ph-bold ph-calendar-plus mr-1 text-lg"></i> ${t.comingBtn || 'Coming Soon'}`;
+                    topTag = `<div class="absolute top-3 left-3 bg-orange-500 text-white text-xs font-bold px-2 py-1 rounded-md shadow-lg flex items-center gap-1"><i class="ph-fill ph-clock-countdown animate-pulse"></i> ${t.upcomingTip || 'UPCOMING'}</div>`;
+                    priceDisplay = `<p class="text-[15px] font-black text-orange-500 dark:text-orange-400 mt-[-2px] tracking-wide"><i class="ph-bold ph-calendar-blank"></i> ${game.startDate}</p>`;
+                } else {
+                    btnStyle = isClaimed ? `bg-green-100 text-green-700 border-2 border-green-200 shadow-[0_4px_0_#bbf7d0] dark:bg-[#112211] dark:text-green-400 dark:border-green-900/50 dark:shadow-[0_4px_0_#052e16]` : `bg-white text-blue-600 border-2 border-blue-100 shadow-[0_4px_0_#bfdbfe] dark:bg-[#151b22] dark:text-neon-blue dark:border-gray-700 dark:shadow-[0_4px_0_#0b0c10] group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 group-hover:shadow-[0_6px_20px_rgba(37,99,235,0.4)] group-hover:-translate-y-1 dark:group-hover:bg-neon-blue dark:group-hover:text-black dark:group-hover:border-neon-blue dark:group-hover:shadow-[0_0_20px_rgba(0,243,255,0.4)] dark:group-hover:-translate-y-1 group-active:translate-y-[4px] group-active:shadow-[0_0_0_transparent] dark:group-active:translate-y-[4px] dark:group-active:shadow-[0_0_0_transparent]`;
+                    btnContent = isClaimed ? `<i class="ph-bold ph-check-circle mr-1 text-lg"></i> ${t.claimedBtn}` : `${t.getBtn} <i class="ph-bold ph-caret-right ml-1 transition-transform group-hover:translate-x-1"></i>`;
+                    topTag = isNew ? `<div class="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md shadow-lg flex items-center gap-1"><i class="ph-fill ph-sparkle animate-pulse"></i> ${t.newTip}</div>` : '';
+                    priceDisplay = `<p class="text-xl font-black text-green-500 dark:text-green-400 mt-[-4px] tracking-wide">${t.free}</p>`;
+                }
 
                 card.innerHTML = `
                     <div class="relative h-44 md:h-48 overflow-hidden bg-gray-200 dark:bg-gray-800 flex-shrink-0">
                         <img src="${game.image}" alt="${game.title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" onerror="this.src='https://via.placeholder.com/400x200?text=No+Image'">
-                        ${isNew ? `<div class="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md shadow-lg flex items-center gap-1"><i class="ph-fill ph-sparkle animate-pulse"></i> ${t.newTip}</div>` : ''}
+                        ${topTag}
                         <div class="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-2 py-1 rounded-md flex items-center gap-1 border border-white/10">${pIcon}</div>
-                        ${isClaimed ? `<div class="absolute inset-0 bg-black/40 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"><i class="ph-fill ph-check-circle text-5xl text-green-400 drop-shadow-[0_0_15px_rgba(74,222,128,0.5)]"></i></div>` : ''}
+                        ${isClaimed && !isUpcoming ? `<div class="absolute inset-0 bg-black/40 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"><i class="ph-fill ph-check-circle text-5xl text-green-400 drop-shadow-[0_0_15px_rgba(74,222,128,0.5)]"></i></div>` : ''}
                     </div>
                     <div class="p-4 md:p-5 flex flex-col flex-1 min-h-[180px]">
                         <div>
@@ -1047,7 +1124,7 @@
                         <div class="flex items-end justify-between mt-auto relative z-20">
                             <div>
                                 <p class="text-xs text-gray-400 line-through decoration-red-500 decoration-2">${game.worth !== 'N/A' ? t.worth + game.worth : ''}</p>
-                                <p class="text-xl font-black text-green-500 dark:text-green-400 mt-[-4px] tracking-wide">${t.free}</p>
+                                ${priceDisplay}
                             </div>
                             <span class="inline-flex items-center justify-center px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 ${btnStyle}">${btnContent}</span>
                         </div>

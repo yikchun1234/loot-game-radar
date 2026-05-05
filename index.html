@@ -51,7 +51,8 @@
     
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
-
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+    
     <style>
         /* Custom UI Enhancements */
         body { -webkit-tap-highlight-color: transparent; overscroll-behavior-y: contain; }
@@ -284,8 +285,56 @@
                 </div>
             </div>
         </div>
+        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 relative z-10">
+            <div class="flex items-center gap-2 mb-2">
+                <i class="ph-bold ph-arrows-left-right text-blue-500 dark:text-neon-blue"></i>
+                <h4 class="font-bold text-sm dark:text-white">Device Sync</h4>
+            </div>
+            <p class="text-[11px] text-gray-500 dark:text-gray-400 mb-3 leading-tight">Securely migrate your claimed games and total savings to another device using a 15-minute PIN.</p>
+            <div class="flex gap-2">
+                <button onclick="toggleSyncModal('export')" class="flex-1 py-2 bg-blue-500 hover:bg-blue-600 dark:bg-neon-blue dark:hover:bg-[#00d2dd] dark:text-black text-white rounded-xl text-xs font-bold transition-colors shadow-sm flex justify-center items-center gap-1">
+                    <i class="ph-bold ph-upload-simple"></i> Export
+                </button>
+                <button onclick="toggleSyncModal('import')" class="flex-1 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-bold transition-colors shadow-sm border border-gray-200 dark:border-gray-700 flex justify-center items-center gap-1">
+                    <i class="ph-bold ph-download-simple"></i> Import
+                </button>
+            </div>
+        </div>
     </div>
-
+    
+    <div id="sync-modal" class="hidden fixed inset-0 z-[60] items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">
+        <div class="glass-panel w-full max-w-sm rounded-3xl p-6 relative overflow-hidden animate-[pop_0.3s_ease-out_forwards]">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/20 dark:bg-neon-blue/20 rounded-full blur-2xl pointer-events-none"></div>
+            
+            <div class="flex justify-between items-center mb-6 relative z-10">
+                <h3 id="sync-modal-title" class="text-xl font-display font-black dark:text-white flex items-center gap-2">
+                    </h3>
+                <button onclick="closeSyncModal()" class="w-8 h-8 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-transform active:scale-90">
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+    
+            <div id="sync-export-view" class="text-center hidden relative z-10">
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">Enter this PIN on your other device within 15 minutes.</p>
+                <div id="sync-export-status" class="py-4 flex flex-col items-center justify-center min-h-[100px]">
+                    </div>
+            </div>
+    
+            <div id="sync-import-view" class="hidden relative z-10">
+                <div class="mb-4 px-3 py-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-xl flex items-start gap-2">
+                    <i class="ph-fill ph-warning-circle text-red-500 mt-0.5"></i>
+                    <p class="text-[11px] font-bold text-red-600 dark:text-red-400 leading-tight">Warning: Importing will permanently overwrite your current library and savings on this device.</p>
+                </div>
+                <input type="number" id="sync-pin-input" maxlength="5" placeholder="12345" class="w-full text-center text-3xl font-black tracking-widest py-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-card text-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-neon-blue transition-all mb-2" oninput="this.value=this.value.slice(0,5)">
+                <p id="sync-import-error" class="text-red-500 text-xs font-bold text-center h-4"></p>
+                
+                <button id="sync-import-btn" onclick="handleImportData()" class="w-full py-3.5 mt-4 bg-blue-600 hover:bg-blue-700 dark:bg-neon-blue dark:hover:bg-[#00d2dd] dark:text-black text-white rounded-xl font-bold transition-all shadow-md flex justify-center items-center gap-2">
+                    Import Data
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <!-- My Library Modal -->
     <div id="library-modal" class="hidden fixed inset-0 z-50 flex-col bg-slate-50 dark:bg-dark-bg transition-transform duration-300 transform translate-x-full">
         <!-- Header -->
@@ -628,6 +677,126 @@
             if(permanent) localStorage.setItem('lootradar_prompt_dismissed', 'true');
         }
 
+        // --- CLOUD SYNC FUNCTIONS ---
+        function toggleSyncModal(mode) {
+            toggleDisclaimer(); // Close disclaimer modal
+            const modal = document.getElementById('sync-modal');
+            const exportView = document.getElementById('sync-export-view');
+            const importView = document.getElementById('sync-import-view');
+        
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        
+            if (mode === 'export') {
+                exportView.classList.remove('hidden');
+                importView.classList.add('hidden');
+                document.getElementById('sync-modal-title').innerHTML = '<i class="ph-bold ph-upload-simple text-blue-500 dark:text-neon-blue"></i> Export Data';
+                handleExportData(); // Auto start generating PIN
+            } else {
+                exportView.classList.add('hidden');
+                importView.classList.remove('hidden');
+                document.getElementById('sync-modal-title').innerHTML = '<i class="ph-bold ph-download-simple text-blue-500 dark:text-neon-blue"></i> Import Data';
+                document.getElementById('sync-pin-input').value = '';
+                document.getElementById('sync-import-error').innerText = '';
+                document.getElementById('sync-import-btn').disabled = false;
+                document.getElementById('sync-import-btn').innerHTML = 'Import Data';
+            }
+        }
+        
+        function closeSyncModal() {
+            document.getElementById('sync-modal').classList.add('hidden');
+            document.getElementById('sync-modal').classList.remove('flex');
+        }
+        
+        async function handleExportData() {
+            const statusEl = document.getElementById('sync-export-status');
+            statusEl.innerHTML = '<i class="ph ph-spinner animate-spin text-3xl text-blue-500 dark:text-neon-blue mb-2"></i><p class="text-sm font-bold">Generating Secure PIN...</p>';
+        
+            try {
+                // 1. Gather ONLY LootRadar Data (Ignore UI theme/lang to prevent cache breaking)
+                const exportData = {
+                    lootradar_claimed_v2: localStorage.getItem('lootradar_claimed_v2') || '{}',
+                    lootradar_saved_money: localStorage.getItem('lootradar_saved_money') || '0',
+                    lootradar_claimed: localStorage.getItem('lootradar_claimed') || '{}' // Legacy support
+                };
+                const jsonStr = JSON.stringify(exportData);
+        
+                // 2. Cache Check (Reusing the 15-min PIN logic)
+                const lastPin = localStorage.getItem('sync_last_pin');
+                const lastTime = localStorage.getItem('sync_last_time');
+                const lastPayload = localStorage.getItem('sync_last_payload');
+                const now = Date.now();
+        
+                if (lastPin && lastTime && lastPayload === jsonStr && (now - parseInt(lastTime)) < 840000) {
+                    statusEl.innerHTML = `<div class="bg-gray-100 dark:bg-dark-card border border-gray-200 dark:border-gray-800 rounded-2xl w-full py-6 shadow-inner"><p class="text-5xl font-black tracking-widest text-blue-600 dark:text-neon-blue">${lastPin}</p></div>`;
+                    return;
+                }
+        
+                // 3. Compress and Send to your existing Worker
+                const compressed = LZString.compressToEncodedURIComponent(jsonStr);
+                const response = await fetch('https://pickleball-sync-api.yikchun1234.workers.dev/api/export', {
+                    method: 'POST',
+                    body: compressed
+                });
+        
+                if (!response.ok) throw new Error('Failed to connect to server');
+                const data = await response.json();
+        
+                // 4. Save Cache Metadata
+                localStorage.setItem('sync_last_pin', data.pin);
+                localStorage.setItem('sync_last_time', now.toString());
+                localStorage.setItem('sync_last_payload', jsonStr);
+        
+                statusEl.innerHTML = `<div class="bg-gray-100 dark:bg-dark-card border border-gray-200 dark:border-gray-800 rounded-2xl w-full py-6 shadow-inner"><p class="text-5xl font-black tracking-widest text-blue-600 dark:text-neon-blue">${data.pin}</p></div>`;
+            } catch (e) {
+                statusEl.innerHTML = `<p class="text-red-500 font-bold">Error: ${e.message}</p>`;
+            }
+        }
+        
+        async function handleImportData() {
+            const pin = document.getElementById('sync-pin-input').value;
+            const btn = document.getElementById('sync-import-btn');
+            const errorEl = document.getElementById('sync-import-error');
+        
+            if (!pin || pin.length !== 5) {
+                errorEl.innerText = 'Please enter a 5-digit PIN';
+                return;
+            }
+        
+            btn.disabled = true;
+            btn.innerHTML = '<i class="ph ph-spinner animate-spin"></i> Loading...';
+            errorEl.innerText = '';
+        
+            try {
+                const response = await fetch(`https://pickleball-sync-api.yikchun1234.workers.dev/api/import?pin=${pin}`);
+                if (!response.ok) {
+                    if (response.status === 404) throw new Error('Invalid or expired PIN');
+                    throw new Error('Network error');
+                }
+        
+                const compressed = await response.text();
+                const jsonStr = LZString.decompressFromEncodedURIComponent(compressed);
+                if (!jsonStr) throw new Error('Data corrupted');
+        
+                const parsedData = JSON.parse(jsonStr);
+        
+                // Overwrite LocalStorage
+                if(parsedData.lootradar_claimed_v2) localStorage.setItem('lootradar_claimed_v2', parsedData.lootradar_claimed_v2);
+                if(parsedData.lootradar_saved_money) localStorage.setItem('lootradar_saved_money', parsedData.lootradar_saved_money);
+                if(parsedData.lootradar_claimed) localStorage.setItem('lootradar_claimed', parsedData.lootradar_claimed);
+        
+                btn.classList.replace('bg-blue-600', 'bg-green-500');
+                btn.classList.replace('dark:bg-neon-blue', 'dark:bg-green-500');
+                btn.innerHTML = '<i class="ph-bold ph-check"></i> Success! Reloading...';
+        
+                setTimeout(() => window.location.reload(), 2000);
+            } catch (e) {
+                btn.disabled = false;
+                btn.innerHTML = 'Import Data';
+                errorEl.innerText = e.message;
+            }
+        }
+        
         function init() {
             applyTheme();
             setupLangMenu();

@@ -1395,35 +1395,37 @@
             document.documentElement.lang = state.lang;
 
             // Update Sync UI Text (Bulletproof Vanilla JS)
-            const syncTitleEl = document.getElementById('ui-sync-title');
-            if (syncTitleEl) syncTitleEl.innerText = t.syncTitle;
+            try {
+                const t = i18n[state.lang]; // Ensure 't' is actually defined!
+                
+                if (t) {
+                    const syncTitleEl = document.getElementById('ui-sync-title');
+                    if (syncTitleEl) syncTitleEl.innerText = t.syncTitle;
         
-            const syncDescEl = document.getElementById('ui-sync-desc');
-            if (syncDescEl) syncDescEl.innerText = t.syncDesc;
+                    const syncDescEl = document.getElementById('ui-sync-desc');
+                    if (syncDescEl) syncDescEl.innerText = t.syncDesc;
         
-            const syncExportEl = document.getElementById('ui-sync-export');
-            if (syncExportEl) syncExportEl.innerText = t.syncExportBtn;
+                    const syncExportEl = document.getElementById('ui-sync-export');
+                    if (syncExportEl) syncExportEl.innerText = t.syncExportBtn;
         
-            const syncImportEl = document.getElementById('ui-sync-import');
-            if (syncImportEl) syncImportEl.innerText = t.syncImportBtn;
+                    const syncImportEl = document.getElementById('ui-sync-import');
+                    if (syncImportEl) syncImportEl.innerText = t.syncImportBtn;
         
-            const syncExportInstEl = document.getElementById('ui-sync-export-inst');
-            if (syncExportInstEl) syncExportInstEl.innerText = t.syncExportInst;
+                    const syncExportInstEl = document.getElementById('ui-sync-export-inst');
+                    if (syncExportInstEl) syncExportInstEl.innerText = t.syncExportInst;
         
-            const syncImportWarnEl = document.getElementById('ui-sync-import-warn');
-            if (syncImportWarnEl) syncImportWarnEl.innerText = t.syncImportWarn;
-            
-            // Also update the import button text if it is visible
-            const syncImportBtnEl = document.getElementById('sync-import-btn');
-            if(syncImportBtnEl && !syncImportBtnEl.disabled) {
-                syncImportBtnEl.innerHTML = t.syncImportDataBtn;
+                    const syncImportWarnEl = document.getElementById('ui-sync-import-warn');
+                    if (syncImportWarnEl) syncImportWarnEl.innerText = t.syncImportWarn;
+                    
+                    const syncImportBtnEl = document.getElementById('sync-import-btn');
+                    if(syncImportBtnEl && !syncImportBtnEl.disabled) {
+                        syncImportBtnEl.innerHTML = t.syncImportDataBtn;
+                    }
+                }
+            } catch (error) {
+                console.error("Translation error:", error);
             }
-            
-            // Also update the import button text if it is visible
-            const syncImportBtnEl = document.getElementById('sync-import-btn');
-            if(syncImportBtnEl && !syncImportBtnEl.disabled) {
-                syncImportBtnEl.innerHTML = t.syncImportDataBtn;
-            }
+
         }
 
         function setupPullToRefresh() {

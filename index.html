@@ -292,10 +292,10 @@
                 <p class="text-[11px] text-gray-500 dark:text-gray-400 mb-3 leading-tight">Securely migrate your claimed games and total savings to another device using a 15-minute PIN.</p>
                 <div class="flex gap-2">
                     <button onclick="toggleSyncModal('export')" class="flex-1 py-2 bg-blue-500 hover:bg-blue-600 dark:bg-neon-blue dark:hover:bg-[#00d2dd] dark:text-black text-white rounded-xl text-xs font-bold transition-colors shadow-sm flex justify-center items-center gap-1">
-                        <i class="ph-bold ph-upload-simple"></i> Export
+                        <i class="ph-bold ph-upload-simple"></i> <span id="ui-sync-export">Export</span>
                     </button>
                     <button onclick="toggleSyncModal('import')" class="flex-1 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-bold transition-colors shadow-sm border border-gray-200 dark:border-gray-700 flex justify-center items-center gap-1">
-                        <i class="ph-bold ph-download-simple"></i> Import
+                        <i class="ph-bold ph-download-simple"></i> <span id="ui-sync-import">Import</span>
                     </button>
                 </div>
             </div>
@@ -315,7 +315,7 @@
             </div>
     
             <div id="sync-export-view" class="text-center hidden relative z-10">
-                <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">Enter this PIN on your other device within 15 minutes.</p>
+                <p id="ui-sync-export-inst" class="text-sm text-gray-600 dark:text-gray-400 mb-6">Enter this PIN on your other device within 15 minutes.</p>
                 <div id="sync-export-status" class="py-4 flex flex-col items-center justify-center min-h-[100px]">
                     </div>
             </div>
@@ -323,7 +323,7 @@
             <div id="sync-import-view" class="hidden relative z-10">
                 <div class="mb-4 px-3 py-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-xl flex items-start gap-2">
                     <i class="ph-fill ph-warning-circle text-red-500 mt-0.5"></i>
-                    <p class="text-[11px] font-bold text-red-600 dark:text-red-400 leading-tight">Warning: Importing will permanently overwrite your current library and savings on this device.</p>
+                    <p id="ui-sync-import-warn" class="text-[11px] font-bold text-red-600 dark:text-red-400 leading-tight">Warning: Importing will permanently overwrite your current library and savings on this device.</p>
                 </div>
                 <input type="number" id="sync-pin-input" maxlength="5" placeholder="12345" class="w-full text-center text-3xl font-black tracking-widest py-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-card text-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-neon-blue transition-all mb-2" oninput="this.value=this.value.slice(0,5)">
                 <p id="sync-import-error" class="text-red-500 text-xs font-bold text-center h-4"></p>
@@ -437,7 +437,15 @@
                 disc5: "Offers are time-limited. Always verify the price is 'Free' or '0.00' on the store page before claiming.",
                 disc6: "We are an independent tracker and are not affiliated with or endorsed by Steam, Epic Games, Google, Apple, or other listed platforms.",
                 disc7: "Your data (claimed games, savings) is stored locally on your device, it's not public. Total savings are calculated from the time of installation. Uninstalling the app will permanently delete this history.",
-                disc8: "Most importantly, remember to have FUN playing!"
+                disc8: "Most importantly, remember to have FUN playing!",
+                syncTitle: "Device Sync",
+                syncDesc: "Securely migrate your claimed games and total savings to another device using a 15-minute PIN.",
+                syncExportBtn: "Export",
+                syncImportBtn: "Import",
+                syncExportDataBtn: "Export Data",
+                syncImportDataBtn: "Import Data",
+                syncExportInst: "Enter this PIN on your other device within 15 minutes.",
+                syncImportWarn: "Warning: Importing will permanently overwrite your current library and savings on this device."
             },
             zh: {
                 title: "白嫖雷达", subtitle: "全网免费游戏限免实时追踪平台", 
@@ -455,7 +463,15 @@
                 disc5: "限免活动随时可能结束。在最终商店页面确认领取或购买前，请务必再次核对价格是否为『免费』或『0』。",
                 disc6: "本站为独立追踪工具，与 Steam、Epic Games、Google、Apple 等提到的任何官方游戏平台无关联及赞助关系。",
                 disc7: "您的数据（领取记录与省下的金额）仅保存在本地设备中，不会被公开。累计节省金额自应用安装之日起计算。若卸载应用或清除缓存，这些记录将被永久删除。",
-                disc8: "最重要的是，玩游戏记得要开心玩！"
+                disc8: "最重要的是，玩游戏记得要开心玩！",
+                syncTitle: "设备同步",
+                syncDesc: "使用15分钟有效的PIN码，安全地将您领取的游戏和总节省金额迁移到另一台设备。",
+                syncExportBtn: "导出",
+                syncImportBtn: "导入",
+                syncExportDataBtn: "导出数据",
+                syncImportDataBtn: "导入数据",
+                syncExportInst: "请在15分钟内于另一台设备上输入此PIN码。",
+                syncImportWarn: "警告：导入操作将永久覆盖本设备上的当前游戏库和节省金额。"
             },
             es: {
                 title: "RadarLoot", subtitle: "Rastreando juegos gratis en el multiverso", 
@@ -473,7 +489,15 @@
                 disc5: "Las ofertas tienen tiempo limitado. Verifica siempre que el precio final sea 'Gratis' en la tienda antes de reclamar.",
                 disc6: "Somos un rastreador independiente y no estamos afiliados ni respaldados por Steam, Epic Games, Apple, Google, u otras plataformas.",
                 disc7: "Tus datos se almacenan localmente y no son públicos. El ahorro total se calcula desde el momento de la instalación. Desinstalar la aplicación eliminará este historial permanentemente.",
-                disc8: "Lo más importante: ¡Recuerda DIVERTIRTE jugando!"
+                disc8: "Lo más importante: ¡Recuerda DIVERTIRTE jugando!",
+                syncTitle: "Sincronizar",
+                syncDesc: "Migra de forma segura tus juegos reclamados y ahorros a otro dispositivo usando un PIN de 15 minutos.",
+                syncExportBtn: "Exportar",
+                syncImportBtn: "Importar",
+                syncExportDataBtn: "Exportar Datos",
+                syncImportDataBtn: "Importar Datos",
+                syncExportInst: "Ingresa este PIN en tu otro dispositivo dentro de 15 minutos.",
+                syncImportWarn: "Advertencia: Importar sobrescribirá permanentemente tu biblioteca actual y ahorros en este dispositivo."
             },
             fr: {
                 title: "RadarButin", subtitle: "Suivi des jeux gratuits dans le multivers", 
@@ -491,7 +515,15 @@
                 disc5: "Les offres expirent. Vérifiez toujours que le prix est 'Gratuit' ou '0.00' sur la boutique avant de confirmer.",
                 disc6: "Nous sommes un tracker indépendant et ne sommes pas affiliés à Steam, Epic, Google, Apple ou d'autres plateformes.",
                 disc7: "Vos données sont stockées localement et ne sont pas publiques. Les économies totales sont calculées à partir de l'installation. La désinstallation supprimera définitivement cet historique.",
-                disc8: "Le plus important : N'oubliez pas de vous AMUSER !"
+                disc8: "Le plus important : N'oubliez pas de vous AMUSER !",
+                syncTitle: "Synchronisation",
+                syncDesc: "Migrez en toute sécurité vos jeux réclamés et vos économies vers un autre appareil avec un PIN de 15 minutes.",
+                syncExportBtn: "Exporter",
+                syncImportBtn: "Importer",
+                syncExportDataBtn: "Exporter les Données",
+                syncImportDataBtn: "Importer les Données",
+                syncExportInst: "Saisissez ce PIN sur votre autre appareil dans les 15 minutes.",
+                syncImportWarn: "Avertissement : L'importation écrasera définitivement votre bibliothèque et vos économies sur cet appareil."
             },
             de: {
                 title: "LootRadar", subtitle: "Verfolgung kostenloser Spiele", 
@@ -509,7 +541,15 @@
                 disc5: "Angebote sind zeitlich begrenzt. Überprüfe immer, ob der Preis im Shop 'Gratis' ist, bevor du kaufst.",
                 disc6: "Wir sind ein unabhängiger Tracker und stehen in keiner Verbindung zu Steam, Epic Games, Google, Apple usw.",
                 disc7: "Deine Daten werden lokal gespeichert und sind nicht öffentlich. Die Ersparnisse werden ab der Installation berechnet. Bei Deinstallation wird dieser Verlauf gelöscht.",
-                disc8: "Das Wichtigste: Vergiss nicht, beim Spielen SPASS zu haben!"
+                disc8: "Das Wichtigste: Vergiss nicht, beim Spielen SPASS zu haben!",
+                syncTitle: "Gerätesynchronisation",
+                syncDesc: "Migrieren Sie Ihre Spiele und Ersparnisse mit einer 15-minütigen PIN sicher auf ein anderes Gerät.",
+                syncExportBtn: "Exportieren",
+                syncImportBtn: "Importieren",
+                syncExportDataBtn: "Daten Exportieren",
+                syncImportDataBtn: "Daten Importieren",
+                syncExportInst: "Geben Sie diese PIN innerhalb von 15 Minuten auf Ihrem anderen Gerät ein.",
+                syncImportWarn: "Warnung: Beim Importieren werden Ihre aktuelle Bibliothek und Ihre Ersparnisse dauerhaft überschrieben."
             },
             ru: {
                 title: "РадарЛута", subtitle: "Отслеживание бесплатных игр", 
@@ -527,7 +567,15 @@
                 disc5: "Акции имеют срок действия. Всегда проверяйте, что цена 'Бесплатно' или '0' перед получением игры.",
                 disc6: "Мы независимый трекер и не связаны со Steam, Epic Games, Google, Apple или другими платформами.",
                 disc7: "Ваши данные хранятся локально и не публичны. Экономия рассчитывается с момента установки. Удаление приложения навсегда удалит эту историю.",
-                disc8: "Самое главное - играйте и получайте УДОВОЛЬСТВИЕ!"
+                disc8: "Самое главное - играйте и получайте УДОВОЛЬСТВИЕ!",
+                syncTitle: "Синхронизация",
+                syncDesc: "Безопасно переносите игры и сбережения на другое устройство с помощью 15-минутного PIN-кода.",
+                syncExportBtn: "Экспорт",
+                syncImportBtn: "Импорт",
+                syncExportDataBtn: "Экспорт Данных",
+                syncImportDataBtn: "Импорт Данных",
+                syncExportInst: "Введите этот PIN-код на другом устройстве в течение 15 минут.",
+                syncImportWarn: "Внимание: Импорт навсегда перезапишет вашу текущую библиотеку и сэкономленные средства на этом устройстве."
             },
             ja: {
                 title: "ルートレーダー", subtitle: "無料ゲームをリアルタイムで追跡", 
@@ -545,7 +593,15 @@
                 disc5: "配布には期限があります。最終的なストアページで価格が「無料」であることを必ず確認してください。",
                 disc6: "当サイトは独立したツールであり、Steam、Epic Games、Apple、Googleなどの公式プラットフォームとは提携していません。",
                 disc7: "データはデバイスにローカルに保存され、公開されません。節約総額はインストール時から計算されます。アプリをアンインストールすると履歴は永久に削除されます。",
-                disc8: "最も重要なこと：ゲームを楽しむことを忘れないでください！"
+                disc8: "最も重要なこと：ゲームを楽しむことを忘れないでください！",
+                syncTitle: "デバイス同期",
+                syncDesc: "15分間有効なPINを使用して、取得したゲームと節約額を別のデバイスに安全に移行します。",
+                syncExportBtn: "出力",
+                syncImportBtn: "入力",
+                syncExportDataBtn: "データ出力",
+                syncImportDataBtn: "データ入力",
+                syncExportInst: "15分以内に別のデバイスでこのPINを入力してください。",
+                syncImportWarn: "警告：インポートすると、このデバイスの現在のライブラリと節約額が完全に上書きされます。"
             },
             ko: {
                 title: "루트 레이더", subtitle: "무료 게임 실시간 추적", 
@@ -563,7 +619,15 @@
                 disc5: "무료 배포는 조기 종료될 수 있습니다. 획득하기 전에 상점에서 가격이 '무료'인지 반드시 확인하세요.",
                 disc6: "당사는 독립적인 추적 도구이며 Steam, Epic Games, Google, Apple과 제휴하거나 보증을 받지 않습니다.",
                 disc7: "데이터는 기기에 로컬로 저장되며 공개되지 않습니다. 총 절약액은 설치 시점부터 계산됩니다. 앱을 제거하면 이 기록이 영구적으로 삭제됩니다.",
-                disc8: "가장 중요한 것은 게임을 재미있게 즐기는 것입니다!"
+                disc8: "가장 중요한 것은 게임을 재미있게 즐기는 것입니다!",
+                syncTitle: "기기 동기화",
+                syncDesc: "15분 PIN을 사용하여 획득한 게임과 총 절약액을 다른 기기로 안전하게 마이그레이션하세요.",
+                syncExportBtn: "내보내기",
+                syncImportBtn: "가져오기",
+                syncExportDataBtn: "데이터 내보내기",
+                syncImportDataBtn: "데이터 가져오기",
+                syncExportInst: "15분 이내에 다른 기기에 이 PIN을 입력하세요.",
+                syncImportWarn: "경고: 가져오기를 실행하면 이 기기의 현재 라이브러리와 절약액을 영구적으로 덮어씁니다."
             },
             pt: {
                 title: "RadarLoot", subtitle: "Rastreando jogos grátis", 
@@ -581,7 +645,15 @@
                 disc5: "As ofertas têm tempo limitado. Sempre verifique se o preço final é 'Grátis' ou '0.00' na página da loja antes de confirmar.",
                 disc6: "Somos um rastreador independente e não somos afiliados ou endossados pela Steam, Epic Games, Google, Apple ou outras.",
                 disc7: "Seus dados são armazenados localmente e não são públicos. A economia total é calculada a partir do momento da instalação. Desinstalar o app excluirá permanentemente este histórico.",
-                disc8: "O mais importante: lembre-se de se DIVERTIR jogando!"
+                disc8: "O mais importante: lembre-se de se DIVERTIR jogando!",
+                syncTitle: "Sincronização",
+                syncDesc: "Migre com segurança seus jogos e economia para outro dispositivo usando um PIN de 15 minutos.",
+                syncExportBtn: "Exportar",
+                syncImportBtn: "Importar",
+                syncExportDataBtn: "Exportar Dados",
+                syncImportDataBtn: "Importar Dados",
+                syncExportInst: "Insira este PIN no seu outro dispositivo em até 15 minutos.",
+                syncImportWarn: "Aviso: A importação substituirá permanentemente sua biblioteca atual e economia neste dispositivo."
             }
         };
 
@@ -683,6 +755,7 @@
             const modal = document.getElementById('sync-modal');
             const exportView = document.getElementById('sync-export-view');
             const importView = document.getElementById('sync-import-view');
+            const t = i18n[state.lang]; // Get the translations for the current language
         
             modal.classList.remove('hidden');
             modal.classList.add('flex');
@@ -690,16 +763,16 @@
             if (mode === 'export') {
                 exportView.classList.remove('hidden');
                 importView.classList.add('hidden');
-                document.getElementById('sync-modal-title').innerHTML = '<i class="ph-bold ph-upload-simple text-blue-500 dark:text-neon-blue"></i> Export Data';
+                document.getElementById('sync-modal-title').innerHTML = `<i class="ph-bold ph-upload-simple text-blue-500 dark:text-neon-blue"></i> ${t.syncExportDataBtn}`;
                 handleExportData(); // Auto start generating PIN
             } else {
                 exportView.classList.add('hidden');
                 importView.classList.remove('hidden');
-                document.getElementById('sync-modal-title').innerHTML = '<i class="ph-bold ph-download-simple text-blue-500 dark:text-neon-blue"></i> Import Data';
+                document.getElementById('sync-modal-title').innerHTML = `<i class="ph-bold ph-download-simple text-blue-500 dark:text-neon-blue"></i> ${t.syncImportDataBtn}`;
                 document.getElementById('sync-pin-input').value = '';
                 document.getElementById('sync-import-error').innerText = '';
                 document.getElementById('sync-import-btn').disabled = false;
-                document.getElementById('sync-import-btn').innerHTML = 'Import Data';
+                document.getElementById('sync-import-btn').innerHTML = t.syncImportDataBtn;
             }
         }
         
@@ -1320,6 +1393,19 @@
             safeSetText('ui-disc-8', t.disc8);
 
             document.documentElement.lang = state.lang;
+
+            safeSetText('ui-sync-title', t.syncTitle);
+            safeSetText('ui-sync-desc', t.syncDesc);
+            safeSetText('ui-sync-export', t.syncExportBtn);
+            safeSetText('ui-sync-import', t.syncImportBtn);
+            safeSetText('ui-sync-export-inst', t.syncExportInst);
+            safeSetText('ui-sync-import-warn', t.syncImportWarn);
+            
+            // Also update the import button text if it is visible
+            const syncImportBtnEl = document.getElementById('sync-import-btn');
+            if(syncImportBtnEl && !syncImportBtnEl.disabled) {
+                syncImportBtnEl.innerHTML = t.syncImportDataBtn;
+            }
         }
 
         function setupPullToRefresh() {

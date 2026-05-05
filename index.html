@@ -284,57 +284,56 @@
                     <i class="ph-fill ph-game-controller text-xl text-purple-500 animate-bounce"></i>
                 </div>
             </div>
-        </div>
-        <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 relative z-10">
-            <div class="flex items-center gap-2 mb-2">
-                <i class="ph-bold ph-arrows-left-right text-blue-500 dark:text-neon-blue"></i>
-                <h4 class="font-bold text-sm dark:text-white">Device Sync</h4>
-            </div>
-            <p class="text-[11px] text-gray-500 dark:text-gray-400 mb-3 leading-tight">Securely migrate your claimed games and total savings to another device using a 15-minute PIN.</p>
-            <div class="flex gap-2">
-                <button onclick="toggleSyncModal('export')" class="flex-1 py-2 bg-blue-500 hover:bg-blue-600 dark:bg-neon-blue dark:hover:bg-[#00d2dd] dark:text-black text-white rounded-xl text-xs font-bold transition-colors shadow-sm flex justify-center items-center gap-1">
-                    <i class="ph-bold ph-upload-simple"></i> Export
-                </button>
-                <button onclick="toggleSyncModal('import')" class="flex-1 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-bold transition-colors shadow-sm border border-gray-200 dark:border-gray-700 flex justify-center items-center gap-1">
-                    <i class="ph-bold ph-download-simple"></i> Import
-                </button>
-            </div>
-        </div>
-            <div id="sync-modal" class="hidden fixed inset-0 z-[60] items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">
-            <div class="glass-panel w-full max-w-sm rounded-3xl p-6 relative overflow-hidden animate-[pop_0.3s_ease-out_forwards]">
-                <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/20 dark:bg-neon-blue/20 rounded-full blur-2xl pointer-events-none"></div>
-                
-                <div class="flex justify-between items-center mb-6 relative z-10">
-                    <h3 id="sync-modal-title" class="text-xl font-display font-black dark:text-white flex items-center gap-2">
-                        </h3>
-                    <button onclick="closeSyncModal()" class="w-8 h-8 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-transform active:scale-90">
-                        <i class="ph-bold ph-x"></i>
+                <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 relative z-10">
+                <div class="flex items-center gap-2 mb-2">
+                    <i class="ph-bold ph-arrows-left-right text-blue-500 dark:text-neon-blue"></i>
+                    <h4 class="font-bold text-sm dark:text-white">Device Sync</h4>
+                </div>
+                <p class="text-[11px] text-gray-500 dark:text-gray-400 mb-3 leading-tight">Securely migrate your claimed games and total savings to another device using a 15-minute PIN.</p>
+                <div class="flex gap-2">
+                    <button onclick="toggleSyncModal('export')" class="flex-1 py-2 bg-blue-500 hover:bg-blue-600 dark:bg-neon-blue dark:hover:bg-[#00d2dd] dark:text-black text-white rounded-xl text-xs font-bold transition-colors shadow-sm flex justify-center items-center gap-1">
+                        <i class="ph-bold ph-upload-simple"></i> Export
+                    </button>
+                    <button onclick="toggleSyncModal('import')" class="flex-1 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-bold transition-colors shadow-sm border border-gray-200 dark:border-gray-700 flex justify-center items-center gap-1">
+                        <i class="ph-bold ph-download-simple"></i> Import
                     </button>
                 </div>
-        
-                <div id="sync-export-view" class="text-center hidden relative z-10">
-                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">Enter this PIN on your other device within 15 minutes.</p>
-                    <div id="sync-export-status" class="py-4 flex flex-col items-center justify-center min-h-[100px]">
-                        </div>
-                </div>
-        
-                <div id="sync-import-view" class="hidden relative z-10">
-                    <div class="mb-4 px-3 py-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-xl flex items-start gap-2">
-                        <i class="ph-fill ph-warning-circle text-red-500 mt-0.5"></i>
-                        <p class="text-[11px] font-bold text-red-600 dark:text-red-400 leading-tight">Warning: Importing will permanently overwrite your current library and savings on this device.</p>
+            </div>
+        </div> 
+    </div>
+    
+    <div id="sync-modal" class="hidden fixed inset-0 z-[60] items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">
+        <div class="glass-panel w-full max-w-sm rounded-3xl p-6 relative overflow-hidden animate-[pop_0.3s_ease-out_forwards]">
+            <div class="absolute -top-10 -right-10 w-32 h-32 bg-blue-500/20 dark:bg-neon-blue/20 rounded-full blur-2xl pointer-events-none"></div>
+            
+            <div class="flex justify-between items-center mb-6 relative z-10">
+                <h3 id="sync-modal-title" class="text-xl font-display font-black dark:text-white flex items-center gap-2">
+                    </h3>
+                <button onclick="closeSyncModal()" class="w-8 h-8 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-transform active:scale-90">
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+    
+            <div id="sync-export-view" class="text-center hidden relative z-10">
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-6">Enter this PIN on your other device within 15 minutes.</p>
+                <div id="sync-export-status" class="py-4 flex flex-col items-center justify-center min-h-[100px]">
                     </div>
-                    <input type="number" id="sync-pin-input" maxlength="5" placeholder="12345" class="w-full text-center text-3xl font-black tracking-widest py-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-card text-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-neon-blue transition-all mb-2" oninput="this.value=this.value.slice(0,5)">
-                    <p id="sync-import-error" class="text-red-500 text-xs font-bold text-center h-4"></p>
-                    
-                    <button id="sync-import-btn" onclick="handleImportData()" class="w-full py-3.5 mt-4 bg-blue-600 hover:bg-blue-700 dark:bg-neon-blue dark:hover:bg-[#00d2dd] dark:text-black text-white rounded-xl font-bold transition-all shadow-md flex justify-center items-center gap-2">
-                        Import Data
-                    </button>
+            </div>
+    
+            <div id="sync-import-view" class="hidden relative z-10">
+                <div class="mb-4 px-3 py-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/50 rounded-xl flex items-start gap-2">
+                    <i class="ph-fill ph-warning-circle text-red-500 mt-0.5"></i>
+                    <p class="text-[11px] font-bold text-red-600 dark:text-red-400 leading-tight">Warning: Importing will permanently overwrite your current library and savings on this device.</p>
                 </div>
+                <input type="number" id="sync-pin-input" maxlength="5" placeholder="12345" class="w-full text-center text-3xl font-black tracking-widest py-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-card text-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-neon-blue transition-all mb-2" oninput="this.value=this.value.slice(0,5)">
+                <p id="sync-import-error" class="text-red-500 text-xs font-bold text-center h-4"></p>
+                
+                <button id="sync-import-btn" onclick="handleImportData()" class="w-full py-3.5 mt-4 bg-blue-600 hover:bg-blue-700 dark:bg-neon-blue dark:hover:bg-[#00d2dd] dark:text-black text-white rounded-xl font-bold transition-all shadow-md flex justify-center items-center gap-2">
+                    Import Data
+                </button>
             </div>
         </div>
     </div>
-    
-    
     
     <!-- My Library Modal -->
     <div id="library-modal" class="hidden fixed inset-0 z-50 flex-col bg-slate-50 dark:bg-dark-bg transition-transform duration-300 transform translate-x-full">

@@ -287,9 +287,9 @@
                 <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 relative z-10">
                 <div class="flex items-center gap-2 mb-2">
                     <i class="ph-bold ph-arrows-left-right text-blue-500 dark:text-neon-blue"></i>
-                    <h4 class="font-bold text-sm dark:text-white">Device Sync</h4>
+                    <h4 id="ui-sync-title" class="font-bold text-sm dark:text-white">Device Sync</h4>
                 </div>
-                <p class="text-[11px] text-gray-500 dark:text-gray-400 mb-3 leading-tight">Securely migrate your claimed games and total savings to another device using a 15-minute PIN.</p>
+                <p id="ui-sync-desc" class="text-[11px] text-gray-500 dark:text-gray-400 mb-3 leading-tight">Securely migrate your claimed games and total savings to another device using a 15-minute PIN.</p>
                 <div class="flex gap-2">
                     <button onclick="toggleSyncModal('export')" class="flex-1 py-2 bg-blue-500 hover:bg-blue-600 dark:bg-neon-blue dark:hover:bg-[#00d2dd] dark:text-black text-white rounded-xl text-xs font-bold transition-colors shadow-sm flex justify-center items-center gap-1">
                         <i class="ph-bold ph-upload-simple"></i> <span id="ui-sync-export">Export</span>
@@ -1394,12 +1394,30 @@
 
             document.documentElement.lang = state.lang;
 
-            safeSetText('ui-sync-title', t.syncTitle);
-            safeSetText('ui-sync-desc', t.syncDesc);
-            safeSetText('ui-sync-export', t.syncExportBtn);
-            safeSetText('ui-sync-import', t.syncImportBtn);
-            safeSetText('ui-sync-export-inst', t.syncExportInst);
-            safeSetText('ui-sync-import-warn', t.syncImportWarn);
+            // Update Sync UI Text (Bulletproof Vanilla JS)
+            const syncTitleEl = document.getElementById('ui-sync-title');
+            if (syncTitleEl) syncTitleEl.innerText = t.syncTitle;
+        
+            const syncDescEl = document.getElementById('ui-sync-desc');
+            if (syncDescEl) syncDescEl.innerText = t.syncDesc;
+        
+            const syncExportEl = document.getElementById('ui-sync-export');
+            if (syncExportEl) syncExportEl.innerText = t.syncExportBtn;
+        
+            const syncImportEl = document.getElementById('ui-sync-import');
+            if (syncImportEl) syncImportEl.innerText = t.syncImportBtn;
+        
+            const syncExportInstEl = document.getElementById('ui-sync-export-inst');
+            if (syncExportInstEl) syncExportInstEl.innerText = t.syncExportInst;
+        
+            const syncImportWarnEl = document.getElementById('ui-sync-import-warn');
+            if (syncImportWarnEl) syncImportWarnEl.innerText = t.syncImportWarn;
+            
+            // Also update the import button text if it is visible
+            const syncImportBtnEl = document.getElementById('sync-import-btn');
+            if(syncImportBtnEl && !syncImportBtnEl.disabled) {
+                syncImportBtnEl.innerHTML = t.syncImportDataBtn;
+            }
             
             // Also update the import button text if it is visible
             const syncImportBtnEl = document.getElementById('sync-import-btn');

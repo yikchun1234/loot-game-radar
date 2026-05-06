@@ -2,12 +2,14 @@
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
+    <meta name="referrer" content="no-referrer">
+
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self'; 
         script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://unpkg.com https://cdnjs.cloudflare.com;
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
         font-src 'self' https://fonts.gstatic.com data:; 
-        img-src * data: blob:; 
+        img-src 'self' https: http: data: blob:; 
         connect-src *;
         manifest-src 'self' data: blob:;
         object-src 'none'; 

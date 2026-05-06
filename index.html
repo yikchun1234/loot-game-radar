@@ -2,6 +2,55 @@
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self'; 
+        script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://unpkg.com https://cdnjs.cloudflare.com;
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
+        font-src 'self' https://fonts.gstatic.com data:; 
+        img-src 'self' data: blob: https://wsrv.nl https://i.ibb.co https://images.unsplash.com https://via.placeholder.com https://placehold.co; 
+        connect-src 'self' https://cloud-sync-api.yikchun1234.workers.dev https://www.gamerpower.com https://www.reddit.com https://api.codetabs.com https://api.allorigins.win;
+        manifest-src 'self' data: blob:;
+        object-src 'none'; 
+        worker-src 'self' blob:;
+    ">
+
+    <script>
+        // 1. DOMAIN LOCKDOWN
+        const allowedDomains = [
+            "gamelootradar.pages.dev", // Add your Cloudflare Pages domain here
+            "yikchun1234.github.io",     // Add your GitHub Pages domain here
+            //"gamelootradar.us.ci",
+            "localhost", 
+            "127.0.0.1", 
+            ""                           // Allows local file:// opening
+        ];
+        const currentDomain = window.location.hostname;
+
+        if (!allowedDomains.includes(currentDomain)) {
+            document.documentElement.innerHTML = `
+                <div style="display:flex; height:100vh; width:100%; align-items:center; justify-content:center; background:#0b0c10; color:#e2e8f0; font-family:'Inter', sans-serif; text-align:center;">
+                    <div>
+                        <h1 style="color:#00f3ff; font-size:2.5rem; margin-bottom:10px; font-weight:900;">SECURITY ALERT</h1>
+                        <p style="font-size:1.1rem;">This LootRadar application is strictly licensed and cannot be run on this domain.</p>
+                        <p style="font-size:0.8rem; color:#4b5563; margin-top:20px;">Domain recorded: ${currentDomain || 'Unknown'}</p>
+                    </div>
+                </div>`;
+            throw new Error("Execution halted: Unauthorized domain theft detected.");
+        }
+
+        // 2. ANTI-DEBUGGER & INSPECT ELEMENT BLOCKER
+        setInterval(function() { debugger; }, 100);
+        document.addEventListener('contextmenu', event => event.preventDefault());
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'F12' || e.keyCode === 123) e.preventDefault();
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'I' || e.key === 'i' || e.keyCode === 73)) e.preventDefault();
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'J' || e.key === 'j' || e.keyCode === 74)) e.preventDefault();
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'U' || e.key === 'u' || e.keyCode === 85)) e.preventDefault();
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'S' || e.key === 's' || e.keyCode === 83)) e.preventDefault();
+        });
+    </script>
+    
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LootRadar | Free Games Tracker</title>
     

@@ -7,8 +7,8 @@
         script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdn.tailwindcss.com https://unpkg.com https://cdnjs.cloudflare.com;
         style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; 
         font-src 'self' https://fonts.gstatic.com data:; 
-        img-src https: data: blob:; 
-        connect-src 'self' https://cloud-sync-api.yikchun1234.workers.dev https://www.gamerpower.com https://www.reddit.com https://api.codetabs.com https://api.allorigins.win;
+        img-src * data: blob:; 
+        connect-src *;
         manifest-src 'self' data: blob:;
         object-src 'none'; 
         worker-src 'self' blob:;
@@ -1298,7 +1298,7 @@
 
                 card.innerHTML = `
                     <div class="relative h-44 md:h-48 overflow-hidden bg-gray-200 dark:bg-gray-800 flex-shrink-0">
-                        <img src="${game.image}" alt="${game.title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" onerror="this.src='https://via.placeholder.com/400x200?text=No+Image'">
+                        <img src="${game.image}" alt="${game.title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" onerror="this.src='https://placehold.co/400x200/1e293b/ffffff?text=No+Image'">
                         ${isNew ? `<div class="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md shadow-lg flex items-center gap-1"><i class="ph-fill ph-sparkle animate-pulse"></i> ${t.newTip}</div>` : ''}
                         <div class="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-2 py-1 rounded-md flex items-center gap-1 border border-white/10">${pIcon}</div>
                         ${isClaimed ? `<div class="absolute inset-0 bg-black/40 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"><i class="ph-fill ph-check-circle text-5xl text-green-400 drop-shadow-[0_0_15px_rgba(74,222,128,0.5)]"></i></div>` : ''}

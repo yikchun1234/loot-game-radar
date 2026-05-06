@@ -5,24 +5,27 @@
     <script>
         // 1. DOMAIN LOCKDOWN
         const allowedDomains = [
-            "gamelootradar.pages.dev", // Add your Cloudflare Pages domain here
-            "yikchun1234.github.io",     // Add your GitHub Pages domain here
-            //"gamelootradar.us.ci",
+            "gamelootradar.pages.dev", 
+            "yikchun1234.github.io",     
             "localhost", 
             "127.0.0.1", 
-            ""                           // Allows local file:// opening
+            ""                           
         ];
         const currentDomain = window.location.hostname;
 
         if (!allowedDomains.includes(currentDomain)) {
             document.documentElement.innerHTML = `
-                <div style="display:flex; height:100vh; width:100%; align-items:center; justify-content:center; background:#0b0c10; color:#e2e8f0; font-family:'Inter', sans-serif; text-align:center;">
+                <head><title>Security Alert</title></head>
+                <body style="margin:0; display:flex; height:100vh; width:100vw; align-items:center; justify-content:center; background:#0b0c10; color:#e2e8f0; font-family:'Inter', sans-serif; text-align:center; overflow:hidden;">
                     <div>
                         <h1 style="color:#00f3ff; font-size:2.5rem; margin-bottom:10px; font-weight:900;">SECURITY ALERT</h1>
                         <p style="font-size:1.1rem;">This LootRadar application is strictly licensed and cannot be run on this domain.</p>
                         <p style="font-size:0.8rem; color:#4b5563; margin-top:20px;">Domain recorded: ${currentDomain || 'Unknown'}</p>
                     </div>
-                </div>`;
+                </body>`;
+            
+            // This is the magic command that completely kills the rest of the website!
+            window.stop(); 
             throw new Error("Execution halted: Unauthorized domain theft detected.");
         }
 

@@ -158,23 +158,25 @@
         <!-- Header -->
         <header class="glass-header sticky top-0 z-40 px-4 py-3 sm:px-6 lg:px-8">
             <div class="max-w-7xl mx-auto flex items-center justify-between">
-                <div class="flex items-center gap-2 md:gap-3 cursor-pointer group" onclick="document.getElementById('app-container').scrollTo({top: 0, behavior: 'smooth'})">
-                    <div class="relative">
-                        <i class="ph-fill ph-radar text-3xl md:text-4xl text-blue-600 dark:text-neon-blue transition-transform duration-700 group-hover:rotate-180"></i>
-                        <div class="absolute inset-0 bg-blue-500 dark:bg-neon-blue blur-md opacity-0 group-hover:opacity-60 transition-opacity duration-300"></div>
+                
+                <div class="flex items-center gap-3 md:gap-6">
+                    <div class="flex items-center gap-2 md:gap-3 cursor-pointer group" onclick="document.getElementById('app-container').scrollTo({top: 0, behavior: 'smooth'})">
+                        <div class="relative">
+                            <i class="ph-fill ph-radar text-3xl md:text-4xl text-blue-600 dark:text-neon-blue transition-transform duration-700 group-hover:rotate-180"></i>
+                            <div class="absolute inset-0 bg-blue-500 dark:bg-neon-blue blur-md opacity-0 group-hover:opacity-60 transition-opacity duration-300"></div>
+                        </div>
+                        <h1 class="hidden sm:block">
+                            <span id="ui-title" class="font-display text-2xl md:text-3xl font-black italic tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-blue-500 to-purple-600 dark:from-neon-blue dark:via-white dark:to-neon-purple drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] dark:drop-shadow-[0_0_10px_rgba(0,243,255,0.5)] pr-2">LootRadar</span>
+                        </h1>
                     </div>
-                    <h1 class="hidden sm:block">
-                        <span id="ui-title" class="font-display text-2xl md:text-3xl font-black italic tracking-widest text-transparent bg-clip-text bg-gradient-to-r from-blue-700 via-blue-500 to-purple-600 dark:from-neon-blue dark:via-white dark:to-neon-purple drop-shadow-[0_2px_4px_rgba(0,0,0,0.3)] dark:drop-shadow-[0_0_10px_rgba(0,243,255,0.5)] pr-2">LootRadar</span>
-                    </h1>
-                </div>
 
-                <!-- Controls -->
-                <div class="flex items-center gap-1 md:gap-3 relative">
-                    <div id="wallet-container" class="absolute left-1/2 -translate-x-1/2 flex items-center justify-center bg-green-500/10 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-xl font-display font-bold text-sm border border-green-500/20 shadow-inner" title="Total saved since install">
+                    <div id="wallet-container" class="flex items-center justify-center bg-green-500/10 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-xl font-display font-bold text-sm border border-green-500/20 shadow-inner" title="Total saved since install">
                         <i class="ph-fill ph-piggy-bank mr-1.5 text-lg shrink-0"></i>
                         <span id="saved-amount" class="truncate">$0.00</span>
                     </div>
+                </div>
 
+                <div class="flex items-center gap-1 md:gap-3 relative">
                     <button onclick="toggleLibrary()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-transform active:scale-90 text-blue-600 dark:text-neon-blue" title="My Loot Library">
                         <span class="flex items-center justify-center text-xl md:text-2xl drop-shadow-md pb-0.5">🎮</span>
                     </button>
@@ -184,8 +186,7 @@
                             <span id="lang-btn">EN</span>
                         </button>
                         <div id="lang-menu" class="hidden absolute right-0 mt-2 w-32 bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden z-50 origin-top">
-                            <!-- Populated by JS -->
-                        </div>
+                            </div>
                     </div>
 
                     <button onclick="toggleTheme()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-transform active:scale-90" title="Toggle Theme">

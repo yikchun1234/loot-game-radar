@@ -366,7 +366,7 @@
                     <i class="ph-fill ph-warning-circle text-red-500 mt-0.5"></i>
                     <p id="ui-sync-import-warn" class="text-[11px] font-bold text-red-600 dark:text-red-400 leading-tight">Warning: Importing will permanently overwrite your current library and savings on this device.</p>
                 </div>
-                <input type="number" id="sync-pin-input" maxlength="5" placeholder="12345" class="w-full text-center text-3xl font-black tracking-widest py-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-card text-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-neon-blue transition-all mb-2" oninput="this.value=this.value.slice(0,5)">
+                <input type="number" id="sync-pin-input" maxlength="6" placeholder="12345" class="w-full text-center text-3xl font-black tracking-widest py-4 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-card text-gray-800 dark:text-white outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-neon-blue transition-all mb-2" oninput="this.value=this.value.slice(0,6)">
                 <p id="sync-import-error" class="text-red-500 text-xs font-bold text-center h-4"></p>
                 
                 <button id="sync-import-btn" onclick="handleImportData()" class="w-full py-3.5 mt-4 bg-blue-600 hover:bg-blue-700 dark:bg-neon-blue dark:hover:bg-[#00d2dd] dark:text-black text-white rounded-xl font-bold transition-all shadow-md flex justify-center items-center gap-2">
@@ -872,8 +872,8 @@
             const btn = document.getElementById('sync-import-btn');
             const errorEl = document.getElementById('sync-import-error');
         
-            if (!pin || pin.length !== 5) {
-                errorEl.innerText = 'Please enter a 5-digit PIN';
+            if (!pin || pin.length !== 6) {
+                errorEl.innerText = 'Please enter a 6-digit PIN';
                 return;
             }
         

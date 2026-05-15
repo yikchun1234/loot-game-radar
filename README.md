@@ -52,7 +52,15 @@ You can install LootRadar to use exactly like a native mobile app!
 
 ---
 
+### 📄 License & Usage
+
+* **Non-Commercial Use Only:** This project is strictly for personal, educational, and non-commercial use. You may not use this application, its source code, or its scraping logic for any business, commercial, or monetized purposes.
+* **Forks & Attribution:** You are welcome to fork, modify, and experiment with this code for your own personal projects! However, if you share your forked version, **you must provide proper citation** to the original author (Amos) and include a direct link back to this repository.
+
+---
+
 ### ⚖️ Disclaimer
+
 Games are fetched via third-party APIs and community web scraping (Reddit). Offers are time-limited. Always verify that the final price on the store page is "Free" or "0.00" before confirming any purchase. LootRadar is an independent tracker and is not affiliated with Steam, Epic Games, Apple, Google, or other listed platforms.
 
 ---

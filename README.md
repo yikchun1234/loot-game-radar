@@ -1,49 +1,64 @@
-🎮 LootRadar (白嫖雷达)
+<div align="center">
+  <h1>🎮 LootRadar</h1>
+  <p><i>The ultimate, zero-build web dashboard for tracking free games and limited-time deals across the multiverse. Runs entirely in your browser!</i></p>
+  
+  <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5">
+  <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="Vanilla JS">
+  <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS">
+  <img src="https://img.shields.io/badge/PWA-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white" alt="PWA Ready">
+</div>
 
-🌟 About The Project / 项目简介
+---
 
-LootRadar is a sleek, cross-platform web application that automatically tracks 100% free games and limited-time giveaways across the internet. Whether you are a PC gamer (Steam, Epic, GOG) or a Mobile gamer (iOS, Android), LootRadar ensures you never miss a freebie.
-白嫖雷达 是一个设计精美、跨平台的 Web 应用，旨在自动追踪全网 100% 免费的游戏和限时福利。无论你是 PC 玩家（Steam, Epic, GOG）还是手机玩家（iOS, Android），这款雷达都能确保你不错过任何“喜加一”的机会。
+### ✨ Features
 
-✨ Key Features / 核心亮点
+* 🌍 **Universal Tracking:** Automatically scrapes and aggregates free game deals from Steam, Epic Games, Prime Gaming, GOG, Ubisoft, iOS, Android, and Consoles. Utilizes a highly stable Reddit-fallback scraping engine!
+* 💰 **My Loot Library & Wallet:** Keep a permanent record of every game you claim. The app automatically calculates your **Total Lifetime Savings** so you know exactly how much money you've saved.
+* ☁️ **Cloud Sync (PIN Transfer):** Securely migrate your claimed games library and total savings to another device in seconds using a 15-minute 5-digit PIN (Powered by Cloudflare Workers & LZ-String compression).
+* 📱 **Native PWA Experience:** Fully installable on iOS and Android. Features mobile-native interactions like **Pull-to-Refresh**, slick glassmorphism UI, and smooth Tailwind CSS animations.
+* 🌐 **International Support (9 Languages):** Fully localized in English, 简体中文, Español, Français, Deutsch, Русский, 日本語, 한국어, and Português.
+* 🛡️ **Advanced Security:** Built-in Domain Lockdown and Anti-Debugger/Inspect Element blockers to prevent unauthorized scraping or cloning of the app.
+* 🌓 **Dynamic Theming:** Seamless Light and Dark mode toggling.
 
-🌐 Cross-Platform Tracking (全平台追踪): Supports PC (Steam, Epic, GOG, Ubisoft, Itch.io) and Mobile (Android, iOS).
-💰 Loot Library & Savings Calculator (个人白嫖库): Automatically tracks claimed games and calculates your total lifetime savings! Data is stored 100% locally for your privacy.
-📱 PWA Ready (渐进式 Web 应用): Installable directly to your Home Screen on both iOS and Android for a native app-like experience. Includes smart installation guides.
-🌍 9 Languages Supported (多语言支持): English, 中文, Español, Français, Deutsch, Русский, 日本語, 한국어, Português.
-🎨 Cyberpunk UI & Animations (赛博朋克 UI): Features Dark/Light modes, glassmorphism panels, fluid transitions, and gamer-themed loading phrases.
-🛡️ Anti-Bot Scraping Engine (防拦截数据引擎): Utilizes multiple smart proxies to fetch reliable data from GamerPower and Reddit (r/googleplaydeals, r/AppHookup, etc.).
+---
 
-🚀 How to Use / 如何使用
+### 🚀 Zero-Build Setup
 
-This is a pure frontend application with no backend or build tools required.
-这是一个纯前端项目，不需要任何后端或构建工具。
-Clone or download this repository. (克隆或下载此仓库)
-Open index.html in any modern web browser. (在任何现代浏览器中打开 index.html)
-Enjoy your free games! (开始白嫖！)
+No Node.js, Webpack, or Vite required! The entire application runs natively in a **single `index.html` file**.
 
-To host it for free (如何免费部署):
-You can easily host this project using GitHub Pages, Vercel, or Netlify by simply pointing to the root directory.
+1. Clone or download this repository.
+2. Open `index.html` directly in any modern web browser.
 
-🛠️ Tech Stack / 技术栈
+> [!WARNING]
+> **Domain Security Lock:** For security purposes, this application is domain-locked. If you wish to host it yourself, you must add your domain to the `allowedDomains` array at the very top of the `index.html` file, otherwise it will trigger a Security Alert and halt execution.
 
-Frontend: HTML5, Vanilla JavaScript (ES6)
-Styling: Tailwind CSS (via CDN)
-Typography & Icons: Google Fonts (Orbitron, Inter), Phosphor Icons
-Data Sources: - GamerPower API (PC Giveaways)
-Reddit API via Proxies (Mobile Giveaways)
+---
 
-⚠️ Disclaimer / 免责声明
+### 📱 Installing on your Phone (PWA)
 
-Data is aggregated from third-party sources and community posts. Availability and pricing may vary by region and time. Always verify that the price is "Free" on the actual store page before claiming. This project is an independent tracker and is not affiliated with Epic Games, Steam, Google, or Apple.
-本站数据通过第三方 API 与社区自动抓取。限免活动随时可能结束，且可能存在区域限制。在最终商店页面点击领取前，请务必亲自核对价格是否为免费。 本项目为独立开源工具，与 Steam、Epic、Apple 等官方平台无任何赞助或关联。
+You can install LootRadar to use exactly like a native mobile app!
 
-📄 License & Attribution / 许可与致谢
+* **iOS (Safari):** Tap the **Share** icon at the bottom of the screen and select **"Add to Home Screen"**.
+* **Android (Chrome):** Tap the browser menu (three dots) and select **"Install App"** or "Add to Home screen".
 
-This project is licensed under the GNU Affero General Public License v3.0 (AGPL-3.0).
-If you fork, modify, or host this project, you must provide proper citation and credit to the original creator.
+---
 
-本项目采用 GNU Affero General Public License v3.0 (AGPL-3.0) 开源协议。
-如果您复刻、修改或部署此项目，您必须在显著位置注明原作者并提供致谢（Citation）。
+### 📖 How to Use
 
-Built with ❤️ for gamers worldwide. Have FUN playing!
+1. **Scan for Loot:** Open the app to trigger an automatic scan of current free games. Use the platform filters at the top to narrow down your search.
+2. **Claim Games:** Tap the **Claim Now** button on any game card to be taken directly to the store page.
+3. **Track Savings:** Once claimed, the game moves to your "Loot Library" and its original price is added to your total savings wallet.
+4. **Device Sync:** Tap the Disclaimer/Info icon (ℹ️) to access the Device Sync menu. Generate an Export PIN on your old device, and enter it on your new device to instantly transfer your library!
+
+---
+
+### ⚖️ Disclaimer
+Games are fetched via third-party APIs and community web scraping (Reddit). Offers are time-limited. Always verify that the final price on the store page is "Free" or "0.00" before confirming any purchase. LootRadar is an independent tracker and is not affiliated with Steam, Epic Games, Apple, Google, or other listed platforms.
+
+---
+
+<div align="center">
+  <b>Designed and Developed by Amos</b>
+  <br>
+  <sub><i>Tracking freebies so you don't have to.</i></sub>
+</div>

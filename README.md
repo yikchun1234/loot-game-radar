@@ -3,7 +3,7 @@
   <p><i>The ultimate, zero-build web dashboard for tracking free games and limited-time deals across the multiverse. Runs entirely in your browser!</i></p>
   
   <a href="https://gamelootradar.us.ci/">
-    <img src="https://img.shields.io/badge/🔥_LIVE_APP-gamelootradar.us.ci-FF416C?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Live View">
+    <img src="https://img.shields.io/badge/🔥_LIVE_APP-gamelootradar.us.ci-FF416C?style=for-the-badge&logo=cloudflare&logoColor=white" alt="Live View">
   </a>
   
   <br>

@@ -2,6 +2,12 @@
   <h1>🎮 LootRadar</h1>
   <p><i>The ultimate, zero-build web dashboard for tracking free games and limited-time deals across the multiverse. Runs entirely in your browser!</i></p>
   
+  <a href="https://gamelootradar.us.ci/">
+    <img src="https://img.shields.io/badge/🔥_LIVE_APP-gamelootradar.us.ci-FF416C?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Live View">
+  </a>
+  
+  <br>
+  
   <img src="https://img.shields.io/badge/HTML5-E34F26?style=for-the-badge&logo=html5&logoColor=white" alt="HTML5">
   <img src="https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white" alt="Tailwind CSS">
   <img src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black" alt="Vanilla JS">

@@ -1241,72 +1241,55 @@
 
         function renderLibrary() {
             const grid = document.getElementById('library-grid');
-            const empty = document.getElementById('library-empty');
-            const t = i18n[state.lang];
-            const allClaimed = Object.values(state.claimedGames).filter(g => typeof g === 'object');
+            if (!grid) return;
             
-            document.getElementById('lib-total-count').innerText = Object.keys(state.claimedGames).length;
-            document.getElementById('lib-total-saved').innerText = `$${state.totalSaved.toFixed(2)}`;
-
-            const filterSelect = document.getElementById('lib-filter-select');
-            filterSelect.innerHTML = platforms.map(p => {
-                const labelMap = { 'Prime': t.prime, 'Ubisoft': t.ubisoft, 'EpicPhone': t.epicPhone };
-                const label = p.id === 'All' ? t.platformAll : (labelMap[p.id] || p.id);
-                return `<option value="${p.id}" ${state.libFilter === p.id ? 'selected' : ''}>&nbsp;&nbsp;&nbsp;${label}</option>`;
-            }).join('');
+            // 1. Convert the claimedGames dictionary directly into a clean array
+            const libraryGames = Object.entries(state.claimedGames).map(([id, game]) => ({
+                id: id,
+                ...game
+            }));
             
-            document.getElementById('opt-sort-newest').innerHTML = `&nbsp;&nbsp;&nbsp;${t.sortNewest}`;
-            document.getElementById('opt-sort-oldest').innerHTML = `&nbsp;&nbsp;&nbsp;${t.sortOldest}`;
-            document.getElementById('opt-sort-price-high').innerHTML = `&nbsp;&nbsp;&nbsp;${t.sortPriceHigh}`;
-            document.getElementById('opt-sort-price-low').innerHTML = `&nbsp;&nbsp;&nbsp;${t.sortPriceLow}`;
-            document.getElementById('opt-sort-platform').innerHTML = `&nbsp;&nbsp;&nbsp;${t.sortPlatform}`;
-            document.getElementById('lib-sort-select').value = state.libSort;
-
-            let filteredGames = allClaimed;
-            if (state.libFilter !== 'All') {
-                const currentPlatObj = platforms.find(p => p.id === state.libFilter);
-                if (currentPlatObj) {
-                    filteredGames = filteredGames.filter(g => {
-                        return isPlatformMatch(g, currentPlatObj.matches, currentPlatObj.excludes, currentPlatObj.requires, currentPlatObj.customRule);
-                    });
-                }
-            }
-
+            // 2. Filter games by platform if a filter is active
+            const filteredGames = libraryGames.filter(game => {
+                if (state.libFilter === 'All') return true;
+                if (!game.platforms) return false;
+                return game.platforms.toLowerCase().includes(state.libFilter.toLowerCase());
+            });
+            
+            // 3. Sort games based on selection
             filteredGames.sort((a, b) => {
-                if (state.libSort === 'date_desc') return new Date(b.date) - new Date(a.date);
-                if (state.libSort === 'date_asc') return new Date(a.date) - new Date(b.date);
-                if (state.libSort === 'price_desc') return b.value - a.value;
-                if (state.libSort === 'price_asc') return a.value - b.value;
-                if (state.libSort === 'platform_asc') return (a.platforms || 'PC').localeCompare(b.platforms || 'PC');
+                if (state.libSort === 'date_desc') return new Date(b.claimedAt || 0) - new Date(a.claimedAt || 0);
+                if (state.libSort === 'date_asc') return new Date(a.claimedAt || 0) - new Date(b.claimedAt || 0);
+                if (state.libSort === 'alpha_asc') return (a.title || '').localeCompare(b.title || '');
                 return 0;
             });
-
+            
             if (filteredGames.length === 0) {
-                grid.innerHTML = '';
-                empty.classList.remove('hidden');
-                empty.classList.add('flex');
-                document.getElementById('ui-lib-empty').innerText = allClaimed.length > 0 ? t.libNoFilter : t.libEmpty;
+                grid.innerHTML = `
+                    <div class="col-span-full text-center py-12 text-gray-400">
+                        <i class="ph-bold ph-package text-4xl mb-2 opacity-50 block"></i>
+                        <p class="text-sm">No items found in your library.</p>
+                    </div>
+                `;
                 return;
             }
-
-            empty.classList.add('hidden');
-            empty.classList.remove('flex');
             
+            // 4. Render clean templates using explicit, stable IDs
             grid.innerHTML = filteredGames.map(game => {
                 const mockGameForIcon = { platforms: game.platforms, open_giveaway: game.open_giveaway };
                 const libPlatformIcon = getPlatformIconHtml(mockGameForIcon);
-                const actualId = game.id || Object.keys(state.claimedGames).find(k => state.claimedGames[k].title === game.title);
-            
+                
                 return `
-                 <div class="bg-white dark:bg-dark-card rounded-xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-800 relative group">
+                 <div class="bg-white dark:bg-dark-card rounded-xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-800 relative group animate-[fadeUp_0.2s_ease_forwards]">
                     <div class="h-24 md:h-32 w-full bg-gray-200 dark:bg-gray-800 relative">
-                        <img src="${game.image}" class="w-full h-full object-cover" loading="lazy">
+                        <img src="${game.image}" class="w-full h-full object-cover" loading="lazy" onerror="this.src='https://placehold.co/400x200/1e293b/ffffff?text=Game+Image+Unavailable'">
                         
-                        <button onclick="handleDeleteFromLibrary(event, '${actualId}')" 
-                                class="absolute top-2 left-2 z-30 w-7 h-7 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center justify-center shadow-md transition-all active:scale-90 opacity-100 md:opacity-0 md:group-hover:opacity-100">
+                        <button onclick="handleDeleteFromLibrary(event, '${game.id}')" 
+                                class="absolute top-2 left-2 z-30 w-7 h-7 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center justify-center shadow-md transition-all active:scale-90 opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                                title="Remove from Library">
                             <i class="ph-bold ph-trash text-sm"></i>
                         </button>
-            
+        
                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-2">
                             <span class="text-green-400 font-bold text-xs flex items-center gap-1"><i class="ph-bold ph-piggy-bank"></i> +${game.worth || 'Free'}</span>
                         </div>
@@ -1318,7 +1301,7 @@
                         <p class="text-xs font-bold truncate dark:text-gray-200" title="${game.title}">${game.title}</p>
                     </div>
                  </div>
-                `
+                `;
             }).join('');
         }
 

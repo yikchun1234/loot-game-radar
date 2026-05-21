@@ -395,6 +395,7 @@
                         <p class="text-[10px] text-gray-400">Missed the claim window time-limit.</p>
                     </div>
                 </label>
+                
                 <label class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 cursor-pointer hover:border-red-500/40 transition-colors">
                     <input type="radio" name="delete-reason" value="failed" class="accent-red-500 h-4 w-4">
                     <div class="text-left">
@@ -402,11 +403,20 @@
                         <p class="text-[10px] text-gray-400">Key ran out, error code, or region-locked.</p>
                     </div>
                 </label>
+    
+                <label class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 cursor-pointer hover:border-red-500/40 transition-colors">
+                    <input type="radio" name="delete-reason" value="paywall" class="accent-red-500 h-4 w-4">
+                    <div class="text-left">
+                        <p class="text-xs font-bold dark:text-gray-200">Requires Purchase</p>
+                        <p class="text-[10px] text-gray-400">Account limited (e.g., Steam $5 spend required).</p>
+                    </div>
+                </label>
+    
                 <label class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 cursor-pointer hover:border-red-500/40 transition-colors">
                     <input type="radio" name="delete-reason" value="accidental" class="accent-red-500 h-4 w-4">
                     <div class="text-left">
-                        <p class="text-xs font-bold dark:text-gray-200">Something Else / Accident</p>
-                        <p class="text-[10px] text-gray-400">Accidentally clicked it.</p>
+                        <p class="text-xs font-bold dark:text-gray-200">Others / Accident</p>
+                        <p class="text-[10px] text-gray-400">Changed my mind or clicked by mistake.</p>
                     </div>
                 </label>
             </div>

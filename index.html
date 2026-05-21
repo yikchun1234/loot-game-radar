@@ -957,79 +957,76 @@
                 }
             }
     
+            let activeDeleteId = null;
+            
             window.handleDeleteFromLibrary = function(e, gameId) {
-            // Prevent the click from triggering any parent redirect behaviors
-            e.preventDefault();
-            e.stopPropagation();
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const id = String(gameId);
+                const game = state.claimedGames[id];
+                
+                if (!game) return;
+                
+                activeDeleteId = id;
+                document.getElementById('delete-game-title').innerText = game.title;
+                document.getElementById('confirm-delete-btn').onclick = executeDeletion;
+                
+                const modal = document.getElementById('delete-confirm-modal');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            };
             
-            const id = String(gameId);
-            const game = state.claimedGames[id];
+            window.closeDeleteModal = function() {
+                const modal = document.getElementById('delete-confirm-modal');
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                activeDeleteId = null;
+            };
             
-            if (game) {
-                // 1. Deduct the game's value from total savings
-                if (game.value && !isNaN(game.value)) {
-                    state.totalSaved = Math.max(0, state.totalSaved - game.value);
+            function executeDeletion() {
+                if (!activeDeleteId) return;
+                const game = state.claimedGames[activeDeleteId];
+                
+                // 1. Capture the reason selected by the user in the prompt UI
+                const selectedReason = document.querySelector('input[name="delete-reason"]:checked').value;
+                
+                if (game) {
+                    // 2. Deduct the value from total savings safely
+                    if (game.value && !isNaN(game.value)) {
+                        state.totalSaved = Math.max(0, state.totalSaved - game.value);
+                    }
+                    
+                    // 3. Initialize history array if it doesn't exist yet
+                    if (!state.deletedHistory) {
+                        state.deletedHistory = JSON.parse(localStorage.getItem('lootradar_deleted_history')) || [];
+                    }
+                    
+                    // 4. Record the item along with its failure/expiration reason into a history JSON entry
+                    const historyItem = {
+                        id: activeDeleteId,
+                        title: game.title,
+                        worth: game.worth || 'Free',
+                        platforms: game.platforms || 'PC',
+                        deletedAt: new Date().toISOString(),
+                        reason: selectedReason // Records 'expired', 'failed', or 'accidental'
+                    };
+                    
+                    state.deletedHistory.push(historyItem);
+                    localStorage.setItem('lootradar_deleted_history', JSON.stringify(state.deletedHistory));
+                    
+                    // 5. COMPLETELY DELETE from claimedGames so it can be claimed again if it reappears!
+                    delete state.claimedGames[activeDeleteId];
+                    localStorage.setItem('lootradar_claimed_v2', JSON.stringify(state.claimedGames));
+                    localStorage.setItem('lootradar_saved_money', state.totalSaved.toString());
+                    
+                    // 6. Refresh UI feeds instantly
+                    updateWalletUI();
+                    renderLibrary();
+                    renderGames();
                 }
-                
-                // 2. Remove from state object
-                delete state.claimedGames[id];
-                
-                // 3. Sync to LocalStorage
-                localStorage.setItem('lootradar_claimed_v2', JSON.stringify(state.claimedGames));
-                localStorage.setItem('lootradar_saved_money', state.totalSaved.toString());
-                
-                // 4. Update UI Components instantly
-                updateWalletUI();
-                renderLibrary();
-                renderGames(); 
+                closeDeleteModal();
             }
-        };
-
-        let activeDeleteId = null;
-        
-        window.handleDeleteFromLibrary = function(e, gameId) {
-            e.preventDefault();
-            e.stopPropagation();
-            
-            const id = String(gameId);
-            const game = state.claimedGames[id];
-            
-            if (!game) return;
-            
-            activeDeleteId = id;
-            document.getElementById('delete-game-title').innerText = game.title;
-            document.getElementById('confirm-delete-btn').onclick = executeDeletion;
-            
-            const modal = document.getElementById('delete-confirm-modal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        };
-        
-        window.closeDeleteModal = function() {
-            const modal = document.getElementById('delete-confirm-modal');
-            modal.classList.add('hidden');
-            modal.classList.remove('flex');
-            activeDeleteId = null;
-        };
-        
-        function executeDeletion() {
-            if (!activeDeleteId) return;
-            const game = state.claimedGames[activeDeleteId];
-            
-            if (game) {
-                if (game.value && !isNaN(game.value)) {
-                    state.totalSaved = Math.max(0, state.totalSaved - game.value);
-                }
-                delete state.claimedGames[activeDeleteId];
-                localStorage.setItem('lootradar_claimed_v2', JSON.stringify(state.claimedGames));
-                localStorage.setItem('lootradar_saved_money', state.totalSaved.toString());
-                
-                updateWalletUI();
-                renderLibrary();
-                renderGames();
-            }
-            closeDeleteModal();
-        }
         
         function init() {
             applyTheme();

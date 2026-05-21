@@ -1095,17 +1095,24 @@
         function toggleLibrary() {
             const modal = document.getElementById('library-modal');
             if (modal.classList.contains('hidden')) {
-                // 1. Show the modal frame immediately so it can prepare to slide
+                // 1. Unhide the modal container instantly
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
                 
-                // 2. Use a tiny timeout to let the hardware-accelerated transform slide smoothly
+                // 2. Force a quick layout recalculation so the browser knows it's visible
+                void modal.offsetWidth;
+                
+                // 3. Trigger the CSS slide-in animation immediately!
+                modal.classList.remove('translate-x-full');
+                
+                // 4. Wait a fraction of a second for the slide to physically start 
+                // BEFORE doing the heavy math of building the library cards.
                 setTimeout(() => {
-                    modal.classList.remove('translate-x-full');
-                    // 3. Render the heavy card data right after the transition begins
                     renderLibrary();
-                }, 30);
+                }, 150); 
+                
             } else {
+                // Closing animation remains perfectly instant
                 modal.classList.add('translate-x-full');
                 setTimeout(() => {
                     modal.classList.add('hidden');

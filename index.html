@@ -376,57 +376,54 @@
         </div>
     </div>
 
-        <div id="delete-confirm-modal" class="hidden fixed inset-0 z-[70] items-center justify-center p-4 bg-black/70 backdrop-blur-sm transition-opacity">
+    <div id="delete-confirm-modal" class="hidden fixed inset-0 z-[70] items-center justify-center p-4 bg-black/70 backdrop-blur-sm transition-opacity">
         <div class="w-full max-w-sm rounded-3xl p-6 relative overflow-hidden bg-white dark:bg-slate-900 border border-gray-100 dark:border-gray-800 shadow-xl">
             <div class="text-center mb-5">
                 <div class="w-16 h-16 bg-red-500/10 text-red-500 rounded-2xl mx-auto flex items-center justify-center mb-3">
                     <i class="ph-fill ph-trash text-3xl"></i>
                 </div>
-                <h3 class="text-xl font-bold dark:text-white">Remove from Library?</h3>
+                <h3 id="ui-del-title" class="text-xl font-bold dark:text-white">Remove from Library?</h3>
                 <p id="delete-game-title" class="text-sm font-bold text-blue-500 mt-1 truncate px-2">Game Title</p>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Why are you removing this item?</p>
+                <p id="ui-del-desc" class="text-xs text-gray-500 dark:text-gray-400 mt-2">Why are you removing this item?</p>
             </div>
     
             <div class="space-y-2.5 mb-6">
                 <label class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 cursor-pointer hover:border-red-500/40 transition-colors">
                     <input type="radio" name="delete-reason" value="expired" checked class="accent-red-500 h-4 w-4">
                     <div class="text-left">
-                        <p class="text-xs font-bold dark:text-gray-200">Offer Expired</p>
-                        <p class="text-[10px] text-gray-400">Missed the claim window time-limit.</p>
+                        <p id="ui-del-r1" class="text-xs font-bold dark:text-gray-200">Offer Expired</p>
+                        <p id="ui-del-r1d" class="text-[10px] text-gray-400">Missed the claim window time-limit.</p>
                     </div>
                 </label>
-                
                 <label class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 cursor-pointer hover:border-red-500/40 transition-colors">
                     <input type="radio" name="delete-reason" value="failed" class="accent-red-500 h-4 w-4">
                     <div class="text-left">
-                        <p class="text-xs font-bold dark:text-gray-200">Failed to Redeem</p>
-                        <p class="text-[10px] text-gray-400">Key ran out, error code, or region-locked.</p>
+                        <p id="ui-del-r2" class="text-xs font-bold dark:text-gray-200">Failed to Redeem</p>
+                        <p id="ui-del-r2d" class="text-[10px] text-gray-400">Key ran out, error code, or region-locked.</p>
                     </div>
                 </label>
-    
                 <label class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 cursor-pointer hover:border-red-500/40 transition-colors">
                     <input type="radio" name="delete-reason" value="paywall" class="accent-red-500 h-4 w-4">
                     <div class="text-left">
-                        <p class="text-xs font-bold dark:text-gray-200">Requires Purchase</p>
-                        <p class="text-[10px] text-gray-400">Account limited (e.g., Steam $5 spend required).</p>
+                        <p id="ui-del-r3" class="text-xs font-bold dark:text-gray-200">Requires Purchase</p>
+                        <p id="ui-del-r3d" class="text-[10px] text-gray-400">Account limited (e.g., Steam $5 spend required).</p>
                     </div>
                 </label>
-    
                 <label class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 cursor-pointer hover:border-red-500/40 transition-colors">
                     <input type="radio" name="delete-reason" value="accidental" class="accent-red-500 h-4 w-4">
                     <div class="text-left">
-                        <p class="text-xs font-bold dark:text-gray-200">Others / Accident</p>
-                        <p class="text-[10px] text-gray-400">Changed my mind or clicked by mistake.</p>
+                        <p id="ui-del-r4" class="text-xs font-bold dark:text-gray-200">Others / Accident</p>
+                        <p id="ui-del-r4d" class="text-[10px] text-gray-400">Changed my mind or clicked by mistake.</p>
                     </div>
                 </label>
             </div>
     
             <div class="flex gap-3">
                 <button onclick="closeDeleteModal()" class="flex-1 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-bold active:scale-95 transition-transform">
-                    Cancel
+                    <span id="ui-del-cancel">Cancel</span>
                 </button>
                 <button id="confirm-delete-btn" class="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold active:scale-95 transition-all shadow-md">
-                    Confirm Delete
+                    <span id="ui-del-confirm">Confirm Delete</span>
                 </button>
             </div>
         </div>
@@ -753,6 +750,18 @@
                 syncImportWarn: "Aviso: A importação substituirá permanentemente sua biblioteca atual e economia neste dispositivo."
             }
         };
+
+        // --- INJECT DELETE MODAL TRANSLATIONS ---
+        Object.assign(i18n.en, { delTitle: "Remove from Library?", delDesc: "Why are you removing this item?", delR1: "Offer Expired", delR1D: "Missed the claim window time-limit.", delR2: "Failed to Redeem", delR2D: "Key ran out, error code, or region-locked.", delR3: "Requires Purchase", delR3D: "Account limited (e.g., Steam $5 spend required).", delR4: "Others / Accident", delR4D: "Changed my mind or clicked by mistake.", delCancel: "Cancel", delConfirm: "Confirm Delete" });
+        Object.assign(i18n.zh, { delTitle: "移出游戏库？", delDesc: "请问您为什么要移除此记录？", delR1: "活动已结束", delR1D: "错过了免费领取的限时时间段。", delR2: "领取失败", delR2D: "激活码发完、报错或锁区。", delR3: "需要消费限制", delR3D: "账号受限（如 Steam 需先消费 5 美金）。", delR4: "其他 / 误触", delR4D: "改变主意或不小心点错了。", delCancel: "取消", delConfirm: "确认移除" });
+        Object.assign(i18n.es, { delTitle: "¿Eliminar de la biblioteca?", delDesc: "¿Por qué eliminas este artículo?", delR1: "Oferta expirada", delR1D: "Se acabó el tiempo límite.", delR2: "Error al canjear", delR2D: "Sin claves, error o bloqueo regional.", delR3: "Requiere compra", delR3D: "Cuenta limitada (ej. Steam requiere gastar $5).", delR4: "Otros / Accidente", delR4D: "Cambié de opinión o clic por error.", delCancel: "Cancelar", delConfirm: "Confirmar" });
+        Object.assign(i18n.fr, { delTitle: "Retirer de la bibliothèque ?", delDesc: "Pourquoi retirez-vous cet élément ?", delR1: "Offre expirée", delR1D: "Temps limite dépassé.", delR2: "Échec de l'obtention", delR2D: "Plus de clés, erreur ou bloqué par région.", delR3: "Achat requis", delR3D: "Compte limité (ex. Steam nécessite 5$).", delR4: "Autres / Erreur", delR4D: "J'ai changé d'avis ou cliqué par erreur.", delCancel: "Annuler", delConfirm: "Confirmer" });
+        Object.assign(i18n.de, { delTitle: "Aus Bibliothek entfernen?", delDesc: "Warum entfernst du dieses Element?", delR1: "Angebot abgelaufen", delR1D: "Zeitlimit verpasst.", delR2: "Einlösen fehlgeschlagen", delR2D: "Keine Keys mehr, Fehler oder Region-Lock.", delR3: "Kauf erforderlich", delR3D: "Eingeschränktes Konto (z.B. Steam $5 Limit).", delR4: "Andere / Versehen", delR4D: "Meinung geändert oder aus Versehen geklickt.", delCancel: "Abbrechen", delConfirm: "Löschen" });
+        Object.assign(i18n.ru, { delTitle: "Удалить из библиотеки?", delDesc: "Почему вы удаляете это?", delR1: "Акция закончилась", delR1D: "Не успел забрать.", delR2: "Ошибка получения", delR2D: "Ключи закончились, ошибка или блок региона.", delR3: "Требуется покупка", delR3D: "Лимит аккаунта (например, Steam требует $5).", delR4: "Другое / Случайно", delR4D: "Передумал или случайно нажал.", delCancel: "Отмена", delConfirm: "Удалить" });
+        Object.assign(i18n.ja, { delTitle: "ライブラリから削除？", delDesc: "削除する理由を教えてください", delR1: "期限切れ", delR1D: "受取期間が終了したため。", delR2: "取得失敗", delR2D: "キー切れ、エラー、おま国など。", delR3: "購入が必要", delR3D: "アカウント制限（例: Steamの$5制限など）。", delR4: "その他 / 間違い", delR4D: "気が変わった、または間違えて押した。", delCancel: "キャンセル", delConfirm: "削除する" });
+        Object.assign(i18n.ko, { delTitle: "라이브러리에서 삭제?", delDesc: "이 항목을 삭제하는 이유는 무엇인가요?", delR1: "기간 만료", delR1D: "무료 배포 기간이 지났습니다.", delR2: "획득 실패", delR2D: "키 소진, 오류 또는 지역 제한.", delR3: "구매 필요", delR3D: "계정 제한 (예: Steam $5 소비 필요).", delR4: "기타 / 실수", delR4D: "마음이 바뀌었거나 실수로 클릭함.", delCancel: "취소", delConfirm: "삭제 확인" });
+        Object.assign(i18n.pt, { delTitle: "Remover da Biblioteca?", delDesc: "Por que você está removendo este item?", delR1: "Oferta Expirada", delR1D: "Perdeu o tempo limite.", delR2: "Falha ao Resgatar", delR2D: "Sem chaves, erro ou bloqueio de região.", delR3: "Requer Compra", delR3D: "Conta limitada (ex. Steam requer $5).", delR4: "Outros / Acidente", delR4D: "Mudei de ideia ou cliquei sem querer.", delCancel: "Cancelar", delConfirm: "Confirmar" });
+        // ------------------------------------------
 
         let state = {
             lang: localStorage.getItem('lang') || 'en',
@@ -1592,6 +1601,20 @@
             safeSetText('ui-disc-7', t.disc7);
             safeSetText('ui-disc-8', t.disc8);
 
+            // Update Delete Modal strings
+            safeSetText('ui-del-title', t.delTitle);
+            safeSetText('ui-del-desc', t.delDesc);
+            safeSetText('ui-del-r1', t.delR1);
+            safeSetText('ui-del-r1d', t.delR1D);
+            safeSetText('ui-del-r2', t.delR2);
+            safeSetText('ui-del-r2d', t.delR2D);
+            safeSetText('ui-del-r3', t.delR3);
+            safeSetText('ui-del-r3d', t.delR3D);
+            safeSetText('ui-del-r4', t.delR4);
+            safeSetText('ui-del-r4d', t.delR4D);
+            safeSetText('ui-del-cancel', t.delCancel);
+            safeSetText('ui-del-confirm', t.delConfirm);
+            
             document.documentElement.lang = state.lang;
 
             // Update Sync UI Text (Bulletproof Vanilla JS)

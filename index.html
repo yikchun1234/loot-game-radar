@@ -1095,17 +1095,22 @@
         function toggleLibrary() {
             const modal = document.getElementById('library-modal');
             if (modal.classList.contains('hidden')) {
-                renderLibrary();
+                // 1. Show the modal frame immediately so it can prepare to slide
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
-                void modal.offsetWidth; 
-                modal.classList.remove('translate-x-full');
+                
+                // 2. Use a tiny timeout to let the hardware-accelerated transform slide smoothly
+                setTimeout(() => {
+                    modal.classList.remove('translate-x-full');
+                    // 3. Render the heavy card data right after the transition begins
+                    renderLibrary();
+                }, 30);
             } else {
                 modal.classList.add('translate-x-full');
                 setTimeout(() => {
                     modal.classList.add('hidden');
                     modal.classList.remove('flex');
-                }, 300); 
+                }, 300);
             }
         }
 
@@ -1277,15 +1282,19 @@
             const totalSavedEl = document.getElementById('lib-total-saved');
             if (totalSavedEl) totalSavedEl.innerText = `$${state.totalSaved.toFixed(2)}`;
             
-            // Build Filter Options dynamically every time so language updates apply!
+            // Build Filter Options dynamically ONLY if the language has changed or it's empty
             const filterSelect = document.getElementById('lib-filter-select');
             if (filterSelect) {
-                const t = i18n[state.lang];
-                filterSelect.innerHTML = platforms.map(p => {
-                    const labelMap = { 'Prime': t.prime, 'Ubisoft': t.ubisoft, 'EpicPhone': t.epicPhone };
-                    const label = p.id === 'All' ? t.platformAll : (labelMap[p.id] || p.id);
-                    return `<option value="${p.id}">&nbsp;&nbsp;&nbsp;${label}</option>`;
-                }).join('');
+                // We use a custom attribute 'data-lang' to track if it's already built for this language
+                if (filterSelect.getAttribute('data-lang') !== state.lang || filterSelect.options.length === 0) {
+                    const t = i18n[state.lang];
+                    filterSelect.innerHTML = platforms.map(p => {
+                        const labelMap = { 'Prime': t.prime, 'Ubisoft': t.ubisoft, 'EpicPhone': t.epicPhone };
+                        const label = p.id === 'All' ? t.platformAll : (labelMap[p.id] || p.id);
+                        return `<option value="${p.id}">&nbsp;&nbsp;&nbsp;${label}</option>`;
+                    }).join('');
+                    filterSelect.setAttribute('data-lang', state.lang);
+                }
                 filterSelect.value = state.libFilter;
             }
             // ----------------------------------
@@ -1329,11 +1338,10 @@
                 const mockGameForIcon = { platforms: game.platforms, open_giveaway: game.open_giveaway };
                 const libPlatformIcon = getPlatformIconHtml(mockGameForIcon);
                 
-                return `
-                 <div class="bg-white dark:bg-dark-card rounded-xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-800 relative group animate-[fadeUp_0.2s_ease_forwards]">
+            return `
+                 <div class="bg-white dark:bg-dark-card rounded-xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-800 relative group">
                     <div class="h-24 md:h-32 w-full bg-gray-200 dark:bg-gray-800 relative">
-                        <img src="${game.image}" class="w-full h-full object-cover" loading="lazy" onerror="this.src='https://placehold.co/400x200/1e293b/ffffff?text=Game+Image+Unavailable'">
-                        
+                        <img src="${game.image}" class="w-full h-full object-cover" loading="lazy" onerror="this.src='https://placehold.co/400x200/1e293b/ffffff?text=Game+Image+Unavailable'">                        
                         <button onclick="handleDeleteFromLibrary(event, '${game.id}')" 
                                 class="absolute top-2 left-2 z-30 w-7 h-7 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center justify-center shadow-md transition-all active:scale-90 opacity-100 md:opacity-0 md:group-hover:opacity-100"
                                 title="Remove from Library">

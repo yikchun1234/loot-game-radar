@@ -997,7 +997,9 @@
                 if (!game) return;
                 
                 activeDeleteId = id;
-                document.getElementById('delete-game-title').innerText = game.title;
+
+                // 🛠️ CHANGED THIS LINE TO innerHTML:
+                document.getElementById('delete-game-title').innerHTML = game.title;
                 document.getElementById('confirm-delete-btn').onclick = executeDeletion;
                 
                 const modal = document.getElementById('delete-confirm-modal');

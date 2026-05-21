@@ -1006,19 +1006,19 @@
                         state.totalSaved = Math.max(0, state.totalSaved - game.value);
                     }
                     
-                    // 3. Initialize history array if it doesn't exist yet
-                    if (!state.deletedHistory) {
+                    // 3. Robust initialization check
+                    if (!state.deletedHistory || !Array.isArray(state.deletedHistory)) {
                         state.deletedHistory = JSON.parse(localStorage.getItem('lootradar_deleted_history')) || [];
                     }
                     
-                    // 4. Record the item along with its failure/expiration reason into a history JSON entry
+                    // 4. Record the item details into your history JSON tracker array
                     const historyItem = {
                         id: activeDeleteId,
                         title: game.title,
                         worth: game.worth || 'Free',
                         platforms: game.platforms || 'PC',
                         deletedAt: new Date().toISOString(),
-                        reason: selectedReason // Records 'expired', 'failed', or 'accidental'
+                        reason: selectedReason
                     };
                     
                     state.deletedHistory.push(historyItem);

@@ -1277,9 +1277,9 @@
             const totalSavedEl = document.getElementById('lib-total-saved');
             if (totalSavedEl) totalSavedEl.innerText = `$${state.totalSaved.toFixed(2)}`;
             
-            // Build Filter Options if empty
+            // Build Filter Options dynamically every time so language updates apply!
             const filterSelect = document.getElementById('lib-filter-select');
-            if (filterSelect && filterSelect.options.length === 0) {
+            if (filterSelect) {
                 const t = i18n[state.lang];
                 filterSelect.innerHTML = platforms.map(p => {
                     const labelMap = { 'Prime': t.prime, 'Ubisoft': t.ubisoft, 'EpicPhone': t.epicPhone };
@@ -1614,6 +1614,17 @@
             safeSetText('ui-del-r4d', t.delR4D);
             safeSetText('ui-del-cancel', t.delCancel);
             safeSetText('ui-del-confirm', t.delConfirm);
+
+            // Update Library Sort Options dynamically
+            const safeSetOption = (id, text) => {
+                const el = document.getElementById(id);
+                if (el && text) el.innerHTML = `&nbsp;&nbsp;&nbsp;${text}`;
+            };
+            safeSetOption('opt-sort-newest', t.sortNewest);
+            safeSetOption('opt-sort-oldest', t.sortOldest);
+            safeSetOption('opt-sort-price-high', t.sortPriceHigh);
+            safeSetOption('opt-sort-price-low', t.sortPriceLow);
+            safeSetOption('opt-sort-platform', t.sortPlatform);
             
             document.documentElement.lang = state.lang;
 

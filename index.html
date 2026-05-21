@@ -910,7 +910,35 @@
                 errorEl.innerText = e.message;
             }
         }
+
+        window.handleDeleteFromLibrary = function(e, gameId) {
+        // Prevent the click from triggering any parent redirect behaviors
+        e.preventDefault();
+        e.stopPropagation();
         
+        const id = String(gameId);
+        const game = state.claimedGames[id];
+        
+        if (game) {
+            // 1. Deduct the game's value from total savings
+            if (game.value && !isNaN(game.value)) {
+                state.totalSaved = Math.max(0, state.totalSaved - game.value);
+            }
+            
+            // 2. Remove from state object
+            delete state.claimedGames[id];
+            
+            // 3. Sync to LocalStorage
+            localStorage.setItem('lootradar_claimed_v2', JSON.stringify(state.claimedGames));
+            localStorage.setItem('lootradar_saved_money', state.totalSaved.toString());
+            
+            // 4. Update UI Components instantly
+            updateWalletUI();
+            renderLibrary();
+            renderGames(); 
+        }
+    };
+
         function init() {
             applyTheme();
             setupLangMenu();
@@ -1169,10 +1197,21 @@
             grid.innerHTML = filteredGames.map(game => {
                 const mockGameForIcon = { platforms: game.platforms, open_giveaway: game.open_giveaway };
                 const libPlatformIcon = getPlatformIconHtml(mockGameForIcon);
+                
+                // Fallback safely if game.id is missing during map array traversal
+                const actualId = game.id || Object.keys(state.claimedGames).find(k => state.claimedGames[k].title === game.title);
+            
                 return `
-                <div class="bg-white dark:bg-dark-card rounded-xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-800 relative group animate-[fadeUp_0.3s_ease_forwards]">
+                 <div class="bg-white dark:bg-dark-card rounded-xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-800 relative group animate-[fadeUp_0.3s_ease_forwards]">
                     <div class="h-24 md:h-32 w-full bg-gray-200 dark:bg-gray-800 relative">
                         <img src="${game.image}" class="w-full h-full object-cover" loading="lazy" onerror="this.src='https://placehold.co/400x200/1e293b/ffffff?text=Game+Image+Unavailable'">
+                        
+                        <button onclick="handleDeleteFromLibrary(event, '${actualId}')" 
+                                class="absolute top-2 left-2 z-30 w-7 h-7 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center justify-center shadow-md transition-all active:scale-90 opacity-100 md:opacity-0 md:group-hover:opacity-100" 
+                                title="Remove from Library">
+                            <i class="ph-bold ph-trash text-sm"></i>
+                        </button>
+            
                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-2">
                             <span class="text-green-400 font-bold text-xs flex items-center gap-1"><i class="ph-bold ph-piggy-bank"></i> +${game.worth || 'Free'}</span>
                         </div>
@@ -1183,8 +1222,9 @@
                     <div class="p-2">
                         <p class="text-xs font-bold truncate dark:text-gray-200" title="${game.title}">${game.title}</p>
                     </div>
-                </div>
-            `}).join('');
+                 </div>
+                `
+            }).join('');
         }
 
         function updateWalletUI() {

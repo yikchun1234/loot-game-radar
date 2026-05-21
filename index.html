@@ -375,7 +375,53 @@
             </div>
         </div>
     </div>
+
+        <div id="delete-confirm-modal" class="hidden fixed inset-0 z-[70] items-center justify-center p-4 bg-black/70 backdrop-blur-sm transition-opacity">
+        <div class="w-full max-w-sm rounded-3xl p-6 relative overflow-hidden bg-white dark:bg-slate-900 border border-gray-100 dark:border-gray-800 shadow-xl">
+            <div class="text-center mb-5">
+                <div class="w-16 h-16 bg-red-500/10 text-red-500 rounded-2xl mx-auto flex items-center justify-center mb-3">
+                    <i class="ph-fill ph-trash text-3xl"></i>
+                </div>
+                <h3 class="text-xl font-bold dark:text-white">Remove from Library?</h3>
+                <p id="delete-game-title" class="text-sm font-bold text-blue-500 mt-1 truncate px-2">Game Title</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Why are you removing this item?</p>
+            </div>
     
+            <div class="space-y-2.5 mb-6">
+                <label class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 cursor-pointer hover:border-red-500/40 transition-colors">
+                    <input type="radio" name="delete-reason" value="expired" checked class="accent-red-500 h-4 w-4">
+                    <div class="text-left">
+                        <p class="text-xs font-bold dark:text-gray-200">Offer Expired</p>
+                        <p class="text-[10px] text-gray-400">Missed the claim window time-limit.</p>
+                    </div>
+                </label>
+                <label class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 cursor-pointer hover:border-red-500/40 transition-colors">
+                    <input type="radio" name="delete-reason" value="failed" class="accent-red-500 h-4 w-4">
+                    <div class="text-left">
+                        <p class="text-xs font-bold dark:text-gray-200">Failed to Redeem</p>
+                        <p class="text-[10px] text-gray-400">Key ran out, error code, or region-locked.</p>
+                    </div>
+                </label>
+                <label class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 cursor-pointer hover:border-red-500/40 transition-colors">
+                    <input type="radio" name="delete-reason" value="accidental" class="accent-red-500 h-4 w-4">
+                    <div class="text-left">
+                        <p class="text-xs font-bold dark:text-gray-200">Something Else / Accident</p>
+                        <p class="text-[10px] text-gray-400">Accidentally clicked it.</p>
+                    </div>
+                </label>
+            </div>
+    
+            <div class="flex gap-3">
+                <button onclick="closeDeleteModal()" class="flex-1 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-bold active:scale-95 transition-transform">
+                    Cancel
+                </button>
+                <button id="confirm-delete-btn" class="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold active:scale-95 transition-all shadow-md">
+                    Confirm Delete
+                </button>
+            </div>
+        </div>
+    </div>
+        
     <!-- My Library Modal -->
     <div id="library-modal" class="hidden fixed inset-0 z-50 flex-col bg-slate-50 dark:bg-dark-bg transition-transform duration-300 transform translate-x-full">
         <!-- Header -->
@@ -867,78 +913,124 @@
             }
         }
         
-        async function handleImportData() {
-            const pin = document.getElementById('sync-pin-input').value;
-            const btn = document.getElementById('sync-import-btn');
-            const errorEl = document.getElementById('sync-import-error');
-        
-            if (!pin || pin.length !== 5) {
-                errorEl.innerText = 'Please enter a 5-digit PIN';
-                return;
-            }
-        
-            btn.disabled = true;
-            btn.innerHTML = '<i class="ph ph-spinner animate-spin"></i> Loading...';
-            errorEl.innerText = '';
-        
-            try {
-                const response = await fetch(`https://cloud-sync-api.yikchun1234.workers.dev/api/import?pin=${pin}&app=loot`);
-                if (!response.ok) {
-                    if (response.status === 404) throw new Error('Invalid or expired PIN');
-                    throw new Error('Network error');
+            async function handleImportData() {
+                const pin = document.getElementById('sync-pin-input').value;
+                const btn = document.getElementById('sync-import-btn');
+                const errorEl = document.getElementById('sync-import-error');
+            
+                if (!pin || pin.length !== 5) {
+                    errorEl.innerText = 'Please enter a 5-digit PIN';
+                    return;
                 }
-        
-                const compressed = await response.text();
-                const jsonStr = LZString.decompressFromEncodedURIComponent(compressed);
-                if (!jsonStr) throw new Error('Data corrupted');
-        
-                const parsedData = JSON.parse(jsonStr);
-        
-                // Overwrite LocalStorage
-                if(parsedData.lootradar_claimed_v2) localStorage.setItem('lootradar_claimed_v2', parsedData.lootradar_claimed_v2);
-                if(parsedData.lootradar_saved_money) localStorage.setItem('lootradar_saved_money', parsedData.lootradar_saved_money);
-                if(parsedData.lootradar_claimed) localStorage.setItem('lootradar_claimed', parsedData.lootradar_claimed);
-        
-                btn.classList.replace('bg-blue-600', 'bg-green-500');
-                btn.classList.replace('dark:bg-neon-blue', 'dark:bg-green-500');
-                btn.innerHTML = '<i class="ph-bold ph-check"></i> Success! Reloading...';
-        
-                setTimeout(() => window.location.reload(), 2000);
-            } catch (e) {
-                btn.disabled = false;
-                btn.innerHTML = 'Import Data';
-                errorEl.innerText = e.message;
+            
+                btn.disabled = true;
+                btn.innerHTML = '<i class="ph ph-spinner animate-spin"></i> Loading...';
+                errorEl.innerText = '';
+            
+                try {
+                    const response = await fetch(`https://cloud-sync-api.yikchun1234.workers.dev/api/import?pin=${pin}&app=loot`);
+                    if (!response.ok) {
+                        if (response.status === 404) throw new Error('Invalid or expired PIN');
+                        throw new Error('Network error');
+                    }
+            
+                    const compressed = await response.text();
+                    const jsonStr = LZString.decompressFromEncodedURIComponent(compressed);
+                    if (!jsonStr) throw new Error('Data corrupted');
+            
+                    const parsedData = JSON.parse(jsonStr);
+            
+                    // Overwrite LocalStorage
+                    if(parsedData.lootradar_claimed_v2) localStorage.setItem('lootradar_claimed_v2', parsedData.lootradar_claimed_v2);
+                    if(parsedData.lootradar_saved_money) localStorage.setItem('lootradar_saved_money', parsedData.lootradar_saved_money);
+                    if(parsedData.lootradar_claimed) localStorage.setItem('lootradar_claimed', parsedData.lootradar_claimed);
+            
+                    btn.classList.replace('bg-blue-600', 'bg-green-500');
+                    btn.classList.replace('dark:bg-neon-blue', 'dark:bg-green-500');
+                    btn.innerHTML = '<i class="ph-bold ph-check"></i> Success! Reloading...';
+            
+                    setTimeout(() => window.location.reload(), 2000);
+                } catch (e) {
+                    btn.disabled = false;
+                    btn.innerHTML = 'Import Data';
+                    errorEl.innerText = e.message;
+                }
             }
-        }
+    
+            window.handleDeleteFromLibrary = function(e, gameId) {
+            // Prevent the click from triggering any parent redirect behaviors
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const id = String(gameId);
+            const game = state.claimedGames[id];
+            
+            if (game) {
+                // 1. Deduct the game's value from total savings
+                if (game.value && !isNaN(game.value)) {
+                    state.totalSaved = Math.max(0, state.totalSaved - game.value);
+                }
+                
+                // 2. Remove from state object
+                delete state.claimedGames[id];
+                
+                // 3. Sync to LocalStorage
+                localStorage.setItem('lootradar_claimed_v2', JSON.stringify(state.claimedGames));
+                localStorage.setItem('lootradar_saved_money', state.totalSaved.toString());
+                
+                // 4. Update UI Components instantly
+                updateWalletUI();
+                renderLibrary();
+                renderGames(); 
+            }
+        };
 
+        let activeDeleteId = null;
+        
         window.handleDeleteFromLibrary = function(e, gameId) {
-        // Prevent the click from triggering any parent redirect behaviors
-        e.preventDefault();
-        e.stopPropagation();
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const id = String(gameId);
+            const game = state.claimedGames[id];
+            
+            if (!game) return;
+            
+            activeDeleteId = id;
+            document.getElementById('delete-game-title').innerText = game.title;
+            document.getElementById('confirm-delete-btn').onclick = executeDeletion;
+            
+            const modal = document.getElementById('delete-confirm-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
         
-        const id = String(gameId);
-        const game = state.claimedGames[id];
+        window.closeDeleteModal = function() {
+            const modal = document.getElementById('delete-confirm-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            activeDeleteId = null;
+        };
         
-        if (game) {
-            // 1. Deduct the game's value from total savings
-            if (game.value && !isNaN(game.value)) {
-                state.totalSaved = Math.max(0, state.totalSaved - game.value);
+        function executeDeletion() {
+            if (!activeDeleteId) return;
+            const game = state.claimedGames[activeDeleteId];
+            
+            if (game) {
+                if (game.value && !isNaN(game.value)) {
+                    state.totalSaved = Math.max(0, state.totalSaved - game.value);
+                }
+                delete state.claimedGames[activeDeleteId];
+                localStorage.setItem('lootradar_claimed_v2', JSON.stringify(state.claimedGames));
+                localStorage.setItem('lootradar_saved_money', state.totalSaved.toString());
+                
+                updateWalletUI();
+                renderLibrary();
+                renderGames();
             }
-            
-            // 2. Remove from state object
-            delete state.claimedGames[id];
-            
-            // 3. Sync to LocalStorage
-            localStorage.setItem('lootradar_claimed_v2', JSON.stringify(state.claimedGames));
-            localStorage.setItem('lootradar_saved_money', state.totalSaved.toString());
-            
-            // 4. Update UI Components instantly
-            updateWalletUI();
-            renderLibrary();
-            renderGames(); 
+            closeDeleteModal();
         }
-    };
-
+        
         function init() {
             applyTheme();
             setupLangMenu();
@@ -1197,25 +1289,22 @@
             grid.innerHTML = filteredGames.map(game => {
                 const mockGameForIcon = { platforms: game.platforms, open_giveaway: game.open_giveaway };
                 const libPlatformIcon = getPlatformIconHtml(mockGameForIcon);
-                
-                // Fallback safely if game.id is missing during map array traversal
                 const actualId = game.id || Object.keys(state.claimedGames).find(k => state.claimedGames[k].title === game.title);
             
                 return `
-                 <div class="bg-white dark:bg-dark-card rounded-xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-800 relative group animate-[fadeUp_0.3s_ease_forwards]">
+                 <div class="bg-white dark:bg-dark-card rounded-xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-800 relative group">
                     <div class="h-24 md:h-32 w-full bg-gray-200 dark:bg-gray-800 relative">
-                        <img src="${game.image}" class="w-full h-full object-cover" loading="lazy" onerror="this.src='https://placehold.co/400x200/1e293b/ffffff?text=Game+Image+Unavailable'">
+                        <img src="${game.image}" class="w-full h-full object-cover" loading="lazy">
                         
                         <button onclick="handleDeleteFromLibrary(event, '${actualId}')" 
-                                class="absolute top-2 left-2 z-30 w-7 h-7 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center justify-center shadow-md transition-all active:scale-90 opacity-100 md:opacity-0 md:group-hover:opacity-100" 
-                                title="Remove from Library">
+                                class="absolute top-2 left-2 z-30 w-7 h-7 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center justify-center shadow-md transition-all active:scale-90 opacity-100 md:opacity-0 md:group-hover:opacity-100">
                             <i class="ph-bold ph-trash text-sm"></i>
                         </button>
             
                         <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-2">
                             <span class="text-green-400 font-bold text-xs flex items-center gap-1"><i class="ph-bold ph-piggy-bank"></i> +${game.worth || 'Free'}</span>
                         </div>
-                        <div class="absolute top-2 right-2 bg-black/70 backdrop-blur-sm text-white text-[10px] font-semibold px-1.5 py-0.5 rounded flex items-center gap-1 border border-white/20">
+                        <div class="absolute top-2 right-2 bg-black/70 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded flex items-center gap-1">
                             ${libPlatformIcon}
                         </div>
                     </div>

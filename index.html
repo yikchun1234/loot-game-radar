@@ -875,10 +875,13 @@
             try {
                 // 1. Gather ONLY LootRadar Data (Ignore UI theme/lang to prevent cache breaking)
                 const exportData = {
-                    lootradar_claimed_v2: localStorage.getItem('lootradar_claimed_v2') || '{}',
-                    lootradar_saved_money: localStorage.getItem('lootradar_saved_money') || '0',
-                    lootradar_claimed: localStorage.getItem('lootradar_claimed') || '{}' // Legacy support
-                };
+                lootradar_claimed_v2: localStorage.getItem('lootradar_claimed_v2') || '{}',
+                lootradar_saved_money: localStorage.getItem('lootradar_saved_money') || '0',
+                lootradar_claimed: localStorage.getItem('lootradar_claimed') || '{}', // Legacy support
+                
+                // ADD THIS ROW SO DELETED LOGS TRAVEL WITH THE EXPORT FILE:
+                lootradar_deleted_history: localStorage.getItem('lootradar_deleted_history') || '[]'
+            };
                 const jsonStr = JSON.stringify(exportData);
         
                 // 2. Cache Check (Reusing the 15-min PIN logic)
@@ -939,12 +942,15 @@
                     if (!jsonStr) throw new Error('Data corrupted');
             
                     const parsedData = JSON.parse(jsonStr);
-            
+
                     // Overwrite LocalStorage
                     if(parsedData.lootradar_claimed_v2) localStorage.setItem('lootradar_claimed_v2', parsedData.lootradar_claimed_v2);
                     if(parsedData.lootradar_saved_money) localStorage.setItem('lootradar_saved_money', parsedData.lootradar_saved_money);
                     if(parsedData.lootradar_claimed) localStorage.setItem('lootradar_claimed', parsedData.lootradar_claimed);
-            
+                    
+                    // ADD THIS ROW TO UNPACK THE INCOMING DELETED LOGS SAFELY:
+                    if(parsedData.lootradar_deleted_history) localStorage.setItem('lootradar_deleted_history', parsedData.lootradar_deleted_history);
+                                        
                     btn.classList.replace('bg-blue-600', 'bg-green-500');
                     btn.classList.replace('dark:bg-neon-blue', 'dark:bg-green-500');
                     btn.innerHTML = '<i class="ph-bold ph-check"></i> Success! Reloading...';

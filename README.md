@@ -59,7 +59,7 @@ No Node.js, Webpack, or Vite required! The entire application runs natively in a
 You can install LootRadar to use exactly like a native mobile app!
 
 * **iOS (Safari):** Tap the **Share** icon at the bottom of the screen and select **"Add to Home Screen"**.
-* **Android (Chrome):** Tap the browser menu (three dots) and select **"Install App"** or "Add to Home screen".
+* **Android (Chrome):** Tap the browser menu (three dots) and select **"Install App"** or **"Add to Home screen"**.
 
 ---
 

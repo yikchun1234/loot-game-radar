@@ -1338,10 +1338,10 @@
                 const mockGameForIcon = { platforms: game.platforms, open_giveaway: game.open_giveaway };
                 const libPlatformIcon = getPlatformIconHtml(mockGameForIcon);
                 
-            return `
-                 <div class="bg-white dark:bg-dark-card rounded-xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-800 relative group">
-                    <div class="h-24 md:h-32 w-full bg-gray-200 dark:bg-gray-800 relative">
-                        <img src="${game.image}" class="w-full h-full object-cover" loading="lazy" onerror="this.src='https://placehold.co/400x200/1e293b/ffffff?text=Game+Image+Unavailable'">                        
+           return `
+             <div class="bg-white dark:bg-dark-card rounded-xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-800 relative group animate-[fadeUp_0.3s_ease_forwards]">
+                <div class="h-24 md:h-32 w-full bg-gray-200 dark:bg-gray-800 relative">
+                    <img src="${game.image}" class="w-full h-full object-cover" loading="lazy" onerror="this.src='https://placehold.co/400x200/1e293b/ffffff?text=Game+Image+Unavailable'">
                         <button onclick="handleDeleteFromLibrary(event, '${game.id}')" 
                                 class="absolute top-2 left-2 z-30 w-7 h-7 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center justify-center shadow-md transition-all active:scale-90 opacity-100 md:opacity-0 md:group-hover:opacity-100"
                                 title="Remove from Library">
@@ -1439,34 +1439,54 @@
             const grid = document.getElementById('games-grid');
             const emptyState = document.getElementById('empty-state');
             const t = i18n[state.lang];
+            
             grid.innerHTML = '';
             
             const currentPlatObj = platforms.find(p => p.id === state.currentPlatform);
             const filteredGames = state.currentPlatform === 'All' ? state.games : state.games.filter(g => isPlatformMatch(g, currentPlatObj.matches, currentPlatObj.excludes, currentPlatObj.requires, currentPlatObj.customRule));
-
-            if (filteredGames.length === 0) { emptyState.classList.remove('hidden'); return; } 
-            else { emptyState.classList.add('hidden'); }
-
+            
+            if (filteredGames.length === 0) {
+                emptyState.classList.remove('hidden');
+                return;
+            } else {
+                emptyState.classList.add('hidden');
+            }
+            
             const now = new Date().getTime();
+            
+            // 🚀 PERFORMANCE FIX: Create a Fragment to hold everything in memory first
+            const fragment = document.createDocumentFragment();
+            
             filteredGames.forEach((game, index) => {
                 const isNew = (now - new Date(game.published_date).getTime()) < 172800000;
                 const pIcon = getPlatformIconHtml(game);
                 const isClaimed = !!state.claimedGames[String(game.id)];
                 const gameObjStr = encodeURIComponent(JSON.stringify(game));
-
+                
                 const card = document.createElement('a');
-                card.href = game.open_giveaway; card.target = '_blank'; card.rel = 'noopener noreferrer';
+                card.href = game.open_giveaway;
+                card.target = '_blank';
+                card.rel = 'noopener noreferrer';
                 card.className = "game-card block bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl relative group";
                 card.onclick = () => handleClaim(gameObjStr);
-                card.style.animation = `fadeUp 0.5s ease forwards ${index * 0.05}s`;
-                card.style.opacity = '0'; card.style.transform = 'translateY(20px)';
-
-                const btnStyle = isClaimed ? `bg-green-100 text-green-700 border-2 border-green-200 shadow-[0_4px_0_#bbf7d0] dark:bg-[#112211] dark:text-green-400 dark:border-green-900/50 dark:shadow-[0_4px_0_#052e16]` : `bg-white text-blue-600 border-2 border-blue-100 shadow-[0_4px_0_#bfdbfe] dark:bg-[#151b22] dark:text-neon-blue dark:border-gray-700 dark:shadow-[0_4px_0_#0b0c10] group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 group-hover:shadow-[0_6px_20px_rgba(37,99,235,0.4)] group-hover:-translate-y-1 dark:group-hover:bg-neon-blue dark:group-hover:text-black dark:group-hover:border-neon-blue dark:group-hover:shadow-[0_0_20px_rgba(0,243,255,0.4)] dark:group-hover:-translate-y-1 group-active:translate-y-[4px] group-active:shadow-[0_0_0_transparent] dark:group-active:translate-y-[4px] dark:group-active:shadow-[0_0_0_transparent]`;
-                const btnContent = isClaimed ? `<i class="ph-bold ph-check-circle mr-1 text-lg"></i> ${t.claimedBtn}` : `${t.getBtn} <i class="ph-bold ph-caret-right ml-1 transition-transform group-hover:translate-x-1"></i>`;
-
+                
+                // 🚀 PERFORMANCE FIX: Cap the max animation delay to 0.6s so long lists don't take forever to load
+                const staggerDelay = Math.min(index * 0.05, 0.6);
+                card.style.animation = `fadeUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards ${staggerDelay}s`;
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                
+                const btnStyle = isClaimed 
+                    ? `bg-green-100 text-green-700 border-2 border-green-200 shadow-[0_4px_0_#bbf7d0] dark:bg-[#112211] dark:text-green-400 dark:border-green-900/50 dark:shadow-[0_4px_0_#052e16]` 
+                    : `bg-white text-blue-600 border-2 border-blue-100 shadow-[0_4px_0_#bfdbfe] dark:bg-[#151b22] dark:text-neon-blue dark:border-gray-700 dark:shadow-[0_4px_0_#0b0c10] group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 group-hover:shadow-[0_6px_20px_rgba(37,99,235,0.4)] group-hover:-translate-y-1 dark:group-hover:bg-neon-blue dark:group-hover:text-black dark:group-hover:border-neon-blue dark:group-hover:shadow-[0_0_20px_rgba(0,243,255,0.4)] dark:group-hover:-translate-y-1 group-active:translate-y-[4px] group-active:shadow-[0_0_0_transparent] dark:group-active:translate-y-[4px] dark:group-active:shadow-[0_0_0_transparent]`;
+                    
+                const btnContent = isClaimed 
+                    ? `<i class="ph-bold ph-check-circle mr-1 text-lg"></i> ${t.claimedBtn}` 
+                    : `${t.getBtn} <i class="ph-bold ph-caret-right ml-1 transition-transform group-hover:translate-x-1"></i>`;
+                    
                 card.innerHTML = `
                     <div class="relative h-44 md:h-48 overflow-hidden bg-gray-200 dark:bg-gray-800 flex-shrink-0">
-                        <img src="${game.image}" alt="${game.title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" onerror="this.src='https://via.placeholder.com/400x200?text=No+Image'">
+                        <img src="${game.image}" alt="${game.title}" class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" loading="lazy" onerror="this.src='https://placehold.co/400x200/1e293b/ffffff?text=Game+Image+Unavailable'">
                         ${isNew ? `<div class="absolute top-3 left-3 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded-md shadow-lg flex items-center gap-1"><i class="ph-fill ph-sparkle animate-pulse"></i> ${t.newTip}</div>` : ''}
                         <div class="absolute top-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-semibold px-2 py-1 rounded-md flex items-center gap-1 border border-white/10">${pIcon}</div>
                         ${isClaimed ? `<div class="absolute inset-0 bg-black/40 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300"><i class="ph-fill ph-check-circle text-5xl text-green-400 drop-shadow-[0_0_15px_rgba(74,222,128,0.5)]"></i></div>` : ''}
@@ -1485,8 +1505,12 @@
                         </div>
                     </div>
                 `;
-                grid.appendChild(card);
+                
+                fragment.appendChild(card);
             });
+            
+            // 🚀 PERFORMANCE FIX: Append all 100+ cards to the actual screen at the exact same time
+            grid.appendChild(fragment);
         }
 
         function getPlatformIconHtml(game) {

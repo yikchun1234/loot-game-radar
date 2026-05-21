@@ -32,12 +32,13 @@
 ### ✨ Features
 
 * 🌍 **Universal Tracking:** Automatically scrapes and aggregates free game deals from Steam, Epic Games, Prime Gaming, GOG, Ubisoft, iOS, Android, and Consoles. Utilizes a highly stable Reddit-fallback scraping engine!
-* 💰 **My Loot Library & Wallet:** Keep a permanent record of every game you claim. The app automatically calculates your **Total Lifetime Savings** so you know exactly how much money you've saved.
-* ☁️ **Cloud Sync (PIN Transfer):** Securely migrate your claimed games library and total savings to another device in seconds using a 15-minute 5-digit PIN (Powered by Cloudflare Workers & LZ-String compression).
+* 💰 💰 **My Loot Library & Wallet:** Keep a permanent record of every game you claim. The app automatically calculates your **Total Lifetime Savings**. New: Manage your library with precision by removing expired, failed, or paywalled games to keep your financial stats 100% accurate!
+* ☁️ ☁️ **Cloud Sync (PIN Transfer):** Securely migrate your claimed games library, deleted item history, and total savings to another device in seconds using a 15-minute 5-digit PIN (Powered by Cloudflare Workers & LZ-String compression).
 * 📱 **Native PWA Experience:** Fully installable on iOS and Android. Features mobile-native interactions like **Pull-to-Refresh**, slick glassmorphism UI, and smooth Tailwind CSS animations.
 * 🌐 **International Support (9 Languages):** Fully localized in English, 简体中文, Español, Français, Deutsch, Русский, 日本語, 한국어, and Português.
 * 🛡️ **Advanced Security:** Built-in Domain Lockdown and Anti-Debugger/Inspect Element blockers to prevent unauthorized scraping or cloning of the app.
 * 🌓 **Dynamic Theming:** Seamless Light and Dark mode toggling.
+* ⚡ **Lightning Fast Performance:** Highly optimized DOM rendering uses Document Fragments and decoupled CSS animations to instantly load and filter hundreds of games without lagging your browser.
 
 ---
 

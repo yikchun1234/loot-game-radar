@@ -753,7 +753,10 @@
             claimedGames: JSON.parse(localStorage.getItem('lootradar_claimed_v2')) || JSON.parse(localStorage.getItem('lootradar_claimed')) || {},
             totalSaved: parseFloat(localStorage.getItem('lootradar_saved_money')) || 0,
             libSort: 'date_desc',
-            libFilter: 'All'
+            libFilter: 'All',
+            
+            // ADD THIS FIXED LINE HERE:
+            deletedHistory: JSON.parse(localStorage.getItem('lootradar_deleted_history')) || []
         };
 
         const platforms = [

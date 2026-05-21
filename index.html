@@ -1249,6 +1249,28 @@
                 ...game
             }));
             
+            // --- RESTORED MISSING UI LOGIC ---
+            // Update Total Games Count
+            const totalCountEl = document.getElementById('lib-total-count');
+            if (totalCountEl) totalCountEl.innerText = libraryGames.length;
+            
+            // Update Total Saved Value
+            const totalSavedEl = document.getElementById('lib-total-saved');
+            if (totalSavedEl) totalSavedEl.innerText = `$${state.totalSaved.toFixed(2)}`;
+            
+            // Build Filter Options if empty
+            const filterSelect = document.getElementById('lib-filter-select');
+            if (filterSelect && filterSelect.options.length === 0) {
+                const t = i18n[state.lang];
+                filterSelect.innerHTML = platforms.map(p => {
+                    const labelMap = { 'Prime': t.prime, 'Ubisoft': t.ubisoft, 'EpicPhone': t.epicPhone };
+                    const label = p.id === 'All' ? t.platformAll : (labelMap[p.id] || p.id);
+                    return `<option value="${p.id}">&nbsp;&nbsp;&nbsp;${label}</option>`;
+                }).join('');
+                filterSelect.value = state.libFilter;
+            }
+            // ----------------------------------
+            
             // 2. Filter games by platform if a filter is active
             const filteredGames = libraryGames.filter(game => {
                 if (state.libFilter === 'All') return true;
@@ -1256,22 +1278,31 @@
                 return game.platforms.toLowerCase().includes(state.libFilter.toLowerCase());
             });
             
-            // 3. Sort games based on selection
+            // 3. Sort games based on selection (Fixed sorting logic to use 'date' and 'value')
             filteredGames.sort((a, b) => {
-                if (state.libSort === 'date_desc') return new Date(b.claimedAt || 0) - new Date(a.claimedAt || 0);
-                if (state.libSort === 'date_asc') return new Date(a.claimedAt || 0) - new Date(b.claimedAt || 0);
+                if (state.libSort === 'date_desc') return new Date(b.date || 0) - new Date(a.date || 0);
+                if (state.libSort === 'date_asc') return new Date(a.date || 0) - new Date(b.date || 0);
+                if (state.libSort === 'price_desc') return (b.value || 0) - (a.value || 0);
+                if (state.libSort === 'price_asc') return (a.value || 0) - (b.value || 0);
+                if (state.libSort === 'platform_asc') return (a.platforms || '').localeCompare(b.platforms || '');
                 if (state.libSort === 'alpha_asc') return (a.title || '').localeCompare(b.title || '');
                 return 0;
             });
             
+            // Handle the empty state UI correctly
+            const emptyState = document.getElementById('library-empty');
             if (filteredGames.length === 0) {
-                grid.innerHTML = `
-                    <div class="col-span-full text-center py-12 text-gray-400">
-                        <i class="ph-bold ph-package text-4xl mb-2 opacity-50 block"></i>
-                        <p class="text-sm">No items found in your library.</p>
-                    </div>
-                `;
+                grid.innerHTML = '';
+                if (emptyState) {
+                    emptyState.classList.remove('hidden');
+                    emptyState.classList.add('flex');
+                }
                 return;
+            } else {
+                if (emptyState) {
+                    emptyState.classList.add('hidden');
+                    emptyState.classList.remove('flex');
+                }
             }
             
             // 4. Render clean templates using explicit, stable IDs

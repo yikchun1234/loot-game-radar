@@ -1400,7 +1400,7 @@
             const odoWrapper = document.createElement('div');
             odoWrapper.className = 'odometer-container';
 
-            // Cleanly split the number (e.g. 1250.50 -> "1250" and "50")
+            // Cleanly split the number (e.g. 1971.91 -> "1971" and "91")
             const [intPartStr, decPartStr] = state.totalSaved.toFixed(2).split('.');
             const numDigits = intPartStr.length;
 
@@ -1411,7 +1411,6 @@
                 col.className = 'odometer-col';
 
                 // Calculate the speed perfectly based on the distance from the right
-                // The ones place finishes in 0.5s, tens in 1.2s, hundreds in 1.9s, etc.
                 const distanceFromRight = (numDigits - 1) - i;
                 const duration = 0.5 + (distanceFromRight * 0.7);
                 col.style.transitionDuration = `${duration}s`;
@@ -1430,14 +1429,6 @@
                 
                 col.innerHTML = digitsHtml;
                 odoWrapper.appendChild(col);
-
-                // Automatically insert commas in the correct places (e.g., 1,250 or 1,000,000)
-                if (distanceFromRight > 0 && distanceFromRight % 3 === 0) {
-                    const comma = document.createElement('div');
-                    comma.className = 'odometer-static';
-                    comma.innerHTML = ',';
-                    odoWrapper.appendChild(comma);
-                }
 
                 // Fire the CSS animation right after the browser registers the elements
                 const totalDigits = (spinRotations * 10) + targetDigit;

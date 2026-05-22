@@ -140,9 +140,21 @@
         .ambient-bg { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: -1; background: radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.08), transparent 30%), radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 30%); pointer-events: none; }
         .dark .ambient-bg { background: radial-gradient(circle at 15% 50%, rgba(0, 243, 255, 0.08), transparent 25%), radial-gradient(circle at 85% 30%, rgba(188, 19, 254, 0.08), transparent 25%); }
 
-        /* Piggy Bank Rolling Odometer Animation (FIXED) */
-        .odometer-container { display: inline-flex; overflow: hidden; height: 1.2em; line-height: 1.2em; }
-        .odometer-col { display: block; transition-property: transform; transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1); }
+        /* Piggy Bank Rolling Odometer Animation (PERFECTED SPACING) */
+        .odometer-container { 
+            display: inline-flex; 
+            overflow: hidden; 
+            height: 1.2em; 
+            line-height: 1.2em; 
+            font-variant-numeric: tabular-nums; /* Forces numbers to be the exact same width */
+            letter-spacing: -0.05em; /* Pulls the separate columns slightly closer together */
+        }
+        .odometer-col { 
+            display: block; 
+            transition-property: transform; 
+            transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1); 
+            text-align: center; /* Ensures the skinny '1' stays centered in its column */
+        }
         .odometer-digit { height: 1.2em; display: flex; justify-content: center; align-items: center; }
         .odometer-static { height: 1.2em; display: flex; justify-content: center; align-items: center; }
         

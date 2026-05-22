@@ -140,10 +140,11 @@
         .ambient-bg { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: -1; background: radial-gradient(circle at 15% 50%, rgba(59, 130, 246, 0.08), transparent 30%), radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.08), transparent 30%); pointer-events: none; }
         .dark .ambient-bg { background: radial-gradient(circle at 15% 50%, rgba(0, 243, 255, 0.08), transparent 25%), radial-gradient(circle at 85% 30%, rgba(188, 19, 254, 0.08), transparent 25%); }
 
-        /* Piggy Bank Rolling Odometer Animation */
-        .odometer-container { display: inline-flex; overflow: hidden; height: 1.2em; line-height: 1.2em; vertical-align: bottom; }
-        .odometer-col { display: flex; flex-direction: column; transition: transform cubic-bezier(0.25, 1, 0.5, 1); }
+        /* Piggy Bank Rolling Odometer Animation (FIXED) */
+        .odometer-container { display: inline-flex; overflow: hidden; height: 1.2em; line-height: 1.2em; }
+        .odometer-col { display: block; transition-property: transform; transition-timing-function: cubic-bezier(0.25, 1, 0.5, 1); }
         .odometer-digit { height: 1.2em; display: flex; justify-content: center; align-items: center; }
+        .odometer-static { height: 1.2em; display: flex; justify-content: center; align-items: center; }
         
         /* Your Custom Speed Configuration */
         #col-100k { transition-duration: 4.0s; } 
@@ -1388,68 +1389,73 @@
         function updateWalletUI() {
             const el = document.getElementById('saved-amount');
             const container = document.getElementById('wallet-container');
-            
-            // Pop animation for the container
+
+            // Trigger the subtle pop animation on the UI container
             container.classList.remove('animate-pop');
             void container.offsetWidth; 
             container.classList.add('animate-pop');
 
-            // Set up the Odometer wrapper inside the existing span
-            el.innerHTML = '<span style="display:flex; align-items:flex-end; padding-right:2px;">$</span>'; 
+            // Set up the static dollar sign
+            el.innerHTML = '<span class="odometer-static" style="padding-right:2px;">$</span>'; 
             const odoWrapper = document.createElement('div');
             odoWrapper.className = 'odometer-container';
-            
-            // Format number (e.g. 1250.50 -> integer: 001250, decimal: .50)
-            const intPart = Math.floor(state.totalSaved);
-            const decPart = (state.totalSaved % 1).toFixed(2).substring(1); 
-            const numStr = intPart.toString().padStart(6, '0');
-            const columnIds = ['col-100k', 'col-10k', 'col-1k', 'col-100', 'col-10', 'col-1'];
-            
-            // Build the rolling columns
-            columnIds.forEach((colId, index) => {
-                const targetDigit = parseInt(numStr[index]);
+
+            // Cleanly split the number (e.g. 1250.50 -> "1250" and "50")
+            const [intPartStr, decPartStr] = state.totalSaved.toFixed(2).split('.');
+            const numDigits = intPartStr.length;
+
+            // Dynamically build exactly the number of columns we need
+            for (let i = 0; i < numDigits; i++) {
+                const targetDigit = parseInt(intPartStr[i]);
                 const col = document.createElement('div');
                 col.className = 'odometer-col';
-                col.id = colId;
-                
+
+                // Calculate the speed perfectly based on the distance from the right
+                // The ones place finishes in 0.5s, tens in 1.2s, hundreds in 1.9s, etc.
+                const distanceFromRight = (numDigits - 1) - i;
+                const duration = 0.5 + (distanceFromRight * 0.7);
+                col.style.transitionDuration = `${duration}s`;
+
                 let digitsHtml = '';
-                const spinRotations = 2; // Two full spins before stopping
+                const spinRotations = 2; // Two full invisible spins for that satisfying long roll
                 
-                for (let i = 0; i < spinRotations; i++) {
+                // Add the dummy numbers to create the scroll track
+                for (let r = 0; r < spinRotations; r++) {
                     for (let j = 0; j <= 9; j++) digitsHtml += `<div class="odometer-digit">${j}</div>`;
                 }
+                // Add the final target numbers so it lands flawlessly
                 for (let j = 0; j <= targetDigit; j++) {
                     digitsHtml += `<div class="odometer-digit">${j}</div>`;
                 }
                 
                 col.innerHTML = digitsHtml;
                 odoWrapper.appendChild(col);
-                
-                // Add comma after the thousands place (index 2)
-                if (index === 2) {
+
+                // Automatically insert commas in the correct places (e.g., 1,250 or 1,000,000)
+                if (distanceFromRight > 0 && distanceFromRight % 3 === 0) {
                     const comma = document.createElement('div');
-                    comma.style.display = 'flex';
-                    comma.style.alignItems = 'flex-end';
+                    comma.className = 'odometer-static';
                     comma.innerHTML = ',';
                     odoWrapper.appendChild(comma);
                 }
-                
-                // Trigger the CSS slide animation for this specific column
-                const totalDigitsInColumn = (spinRotations * 10) + targetDigit;
+
+                // Fire the CSS animation right after the browser registers the elements
+                const totalDigits = (spinRotations * 10) + targetDigit;
                 setTimeout(() => {
-                    col.style.transform = `translateY(-${totalDigitsInColumn * 1.2}em)`;
+                    col.style.transform = `translateY(-${totalDigits * 1.2}em)`;
                 }, 50);
-            });
-            
-            // Add the decimals statically at the end
+            }
+
+            // Lock the decimal string at the end of the rolling integer columns
             const decDiv = document.createElement('div');
-            decDiv.style.display = 'flex';
-            decDiv.style.alignItems = 'flex-end';
-            decDiv.innerHTML = decPart;
+            decDiv.className = 'odometer-static';
+            decDiv.innerHTML = '.' + decPartStr;
             odoWrapper.appendChild(decDiv);
 
+            // Mount it perfectly to the UI
             el.appendChild(odoWrapper);
-            el.style.display = 'inline-flex'; // Ensures perfect horizontal alignment
+            el.style.display = 'inline-flex';
+            el.style.alignItems = 'center'; 
         }
 
         function setupLangMenu() {

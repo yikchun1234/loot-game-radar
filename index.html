@@ -1308,14 +1308,12 @@
                 ...game
             }));
             
-            // --- RESTORED MISSING UI LOGIC ---
-            // Update Total Games Count
-            const totalCountEl = document.getElementById('lib-total-count');
-            if (totalCountEl) totalCountEl.innerText = libraryGames.length;
-            
-            // Update Total Saved Value
-            const totalSavedEl = document.getElementById('lib-total-saved');
-            if (totalSavedEl) totalSavedEl.innerText = `$${state.totalSaved.toFixed(2)}`;
+        // --- RESTORED MISSING UI LOGIC ---
+        // Animate Total Games Count (Pass 'false' because it is not currency)
+        animateOdometer('lib-total-count', libraryGames.length, false);
+        
+        // Animate Total Saved Value (Pass 'true' because it is currency)
+        animateOdometer('lib-total-saved', state.totalSaved, true);
             
             // Build Filter Options dynamically ONLY if the language has changed or it's empty
             const filterSelect = document.getElementById('lib-filter-select');
@@ -1397,44 +1395,41 @@
                 `;
             }).join('');
         }
+        
+        // --- MASTER ODOMETER ANIMATION HELPER ---
+        function animateOdometer(elementId, value, isCurrency = false) {
+            const el = document.getElementById(elementId);
+            if (!el) return;
 
-        function updateWalletUI() {
-            const el = document.getElementById('saved-amount');
-            const container = document.getElementById('wallet-container');
-
-            // Trigger the subtle pop animation on the UI container
-            container.classList.remove('animate-pop');
-            void container.offsetWidth; 
-            container.classList.add('animate-pop');
-
-            // Set up the static dollar sign
-            el.innerHTML = '<span class="odometer-static" style="padding-right:2px;">$</span>'; 
+            // Clear the element and add the $ if it's currency
+            el.innerHTML = isCurrency ? '<span class="odometer-static" style="padding-right:2px;">$</span>' : ''; 
+            
             const odoWrapper = document.createElement('div');
             odoWrapper.className = 'odometer-container';
 
-            // Cleanly split the number (e.g. 1971.91 -> "1971" and "91")
-            const [intPartStr, decPartStr] = state.totalSaved.toFixed(2).split('.');
+            // Split into integers and decimals based on whether it's money or a game count
+            const [intPartStr, decPartStr] = isCurrency 
+                ? parseFloat(value).toFixed(2).split('.') 
+                : [parseInt(value).toString(), null];
+
             const numDigits = intPartStr.length;
 
-            // Dynamically build exactly the number of columns we need
             for (let i = 0; i < numDigits; i++) {
                 const targetDigit = parseInt(intPartStr[i]);
                 const col = document.createElement('div');
                 col.className = 'odometer-col';
 
-                // Calculate the speed perfectly based on the distance from the right
+                // Speed formula: right-most numbers spin fastest
                 const distanceFromRight = (numDigits - 1) - i;
                 const duration = 0.5 + (distanceFromRight * 0.7);
                 col.style.transitionDuration = `${duration}s`;
 
                 let digitsHtml = '';
-                const spinRotations = 2; // Two full invisible spins for that satisfying long roll
+                const spinRotations = 2; 
                 
-                // Add the dummy numbers to create the scroll track
                 for (let r = 0; r < spinRotations; r++) {
                     for (let j = 0; j <= 9; j++) digitsHtml += `<div class="odometer-digit">${j}</div>`;
                 }
-                // Add the final target numbers so it lands flawlessly
                 for (let j = 0; j <= targetDigit; j++) {
                     digitsHtml += `<div class="odometer-digit">${j}</div>`;
                 }
@@ -1442,23 +1437,35 @@
                 col.innerHTML = digitsHtml;
                 odoWrapper.appendChild(col);
 
-                // Fire the CSS animation right after the browser registers the elements
                 const totalDigits = (spinRotations * 10) + targetDigit;
                 setTimeout(() => {
                     col.style.transform = `translateY(-${totalDigits * 1.2}em)`;
                 }, 50);
             }
 
-            // Lock the decimal string at the end of the rolling integer columns
-            const decDiv = document.createElement('div');
-            decDiv.className = 'odometer-static';
-            decDiv.innerHTML = '.' + decPartStr;
-            odoWrapper.appendChild(decDiv);
+            // Add the decimals back on if it's money
+            if (isCurrency && decPartStr) {
+                const decDiv = document.createElement('div');
+                decDiv.className = 'odometer-static';
+                decDiv.innerHTML = '.' + decPartStr;
+                odoWrapper.appendChild(decDiv);
+            }
 
-            // Mount it perfectly to the UI
             el.appendChild(odoWrapper);
             el.style.display = 'inline-flex';
             el.style.alignItems = 'center'; 
+        }
+        
+        function updateWalletUI() {
+            const container = document.getElementById('wallet-container');
+            
+            // Trigger the subtle pop animation on the UI container
+            container.classList.remove('animate-pop');
+            void container.offsetWidth; 
+            container.classList.add('animate-pop');
+
+            // Trigger the animation on the header wallet!
+            animateOdometer('saved-amount', state.totalSaved, true);
         }
 
         function setupLangMenu() {

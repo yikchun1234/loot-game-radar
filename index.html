@@ -1184,30 +1184,45 @@
 
         function toggleLibrary() {
           const modal = document.getElementById('library-modal');
+          const scrollTopBtn = document.getElementById('scroll-to-top-btn');
+        
           if (modal.classList.contains('hidden')) {
-            // 1. Unhide the modal container instantly
+            // --- OPENING THE LIBRARY ---
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            
-            // 2. Force a quick layout recalculation so the browser knows it's visible
             void modal.offsetWidth;
-            
-            // 3. Trigger the CSS slide-in animation immediately!
             modal.classList.remove('translate-x-full');
             
-            // 4. Wait a fraction of a second for the slide to physically start
-            // BEFORE doing the heavy math of building the library cards.
+            // 🚀 BLINK FIX: Instantly hide the scroll button because the library always opens at the top!
+            if (scrollTopBtn) {
+                scrollTopBtn.classList.add('opacity-0', 'translate-y-4', 'scale-90', 'pointer-events-none');
+                scrollTopBtn.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
+            }
+        
             setTimeout(() => {
               renderLibrary();
-              window.updateScrollButtonState(); // 👈 INSTANTLY RESET BUTTON FOR LIBRARY
+              window.updateScrollButtonState();
             }, 150);
           } else {
-            // Closing animation remains perfectly instant
+            // --- CLOSING THE LIBRARY ---
             modal.classList.add('translate-x-full');
+        
+            // 🚀 BLINK FIX: Instantly check the Main Menu's scroll position while the library slides away!
+            const appContainer = document.getElementById('app-container');
+            if (appContainer && scrollTopBtn) {
+                if (appContainer.scrollTop > 300) {
+                    scrollTopBtn.classList.remove('opacity-0', 'translate-y-4', 'scale-90', 'pointer-events-none');
+                    scrollTopBtn.classList.add('opacity-100', 'translate-y-0', 'scale-100');
+                } else {
+                    scrollTopBtn.classList.add('opacity-0', 'translate-y-4', 'scale-90', 'pointer-events-none');
+                    scrollTopBtn.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
+                }
+            }
+        
             setTimeout(() => {
               modal.classList.add('hidden');
               modal.classList.remove('flex');
-              window.updateScrollButtonState(); // 👈 INSTANTLY RESET BUTTON FOR MAIN MENU
+              window.updateScrollButtonState();
             }, 300);
           }
         }

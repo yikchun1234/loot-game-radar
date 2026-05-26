@@ -812,6 +812,42 @@
             const compressed = LZString.compressToUTF16(JSON.stringify(data));
             localStorage.setItem(key, compressed);
         }
+        
+        // 👇 PASTE THE NEW HEAL FUNCTION HERE 👇
+        function autoHealLegacySaves() {
+            let needsSave = false;
+            
+            for (let id in state.claimedGames) {
+                if (typeof state.claimedGames[id] === 'boolean' || !state.claimedGames[id].title) {
+                    const liveGame = state.games.find(g => String(g.id) === id);
+                    
+                    if (liveGame) {
+                        let value = 0;
+                        if (liveGame.worth && liveGame.worth !== 'N/A') {
+                            const parsed = parseFloat(liveGame.worth.replace(/[^0-9.]/g, ''));
+                            if (!isNaN(parsed)) value = parsed;
+                        }
+        
+                        state.claimedGames[id] = {
+                            title: liveGame.title,
+                            image: liveGame.image,
+                            worth: liveGame.worth,
+                            platforms: liveGame.platforms || 'PC',
+                            open_giveaway: liveGame.open_giveaway,
+                            value: value,
+                            date: new Date().toISOString()
+                        };
+                        needsSave = true;
+                    }
+                }
+            }
+            
+            if (needsSave) {
+                saveSafeStorage('lootradar_claimed_v2', state.claimedGames);
+            }
+        }
+        // 👆 END OF HEAL FUNCTION 👆
+
         // -----------------------------------------
         
         let state = {
@@ -1278,9 +1314,12 @@
                 
                 allGames = Array.from(uniqueMap.values());
                 allGames.sort((a, b) => new Date(b.published_date) - new Date(a.published_date));
-                state.games = allGames;
                 
-                renderTabs(); renderGames();
+                state.games = allGames;
+                autoHealLegacySaves(); // 👈 ADD THIS LINE HERE
+                
+                renderTabs();
+                renderGames();
             } catch (error) {
                 document.getElementById('games-grid').innerHTML = '';
                 document.getElementById('error-state').classList.remove('hidden');

@@ -535,7 +535,11 @@
             </div>
         </div>
     </div>
-
+    
+    <button id="scroll-to-top-btn" onclick="scrollToTop()" class="fixed bottom-8 right-6 z-[9999] p-3.5 rounded-full bg-blue-600 text-white dark:bg-neon-blue dark:text-black shadow-[0_4px_15px_rgba(37,99,235,0.4)] dark:shadow-[0_0_20px_rgba(0,243,255,0.4)] transition-all duration-300 ease-out opacity-0 translate-y-4 scale-90 pointer-events-none hover:scale-110 hover:bg-blue-700 dark:hover:bg-[#00d2dd] active:scale-95" title="Scroll to Top">
+      <i class="ph-bold ph-caret-up text-xl md:text-2xl"></i>
+    </button>
+    
     <script>
         const langs = [
             { code: 'en', name: 'English' }, { code: 'zh', name: '中文' }, { code: 'es', name: 'Español' },
@@ -1149,9 +1153,9 @@
             updateWalletUI();
             setupPullToRefresh();
             fetchGames();
-            
             checkAndShowIOSPrompt(); 
-
+            setupScrollToTop();
+            
             document.addEventListener('click', (e) => {
                 const btn = document.getElementById('lang-dropdown-btn');
                 const menu = document.getElementById('lang-menu');
@@ -1919,6 +1923,56 @@
                 startY = 0; currentY = 0;
             });
         }
+
+        // --- SCROLL TO TOP LOGIC ---
+        function setupScrollToTop() {
+          const appContainer = document.getElementById('app-container');
+          const libScroll = document.querySelector('.library-scroll-area');
+          const scrollTopBtn = document.getElementById('scroll-to-top-btn');
+        
+          // Helper to toggle the Tailwind animation classes
+          const toggleBtn = (scrollTop) => {
+            if (scrollTop > 300) {
+              scrollTopBtn.classList.remove('opacity-0', 'translate-y-4', 'scale-90', 'pointer-events-none');
+              scrollTopBtn.classList.add('opacity-100', 'translate-y-0', 'scale-100');
+            } else {
+              scrollTopBtn.classList.add('opacity-0', 'translate-y-4', 'scale-90', 'pointer-events-none');
+              scrollTopBtn.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
+            }
+          };
+        
+          // 1. Listen to Main Feed scrolling
+          appContainer.addEventListener('scroll', (e) => {
+             const libraryModal = document.getElementById('library-modal');
+             if (libraryModal.classList.contains('hidden')) {
+               toggleBtn(e.target.scrollTop);
+             }
+          });
+        
+          // 2. Listen to Library Modal scrolling
+          if (libScroll) {
+            libScroll.addEventListener('scroll', (e) => {
+               const libraryModal = document.getElementById('library-modal');
+               if (!libraryModal.classList.contains('hidden')) {
+                 toggleBtn(e.target.scrollTop);
+               }
+            });
+          }
+        }
+        
+        window.scrollToTop = function() {
+          const libraryModal = document.getElementById('library-modal');
+          
+          // Check which screen is currently open, and smoothly scroll that specific container
+          if (!libraryModal.classList.contains('hidden')) {
+             const libScroll = document.querySelector('.library-scroll-area');
+             if(libScroll) libScroll.scrollTo({ top: 0, behavior: 'smooth' });
+          } else {
+             const appContainer = document.getElementById('app-container');
+             appContainer.scrollTo({ top: 0, behavior: 'smooth' });
+          }
+        };
+        // ---------------------------
 
         const style = document.createElement('style'); style.textContent = `@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }`; document.head.appendChild(style);
         window.addEventListener('DOMContentLoaded', init);

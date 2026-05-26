@@ -1188,36 +1188,36 @@
         
           if (modal.classList.contains('hidden')) {
             // --- OPENING THE LIBRARY ---
-            // 1. Make the container active but keep it pushed off-screen
             modal.classList.remove('hidden');
             modal.classList.add('flex');
         
-            // 2. 🚀 THE FIX: Render the entire heavy grid NOW, while it is still invisible!
             renderLibrary();
         
-            // 3. Hide the scroll button instantly
+            // 🚀 ANIMATION FIX: Drop the z-index so the new Library panel slides OVER the fading button!
             if (scrollTopBtn) {
+                scrollTopBtn.style.zIndex = '40'; // Puts it at the Main Menu background level
                 scrollTopBtn.classList.add('opacity-0', 'translate-y-4', 'scale-90', 'pointer-events-none');
                 scrollTopBtn.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
             }
         
-            // 4. Force the browser to process the new HTML layout before animating
             void modal.offsetWidth;
-        
-            // 5. NOW slide it in perfectly smoothly without any interruptions!
             modal.classList.remove('translate-x-full');
         
             setTimeout(() => {
+              // Restore normal z-[9999] behavior after the slide animation is completely finished
+              if (scrollTopBtn) scrollTopBtn.style.zIndex = ''; 
               window.updateScrollButtonState();
-            }, 350); // Check scroll after animation is 100% finished
+            }, 350); 
             
           } else {
             // --- CLOSING THE LIBRARY ---
             modal.classList.add('translate-x-full');
         
-            // Instantly check the Main Menu's scroll position while the library slides away
             const appContainer = document.getElementById('app-container');
             if (appContainer && scrollTopBtn) {
+                // 🚀 Ensure z-index is normal so the button stays visible on top while the library slides away
+                scrollTopBtn.style.zIndex = '';
+        
                 if (appContainer.scrollTop > 300) {
                     scrollTopBtn.classList.remove('opacity-0', 'translate-y-4', 'scale-90', 'pointer-events-none');
                     scrollTopBtn.classList.add('opacity-100', 'translate-y-0', 'scale-100');

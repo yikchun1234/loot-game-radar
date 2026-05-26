@@ -1292,27 +1292,41 @@
         }
 
         window.handleClaim = function(gameObjStr) {
-            const game = JSON.parse(decodeURIComponent(gameObjStr));
-            const id = String(game.id);
-            const alreadyClaimed = !!state.claimedGames[id];
-            const isLegacySave = typeof state.claimedGames[id] === 'boolean';
-            
-            if (!alreadyClaimed || isLegacySave) {
-                let value = 0;
-                if (game.worth && game.worth !== 'N/A') {
-                    const parsed = parseFloat(game.worth.replace(/[^0-9.]/g, ''));
-                    if (!isNaN(parsed)) value = parsed;
-                }
-                
-                state.claimedGames[id] = {
-                    title: game.title, image: game.image, worth: game.worth, platforms: game.platforms || 'PC', open_giveaway: game.open_giveaway, value: value, date: new Date().toISOString()
-                };
-                
-                if (!alreadyClaimed) state.totalSaved += value;
-                saveSafeStorage('lootradar_claimed_v2', state.claimedGames);
-                localStorage.setItem('lootradar_saved_money', state.totalSaved.toString());
-                updateWalletUI();
+          const game = JSON.parse(decodeURIComponent(gameObjStr));
+          const id = String(game.id);
+          const alreadyClaimed = !!state.claimedGames[id];
+          const isLegacySave = typeof state.claimedGames[id] === 'boolean';
+        
+          if (!alreadyClaimed || isLegacySave) {
+            let value = 0;
+            if (game.worth && game.worth !== 'N/A') {
+              const parsed = parseFloat(game.worth.replace(/[^0-9.]/g, ''));
+              if (!isNaN(parsed)) value = parsed;
             }
+        
+            state.claimedGames[id] = {
+              title: game.title,
+              image: game.image,
+              worth: game.worth,
+              platforms: game.platforms || 'PC',
+              open_giveaway: game.open_giveaway,
+              value: value,
+              date: new Date().toISOString()
+            };
+        
+            if (!alreadyClaimed) state.totalSaved += value;
+            saveSafeStorage('lootradar_claimed_v2', state.claimedGames);
+            localStorage.setItem('lootradar_saved_money', state.totalSaved.toString());
+            
+            // 🔄 UPDATE UI INSTANTLY
+            updateWalletUI();
+            renderGames(); // Forces the main grid to redraw the buttons!
+            
+            // If the library modal is currently open, refresh that too
+            if (!document.getElementById('library-modal').classList.contains('hidden')) {
+              renderLibrary();
+            }
+          }
         };
 
         window.updateLibFilter = function(val) { state.libFilter = val; renderLibrary(); };

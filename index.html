@@ -792,21 +792,41 @@
         Object.assign(i18n.pt, { delTitle: "Remover da Biblioteca?", delDesc: "Por que você está removendo este item?", delR1: "Oferta Expirada", delR1D: "Perdeu o tempo limite.", delR2: "Falha ao Resgatar", delR2D: "Sem chaves, erro ou bloqueio de região.", delR3: "Requer Compra", delR3D: "Conta limitada (ex. Steam requer $5).", delR4: "Outros / Acidente", delR4D: "Mudei de ideia ou cliquei sem querer.", delCancel: "Cancelar", delConfirm: "Confirmar" });
         // ------------------------------------------
 
+        // --- LOCAL STORAGE COMPRESSION HELPERS ---
+        function loadSafeStorage(key) {
+            const raw = localStorage.getItem(key);
+            if (!raw) return null;
+            try {
+                // If it starts with { or [, it is an old plain-text backup. Load it normally!
+                if (raw.startsWith('{') || raw.startsWith('[')) return JSON.parse(raw);
+                // Otherwise, it is new compressed data.
+                return JSON.parse(LZString.decompressFromUTF16(raw));
+            } catch (e) {
+                console.error("Storage parse error:", e);
+                return null;
+            }
+        }
+        
+        function saveSafeStorage(key, data) {
+            // Compress heavily before saving to bypass the 5MB browser limit
+            const compressed = LZString.compressToUTF16(JSON.stringify(data));
+            localStorage.setItem(key, compressed);
+        }
+        // -----------------------------------------
+        
         let state = {
-            lang: localStorage.getItem('lang') || 'en',
-            theme: localStorage.getItem('theme') || 'dark',
-            games: [],
-            currentPlatform: 'All',
-            isLoading: false,
-            claimedGames: JSON.parse(localStorage.getItem('lootradar_claimed_v2')) || JSON.parse(localStorage.getItem('lootradar_claimed')) || {},
-            totalSaved: parseFloat(localStorage.getItem('lootradar_saved_money')) || 0,
-            libSort: 'date_desc',
-            libFilter: 'All',
-            
-            // ADD THIS FIXED LINE HERE:
-            deletedHistory: JSON.parse(localStorage.getItem('lootradar_deleted_history')) || []
+          lang: localStorage.getItem('lang') || 'en',
+          theme: localStorage.getItem('theme') || 'dark',
+          games: [],
+          currentPlatform: 'All',
+          isLoading: false,
+          claimedGames: loadSafeStorage('lootradar_claimed_v2') || loadSafeStorage('lootradar_claimed') || {},
+          totalSaved: parseFloat(localStorage.getItem('lootradar_saved_money')) || 0,
+          libSort: 'date_desc',
+          libFilter: 'All',
+          deletedHistory: loadSafeStorage('lootradar_deleted_history') || []
         };
-
+    
         const platforms = [
             { id: 'All', icon: 'ph-infinity', matches: [], excludes: [] },
             { id: 'Steam', icon: 'ph-steam-logo', matches: ['steam', 'steampowered.com'], excludes: [] },
@@ -925,13 +945,13 @@
         
             try {
                 // 1. Gather ONLY LootRadar Data (Ignore UI theme/lang to prevent cache breaking)
+                // 🛠️ We export directly from the live 'state' to guarantee the cloud backup is always clean, uncompressed JSON!
                 const exportData = {
-                lootradar_claimed_v2: localStorage.getItem('lootradar_claimed_v2') || '{}',
-                lootradar_saved_money: localStorage.getItem('lootradar_saved_money') || '0',
-                lootradar_claimed: localStorage.getItem('lootradar_claimed') || '{}', // Legacy support
-                
-                // ADD THIS ROW SO DELETED LOGS TRAVEL WITH THE EXPORT FILE:
-                lootradar_deleted_history: localStorage.getItem('lootradar_deleted_history') || '[]'
+                  lootradar_claimed_v2: JSON.stringify(state.claimedGames),
+                  lootradar_saved_money: state.totalSaved.toString(),
+                  lootradar_claimed: localStorage.getItem('lootradar_claimed') || '{}', // Legacy support
+                  lootradar_deleted_history: JSON.stringify(state.deletedHistory)
+                };
             };
                 const jsonStr = JSON.stringify(exportData);
         
@@ -1072,11 +1092,11 @@
                     };
                     
                     state.deletedHistory.push(historyItem);
-                    localStorage.setItem('lootradar_deleted_history', JSON.stringify(state.deletedHistory));
-                    
+                    saveSafeStorage('lootradar_deleted_history', state.deletedHistory);
+                
                     // 5. COMPLETELY DELETE from claimedGames so it can be claimed again if it reappears!
                     delete state.claimedGames[activeDeleteId];
-                    localStorage.setItem('lootradar_claimed_v2', JSON.stringify(state.claimedGames));
+                    saveSafeStorage('lootradar_claimed_v2', state.claimedGames);
                     localStorage.setItem('lootradar_saved_money', state.totalSaved.toString());
                     
                     // 6. Refresh UI feeds instantly
@@ -1290,11 +1310,9 @@
                 };
                 
                 if (!alreadyClaimed) state.totalSaved += value;
-                
-                localStorage.setItem('lootradar_claimed_v2', JSON.stringify(state.claimedGames));
+                saveSafeStorage('lootradar_claimed_v2', state.claimedGames);
                 localStorage.setItem('lootradar_saved_money', state.totalSaved.toString());
-                
-                updateWalletUI(); renderGames();
+                updateWalletUI();
             }
         };
 

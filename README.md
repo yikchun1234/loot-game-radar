@@ -30,15 +30,15 @@
 ---
 
 ### ✨ Features
-
 * 🌍 **Universal Tracking:** Automatically scrapes and aggregates free game deals from Steam, Epic Games, Prime Gaming, GOG, Ubisoft, iOS, Android, and Consoles. Utilizes a highly stable Reddit-fallback scraping engine!
-* 💰 💰 **My Loot Library & Wallet:** Keep a permanent record of every game you claim. The app automatically calculates your **Total Lifetime Savings**. New: Manage your library with precision by removing expired, failed, or paywalled games to keep your financial stats 100% accurate!
-* ☁️ ☁️ **Cloud Sync (PIN Transfer):** Securely migrate your claimed games library, deleted item history, and total savings to another device in seconds using a 15-minute 5-digit PIN (Powered by Cloudflare Workers & LZ-String compression).
-* 📱 **Native PWA Experience:** Fully installable on iOS and Android. Features mobile-native interactions like **Pull-to-Refresh**, slick glassmorphism UI, and smooth Tailwind CSS animations.
+* 💰 **My Loot Library & Wallet:** Keep a permanent record of every game you claim. The app automatically calculates your **Total Lifetime Savings**. Manage your library with precision by removing expired, failed, or paywalled games (featuring custom visual UI states) to keep your financial stats 100% accurate, with full support to reclaim them later!
+* 🗜️ **Extreme Storage Optimization:** Utilizes **LZ-String UTF-16 Compression** directly on local storage, shrinking save data by up to 90%. This bypasses standard 5MB browser limits, allowing users to effortlessly store over **100,000+ items** locally. Features seamless background "Auto-Healing" to upgrade legacy V1 saves without data loss.
+* ☁️ **Cloud Sync (PIN Transfer):** Securely migrate your claimed games library, deleted item history, and total savings to another device in seconds using a 15-minute 5-digit PIN (Powered by Cloudflare Workers & highly-compressed payloads).
+* 📱 **Native PWA Experience:** Fully installable on iOS and Android. Features mobile-native interactions like **Pull-to-Refresh**, context-aware **Scroll-to-Top** navigation, slick glassmorphism UI, and flawless Z-index layered sliding menu animations.
 * 🌐 **International Support (9 Languages):** Fully localized in English, 简体中文, Español, Français, Deutsch, Русский, 日本語, 한국어, and Português.
 * 🛡️ **Advanced Security:** Built-in Domain Lockdown and Anti-Debugger/Inspect Element blockers to prevent unauthorized scraping or cloning of the app.
 * 🌓 **Dynamic Theming:** Seamless Light and Dark mode toggling.
-* ⚡ **Lightning Fast Performance:** Highly optimized DOM rendering uses Document Fragments and decoupled CSS animations to instantly load and filter hundreds of games without lagging your browser.
+* ⚡ **Lightning Fast Performance:** Highly optimized DOM rendering uses Document Fragments and decoupled CSS animations to instantly load, filter, and render hundreds of games without layout thrashing or lagging your browser.
 
 ---
 

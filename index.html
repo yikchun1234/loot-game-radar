@@ -952,8 +952,7 @@
                   lootradar_claimed: localStorage.getItem('lootradar_claimed') || '{}', // Legacy support
                   lootradar_deleted_history: JSON.stringify(state.deletedHistory)
                 };
-            };
-                const jsonStr = JSON.stringify(exportData);
+            const jsonStr = JSON.stringify(exportData);
         
                 // 2. Cache Check (Reusing the 15-min PIN logic)
                 const lastPin = localStorage.getItem('sync_last_pin');

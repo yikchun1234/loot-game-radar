@@ -1188,26 +1188,34 @@
         
           if (modal.classList.contains('hidden')) {
             // --- OPENING THE LIBRARY ---
+            // 1. Make the container active but keep it pushed off-screen
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            void modal.offsetWidth;
-            modal.classList.remove('translate-x-full');
-            
-            // 🚀 BLINK FIX: Instantly hide the scroll button because the library always opens at the top!
+        
+            // 2. 🚀 THE FIX: Render the entire heavy grid NOW, while it is still invisible!
+            renderLibrary();
+        
+            // 3. Hide the scroll button instantly
             if (scrollTopBtn) {
                 scrollTopBtn.classList.add('opacity-0', 'translate-y-4', 'scale-90', 'pointer-events-none');
                 scrollTopBtn.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
             }
         
+            // 4. Force the browser to process the new HTML layout before animating
+            void modal.offsetWidth;
+        
+            // 5. NOW slide it in perfectly smoothly without any interruptions!
+            modal.classList.remove('translate-x-full');
+        
             setTimeout(() => {
-              renderLibrary();
               window.updateScrollButtonState();
-            }, 150);
+            }, 350); // Check scroll after animation is 100% finished
+            
           } else {
             // --- CLOSING THE LIBRARY ---
             modal.classList.add('translate-x-full');
         
-            // 🚀 BLINK FIX: Instantly check the Main Menu's scroll position while the library slides away!
+            // Instantly check the Main Menu's scroll position while the library slides away
             const appContainer = document.getElementById('app-container');
             if (appContainer && scrollTopBtn) {
                 if (appContainer.scrollTop > 300) {

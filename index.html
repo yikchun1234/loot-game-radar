@@ -1944,11 +1944,19 @@
         }
 
         window.setLang = function(code) {
-            state.lang = code; localStorage.setItem('lang', code);
+            state.lang = code;
+            localStorage.setItem('lang', code);
             toggleLangMenu(null, true);
-            setupLangMenu(); updateLanguageUI();
-            if(state.games.length > 0) { renderTabs(); renderGames(); }
-            if(!document.getElementById('library-modal').classList.contains('hidden')) renderLibrary();
+            setupLangMenu();
+            updateLanguageUI();
+        
+            if(state.games.length > 0) {
+                renderTabs();
+                renderGames();
+            }
+            
+            // 🚀 FIXED: ALWAYS update the library in the background so dropdown translations apply instantly!
+            renderLibrary();
         }
 
         function isPlatformMatch(game, matchKeywords, excludeKeywords = [], requireKeywords = [], customRule = null) {

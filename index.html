@@ -176,7 +176,7 @@
         .stats-active .chart-path { stroke-dashoffset: 0; }
         .pie-segment {
             stroke-dasharray: 0 100;
-            transition: stroke-dasharray 1.5s cubic-bezier(0.2, 1, 0.4, 1);
+            transition: stroke-dasharray 1.5s cubic-bezier(0.2, 1, 0.4, 1), opacity 0.2s ease;
         }
         
     </style>
@@ -1374,7 +1374,7 @@
                 const percentage = (p[1] / games.length) * 100;
                 
                 // 🚀 FIXED: pointer-events: painted ensures transparent parts don't steal clicks
-                pieHtml += `<circle class="pie-segment cursor-pointer hover:opacity-75 transition-opacity duration-200" style="pointer-events: painted;" cx="21" cy="21" r="15.91549430918954" fill="none" stroke="${colors[i]}" stroke-width="6" stroke-dashoffset="${-currentOffset}" data-target-dash="${percentage} ${100 - percentage}" onclick="updatePieCenter(${p[1]}, '${p[0].replace(/'/g, "\\'")}')"></circle>`;
+                pieHtml += `<circle class="pie-segment cursor-pointer hover:opacity-75" style="pointer-events: painted;" cx="21" cy="21" r="15.91549430918954" fill="none" stroke="${colors[i]}" stroke-width="6" stroke-dashoffset="${-currentOffset}" data-target-dash="${percentage} ${100 - percentage}" onclick="updatePieCenter(${p[1]}, '${p[0].replace(/'/g, "\\'")}')"></circle>`;
                 
                 // 🚀 ENHANCEMENT: Made the legend interactive! Hovering over it updates the pie chart!
                 legendHtml += `

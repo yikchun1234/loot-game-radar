@@ -1375,8 +1375,8 @@
             topPlats.forEach((p, i) => {
                 const percentage = (p[1] / games.length) * 100;
                 
-                // 🚀 NEW: Added cursor-pointer, hover opacity, and an onclick trigger
-                pieHtml += `<circle class="pie-segment cursor-pointer hover:opacity-75 transition-opacity duration-200" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="${colors[i]}" stroke-width="6" stroke-dashoffset="${-currentOffset}" data-target-dash="${percentage} ${100 - percentage}" onclick="updatePieCenter(${p[1]}, '${p[0].replace(/'/g, "\\'")}')"></circle>`;
+                // 🚀 FIXED: fill="none" and style="pointer-events: visibleStroke;" ensures ONLY the colored line is clickable!
+                pieHtml += `<circle class="pie-segment cursor-pointer hover:opacity-75 transition-opacity duration-200" style="pointer-events: visibleStroke;" cx="21" cy="21" r="15.91549430918954" fill="none" stroke="${colors[i]}" stroke-width="6" stroke-dashoffset="${-currentOffset}" data-target-dash="${percentage} ${100 - percentage}" onclick="updatePieCenter(${p[1]}, '${p[0].replace(/'/g, "\\'")}')"></circle>`;                
                 
                 // 🚀 NEW: Cleaned up the legend with smart truncation and separated percentages
                 legendHtml += `
@@ -1436,7 +1436,7 @@
                         <div class="flex items-center justify-center gap-6 w-full">
                             <div class="relative w-36 h-36 flex-shrink-0">
                                 <svg width="100%" height="100%" viewBox="0 0 42 42" class="transform -rotate-90 drop-shadow-[0_0_10px_rgba(0,243,255,0.3)]">
-                                    <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="rgba(128,128,128,0.2)" stroke-width="6"></circle>
+                                    <circle cx="21" cy="21" r="15.91549430918954" fill="none" stroke="rgba(128,128,128,0.2)" stroke-width="6"></circle>
                                     ${pieHtml}
                                 </svg>
                                 
@@ -1491,11 +1491,16 @@
             
             if(!countEl || !labelEl || !contentEl) return;
         
+            // 🚀 FIXED: Clear ALL active animation timers to prevent text glitching on rapid clicks
+            clearTimeout(window.pieSwapTimeout);
+            clearTimeout(window.pieResetTimeout);
+            clearTimeout(window.pieRestoreTimeout);
+        
             // 1. Animate out (fade and shrink)
             contentEl.style.opacity = '0';
             contentEl.style.transform = 'scale(0.8)';
             
-            setTimeout(() => {
+            window.pieSwapTimeout = setTimeout(() => {
                 // 2. Swap the text while invisible
                 countEl.innerText = count;
                 labelEl.innerText = label;
@@ -1505,23 +1510,18 @@
                 contentEl.style.transform = 'scale(1)';
             }, 200);
         
-            // 4. Reset the 2-second timeout so clicking multiple times doesn't glitch it
-            clearTimeout(window.pieResetTimeout);
+            // 4. Auto-revert back to total games after 2 seconds
             window.pieResetTimeout = setTimeout(() => {
-                // Animate out
                 contentEl.style.opacity = '0';
                 contentEl.style.transform = 'scale(0.8)';
                 
-                setTimeout(() => {
-                    // Restore original values
+                window.pieRestoreTimeout = setTimeout(() => {
                     countEl.innerText = Object.keys(state.claimedGames).length;
                     labelEl.innerText = 'Games';
-                    
-                    // Animate in
                     contentEl.style.opacity = '1';
                     contentEl.style.transform = 'scale(1)';
                 }, 200);
-            }, 2000); // Wait 2 seconds before reverting
+            }, 2000); 
         };
         
         function toggleDisclaimer() {

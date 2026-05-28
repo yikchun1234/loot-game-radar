@@ -562,7 +562,7 @@
         </button>
         <h2 class="text-xl md:text-2xl font-display font-black dark:text-white flex items-center gap-2">
           <i class="ph-fill ph-chart-line-up text-green-500"></i>
-          <span>Loot Analytics</span>
+          <span id="ui-stats-title">Loot Analytics</span>
         </h2>
         <div class="w-8"></div> </div>
       
@@ -830,6 +830,17 @@
         Object.assign(i18n.ja, { delTitle: "ライブラリから削除？", delDesc: "削除する理由を教えてください", delR1: "期限切れ", delR1D: "受取期間が終了したため。", delR2: "取得失敗", delR2D: "キー切れ、エラー、おま国など。", delR3: "購入が必要", delR3D: "アカウント制限（例: Steamの$5制限など）。", delR4: "その他 / 間違い", delR4D: "気が変わった、または間違えて押した。", delCancel: "キャンセル", delConfirm: "削除する" });
         Object.assign(i18n.ko, { delTitle: "라이브러리에서 삭제?", delDesc: "이 항목을 삭제하는 이유는 무엇인가요?", delR1: "기간 만료", delR1D: "무료 배포 기간이 지났습니다.", delR2: "획득 실패", delR2D: "키 소진, 오류 또는 지역 제한.", delR3: "구매 필요", delR3D: "계정 제한 (예: Steam $5 소비 필요).", delR4: "기타 / 실수", delR4D: "마음이 바뀌었거나 실수로 클릭함.", delCancel: "취소", delConfirm: "삭제 확인" });
         Object.assign(i18n.pt, { delTitle: "Remover da Biblioteca?", delDesc: "Por que você está removendo este item?", delR1: "Oferta Expirada", delR1D: "Perdeu o tempo limite.", delR2: "Falha ao Resgatar", delR2D: "Sem chaves, erro ou bloqueio de região.", delR3: "Requer Compra", delR3D: "Conta limitada (ex. Steam requer $5).", delR4: "Outros / Acidente", delR4D: "Mudei de ideia ou cliquei sem querer.", delCancel: "Cancelar", delConfirm: "Confirmar" });
+        
+        // --- INJECT STATS MODAL TRANSLATIONS ---
+        Object.assign(i18n.en, { statsTitle: "Loot Analytics", statsEmpty: "Claim some games to generate your analytics!", statsPlatform: "Loot by Platform", statsActivity: "Looting Activity (Monthly)", statsWealth: "Lifetime Wealth Generated", statsGames: "Games", statsDate: "Date" });
+        Object.assign(i18n.zh, { statsTitle: "白嫖数据统计", statsEmpty: "领取一些游戏来生成您的数据分析吧！", statsPlatform: "各平台战利品", statsActivity: "白嫖活跃度（每月）", statsWealth: "累计创造的财富", statsGames: "款游戏", statsDate: "日期" });
+        Object.assign(i18n.es, { statsTitle: "Análisis de Botín", statsEmpty: "¡Reclama algunos juegos para generar tus análisis!", statsPlatform: "Botín por Plataforma", statsActivity: "Actividad (Mensual)", statsWealth: "Riqueza Total Generada", statsGames: "Juegos", statsDate: "Fecha" });
+        Object.assign(i18n.fr, { statsTitle: "Analyse du Butin", statsEmpty: "Réclamez des jeux pour générer vos analyses !", statsPlatform: "Butin par Plateforme", statsActivity: "Activité (Mensuelle)", statsWealth: "Richesse Totale Générée", statsGames: "Jeux", statsDate: "Date" });
+        Object.assign(i18n.de, { statsTitle: "Loot-Analyse", statsEmpty: "Hol dir Spiele, um deine Analysen zu generieren!", statsPlatform: "Loot nach Plattform", statsActivity: "Aktivität (Monatlich)", statsWealth: "Generiertes Gesamtvermögen", statsGames: "Spiele", statsDate: "Datum" });
+        Object.assign(i18n.ru, { statsTitle: "Аналитика лута", statsEmpty: "Получите игры, чтобы сгенерировать аналитику!", statsPlatform: "Лут по платформам", statsActivity: "Активность (ежемесячно)", statsWealth: "Общее сэкономленное состояние", statsGames: "Игры", statsDate: "Дата" });
+        Object.assign(i18n.ja, { statsTitle: "ルート分析", statsEmpty: "ゲームを取得して分析データを生成しましょう！", statsPlatform: "プラットフォーム別", statsActivity: "取得アクティビティ（月別）", statsWealth: "生涯の節約総額", statsGames: "ゲーム", statsDate: "日付" });
+        Object.assign(i18n.ko, { statsTitle: "전리품 분석", statsEmpty: "분석을 생성하려면 게임을 획득하세요!", statsPlatform: "플랫폼별 전리품", statsActivity: "획득 활동 (월별)", statsWealth: "평생 창출된 부", statsGames: "게임", statsDate: "날짜" });
+        Object.assign(i18n.pt, { statsTitle: "Análise de Loot", statsEmpty: "Resgate jogos para gerar suas análises!", statsPlatform: "Loot por Plataforma", statsActivity: "Atividade (Mensal)", statsWealth: "Riqueza Total Gerada", statsGames: "Jogos", statsDate: "Data" });
         // ------------------------------------------
 
         // --- LOCAL STORAGE COMPRESSION HELPERS ---
@@ -2232,6 +2243,8 @@
             safeSetText('ui-del-cancel', t.delCancel);
             safeSetText('ui-del-confirm', t.delConfirm);
 
+            safeSetText('ui-stats-title', t.statsTitle);
+            
             // Update Library Sort Options dynamically
             const safeSetOption = (id, text) => {
                 const el = document.getElementById(id);

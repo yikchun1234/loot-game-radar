@@ -1344,16 +1344,24 @@
             // --- DATA AGGREGATION ---
             games.sort((a,b) => new Date(a.date) - new Date(b.date));
         
-            // 1. Platform Pie Chart Data
+            // 1. Platform Pie Chart Data (FIXED PARSING)
             const platCounts = {};
             games.forEach(g => {
-                // Normalize platform names
-                let p = (g.platforms || 'PC').split(',')[0].trim();
-                if(p.toLowerCase().includes('epic')) p = 'Epic Games';
-                else if(p.toLowerCase().includes('steam')) p = 'Steam';
-                else if(p.toLowerCase().includes('gog')) p = 'GOG';
-                else if(p.toLowerCase().includes('prime')) p = 'Prime Gaming';
-                else p = 'Other';
+                // We look at the ENTIRE string now, not just the first word!
+                const rawP = (g.platforms || 'PC').toLowerCase();
+                let p;
+                
+                if (rawP.includes('epic')) p = 'Epic Games';
+                else if (rawP.includes('steam')) p = 'Steam';
+                else if (rawP.includes('gog')) p = 'GOG';
+                else if (rawP.includes('prime') || rawP.includes('amazon')) p = 'Prime Gaming';
+                else if (rawP.includes('ubisoft') || rawP.includes('uplay')) p = 'Ubisoft';
+                else if (rawP.includes('playstation') || rawP.includes('ps4') || rawP.includes('ps5')) p = 'PlayStation';
+                else if (rawP.includes('xbox')) p = 'Xbox';
+                else if (rawP.includes('switch') || rawP.includes('nintendo')) p = 'Nintendo';
+                else if (rawP.includes('android') || rawP.includes('ios')) p = 'Mobile';
+                else p = 'DRM-Free / Other';
+                
                 platCounts[p] = (platCounts[p] || 0) + 1;
             });
         
@@ -1367,9 +1375,8 @@
             
             topPlats.forEach((p, i) => {
                 const percentage = (p[1] / games.length) * 100;
-                // SVG circle trick for donut charts
                 pieHtml += `<circle class="pie-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="${colors[i]}" stroke-width="6" stroke-dashoffset="${-currentOffset}" data-target-dash="${percentage} ${100 - percentage}"></circle>`;
-                legendHtml += `<div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full" style="background-color: ${colors[i]}"></div><span class="text-xs font-bold dark:text-gray-300">${p[0]} (${Math.round(percentage)}%)</span></div>`;
+                legendHtml += `<div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full" style="background-color: ${colors[i]}"></div><span class="text-xs font-bold dark:text-gray-300 truncate max-w-[110px]">${p[0]} (${Math.round(percentage)}%)</span></div>`;
                 currentOffset += percentage;
             });
         
@@ -1394,7 +1401,7 @@
                 monthCounts[key].count++;
             });
             
-            const activeMonths = Object.values(monthCounts).slice(-6); // Take up to last 6
+            const activeMonths = Object.values(monthCounts).slice(-6); 
             const maxBarCount = Math.max(...activeMonths.map(m => m.count), 1);
             
             let barsHtml = activeMonths.map(m => {
@@ -1410,13 +1417,13 @@
                 `;
             }).join('');
         
-            // --- RENDER DOM ---
+            // --- RENDER DOM (FIXED LAYOUTS) ---
             container.innerHTML = `
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 flex flex-col items-center justify-center">
                         <h3 class="w-full text-left text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-6">Loot by Platform</h3>
-                        <div class="flex items-center gap-8">
-                            <div class="relative w-40 h-40">
+                        <div class="flex items-center justify-center gap-8 w-full">
+                            <div class="relative w-36 h-36 flex-shrink-0">
                                 <svg width="100%" height="100%" viewBox="0 0 42 42" class="transform -rotate-90 drop-shadow-[0_0_10px_rgba(0,243,255,0.3)]">
                                     <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="rgba(128,128,128,0.2)" stroke-width="6"></circle>
                                     ${pieHtml}
@@ -1426,7 +1433,7 @@
                                     <span class="text-[9px] font-bold text-gray-500 uppercase">Games</span>
                                 </div>
                             </div>
-                            <div class="flex flex-col gap-3">
+                            <div class="flex flex-col gap-3 justify-center">
                                 ${legendHtml}
                             </div>
                         </div>
@@ -1439,9 +1446,16 @@
                         </div>
                     </div>
         
-                    <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 lg:col-span-2 relative overflow-hidden">
-                        <h3 class="w-full text-left text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4 z-10 relative">Lifetime Wealth Generated</h3>
-                        <div class="relative h-48 w-full z-10 flex items-end">
+                    <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 lg:col-span-2 relative overflow-hidden flex flex-col">
+                        
+                        <div class="flex justify-between items-start mb-6 relative z-10">
+                            <div>
+                                <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">Lifetime Wealth Generated</h3>
+                                <p class="text-4xl font-black text-green-500 tracking-wide">$${state.totalSaved.toFixed(2)}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="relative h-48 w-full z-10 flex items-end mt-auto">
                             <svg viewBox="0 0 1000 200" preserveAspectRatio="none" class="absolute inset-0 w-full h-full overflow-visible drop-shadow-[0_0_12px_rgba(16,185,129,0.6)]">
                                 <path class="chart-path" d="${pathString}" fill="none" stroke="#10b981" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
                                 <path class="chart-path opacity-20" d="${pathString} L 1000,200 L 0,200 Z" fill="url(#greenGradient)" stroke="none"></path>
@@ -1453,9 +1467,7 @@
                                 </defs>
                             </svg>
                         </div>
-                        <div class="absolute top-6 right-6 text-right z-10">
-                            <p class="text-3xl font-black text-green-500 tracking-wide">$${state.totalSaved.toFixed(2)}</p>
-                        </div>
+        
                     </div>
                 </div>
             `;

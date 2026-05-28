@@ -1349,7 +1349,6 @@
             games.forEach(g => {
                 const rawP = (g.platforms || 'PC').toLowerCase();
                 let p;
-                
                 if (rawP.includes('epic')) p = 'Epic Games';
                 else if (rawP.includes('steam')) p = 'Steam';
                 else if (rawP.includes('gog')) p = 'GOG';
@@ -1360,7 +1359,6 @@
                 else if (rawP.includes('switch') || rawP.includes('nintendo')) p = 'Nintendo';
                 else if (rawP.includes('android') || rawP.includes('ios')) p = 'Mobile';
                 else p = 'DRM-Free / Other';
-                
                 platCounts[p] = (platCounts[p] || 0) + 1;
             });
         
@@ -1375,32 +1373,45 @@
             topPlats.forEach((p, i) => {
                 const percentage = (p[1] / games.length) * 100;
                 
-                // 🚀 FIXED: fill="none" and style="pointer-events: visibleStroke;" ensures ONLY the colored line is clickable!
-                pieHtml += `<circle class="pie-segment cursor-pointer hover:opacity-75 transition-opacity duration-200" style="pointer-events: visibleStroke;" cx="21" cy="21" r="15.91549430918954" fill="none" stroke="${colors[i]}" stroke-width="6" stroke-dashoffset="${-currentOffset}" data-target-dash="${percentage} ${100 - percentage}" onclick="updatePieCenter(${p[1]}, '${p[0].replace(/'/g, "\\'")}')"></circle>`;                
+                // 🚀 FIXED: pointer-events: painted ensures transparent parts don't steal clicks
+                pieHtml += `<circle class="pie-segment cursor-pointer hover:opacity-75 transition-opacity duration-200" style="pointer-events: painted;" cx="21" cy="21" r="15.91549430918954" fill="none" stroke="${colors[i]}" stroke-width="6" stroke-dashoffset="${-currentOffset}" data-target-dash="${percentage} ${100 - percentage}" onclick="updatePieCenter(${p[1]}, '${p[0].replace(/'/g, "\\'")}')"></circle>`;
                 
-                // 🚀 NEW: Cleaned up the legend with smart truncation and separated percentages
+                // 🚀 ENHANCEMENT: Made the legend interactive! Hovering over it updates the pie chart!
                 legendHtml += `
-                    <div class="flex items-center justify-between w-full gap-2">
+                    <div class="flex items-center justify-between w-full gap-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800/50 p-1.5 -mx-1.5 rounded-lg transition-colors" onclick="updatePieCenter(${p[1]}, '${p[0].replace(/'/g, "\\'")}')" onmouseenter="updatePieCenter(${p[1]}, '${p[0].replace(/'/g, "\\'")}')">
                         <div class="flex items-center gap-2 min-w-0">
                             <div class="w-3 h-3 rounded-full shrink-0" style="background-color: ${colors[i]}"></div>
                             <span class="text-xs font-bold dark:text-gray-300 truncate max-w-[80px]" title="${p[0]}">${p[0]}</span>
                         </div>
                         <span class="text-xs font-bold text-gray-500 dark:text-gray-400 shrink-0">(${Math.round(percentage)}%)</span>
                     </div>`;
-                    
                 currentOffset += percentage;
             });
         
-            // 2. Savings Line Chart Data
+            // 2. Savings Line Chart Data & X-Axis Preparation
+            window.lootChartData = []; // Store globally for the interactive hover effect
             let cumulativeValue = 0;
             const linePoints = [];
             games.forEach((g, i) => {
                 cumulativeValue += (g.value || 0);
-                const x = (i / Math.max(1, games.length - 1)) * 1000;
+                const xPct = i / Math.max(1, games.length - 1);
+                const x = xPct * 1000;
                 const y = 200 - ((cumulativeValue / Math.max(1, state.totalSaved)) * 180);
                 linePoints.push(`${x},${y}`);
+                
+                // Save the raw data for the scrubber tool
+                window.lootChartData.push({
+                    xPct: xPct,
+                    value: cumulativeValue.toFixed(2),
+                    date: new Date(g.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: '2-digit' })
+                });
             });
             const pathString = linePoints.length > 0 ? `M 0,200 L ${linePoints.join(' L ')}` : '';
+            
+            // Generate dates for the bottom of the graph
+            const startDate = games.length > 0 ? new Date(games[0].date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+            const midDate = games.length > 2 ? new Date(games[Math.floor(games.length/2)].date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
+            const endDate = games.length > 0 ? new Date(games[games.length-1].date).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }) : '';
         
             // 3. Activity Bar Chart Data
             const monthCounts = {};
@@ -1439,12 +1450,10 @@
                                     <circle cx="21" cy="21" r="15.91549430918954" fill="none" stroke="rgba(128,128,128,0.2)" stroke-width="6"></circle>
                                     ${pieHtml}
                                 </svg>
-                                
                                 <div id="pie-center-content" class="absolute inset-0 flex flex-col items-center justify-center transition-all duration-200 ease-in-out pointer-events-none">
                                     <span id="pie-center-count" class="text-2xl font-black dark:text-white">${games.length}</span>
                                     <span id="pie-center-label" class="text-[9px] font-bold text-gray-500 uppercase truncate max-w-[80px] px-2 text-center">Games</span>
                                 </div>
-        
                             </div>
                             <div class="flex flex-col gap-3 justify-center w-full max-w-[140px]">
                                 ${legendHtml}
@@ -1460,13 +1469,14 @@
                     </div>
         
                     <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 lg:col-span-2 relative overflow-hidden flex flex-col">
-                        <div class="flex justify-between items-start mb-6 relative z-10">
+                        <div class="flex justify-between items-start mb-4 relative z-10">
                             <div>
                                 <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">Lifetime Wealth Generated</h3>
-                                <p class="text-4xl font-black text-green-500 tracking-wide">$${state.totalSaved.toFixed(2)}</p>
+                                <p class="text-4xl font-black text-green-500 tracking-wide transition-all" id="wealth-total-display">$${state.totalSaved.toFixed(2)}</p>
                             </div>
                         </div>
-                        <div class="relative h-48 w-full z-10 flex items-end mt-auto">
+                        
+                        <div class="relative h-48 w-full z-10 flex flex-col mt-auto group cursor-crosshair" onmousemove="handleChartHover(event)" onmouseleave="hideChartHover()" ontouchmove="handleChartHover(event)" ontouchend="hideChartHover()">
                             <svg viewBox="0 0 1000 200" preserveAspectRatio="none" class="absolute inset-0 w-full h-full overflow-visible drop-shadow-[0_0_12px_rgba(16,185,129,0.6)]">
                                 <path class="chart-path" d="${pathString}" fill="none" stroke="#10b981" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
                                 <path class="chart-path opacity-20" d="${pathString} L 1000,200 L 0,200 Z" fill="url(#greenGradient)" stroke="none"></path>
@@ -1477,6 +1487,20 @@
                                     </linearGradient>
                                 </defs>
                             </svg>
+        
+                            <div id="chart-scrubber" class="absolute top-0 bottom-0 w-px bg-green-500 opacity-0 transition-opacity duration-200 pointer-events-none z-20" style="left: 50%;">
+                                <div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-xl px-3 py-1.5 rounded-xl flex flex-col items-center pointer-events-none">
+                                    <span id="scrubber-val" class="text-sm font-black text-green-500 leading-none">$0.00</span>
+                                    <span id="scrubber-date" class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1 whitespace-nowrap">Date</span>
+                                </div>
+                                <div id="scrubber-dot" class="absolute left-1/2 -translate-x-1/2 w-3 h-3 bg-white dark:bg-gray-900 border-2 border-green-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.8)]" style="top: 50%;"></div>
+                            </div>
+                        </div>
+        
+                        <div class="flex justify-between w-full text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-2 px-1 relative z-10">
+                            <span>${startDate}</span>
+                            <span>${midDate}</span>
+                            <span>${endDate}</span>
                         </div>
                     </div>
                 </div>
@@ -1524,6 +1548,54 @@
             }, 2000); 
         };
         
+        // --- LINE CHART SCRUBBER LOGIC ---
+        window.handleChartHover = function(e) {
+            if (!window.lootChartData || window.lootChartData.length === 0) return;
+            
+            // Get mouse/touch X position relative to the chart width
+            const rect = e.currentTarget.getBoundingClientRect();
+            const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+            const xPos = clientX - rect.left;
+            const xPct = Math.max(0, Math.min(1, xPos / rect.width));
+            
+            // Find the closest point in history to where they are hovering
+            let closest = window.lootChartData[0];
+            let minDiff = 1;
+            window.lootChartData.forEach(p => {
+                const diff = Math.abs(p.xPct - xPct);
+                if(diff < minDiff) { minDiff = diff; closest = p; }
+            });
+        
+            const scrubber = document.getElementById('chart-scrubber');
+            const valEl = document.getElementById('scrubber-val');
+            const dateEl = document.getElementById('scrubber-date');
+            const dotEl = document.getElementById('scrubber-dot');
+            const wealthTotal = document.getElementById('wealth-total-display');
+            
+            if(scrubber && valEl && dateEl && dotEl) {
+                scrubber.style.opacity = '1';
+                scrubber.style.left = `${closest.xPct * 100}%`;
+                valEl.innerText = `$${closest.value}`;
+                dateEl.innerText = closest.date;
+                
+                // Calculate the exact Y position of the dot on the line
+                const yPosPct = (200 - ((closest.value / Math.max(1, state.totalSaved)) * 180)) / 200 * 100;
+                dotEl.style.top = `${yPosPct}%`;
+                
+                // Dynamically update the giant title number!
+                if(wealthTotal) wealthTotal.innerText = `$${closest.value}`;
+            }
+        };
+        
+        window.hideChartHover = function() {
+            const scrubber = document.getElementById('chart-scrubber');
+            if(scrubber) scrubber.style.opacity = '0';
+            
+            // Restore the giant total number when they move their mouse away
+            const wealthTotal = document.getElementById('wealth-total-display');
+            if(wealthTotal) wealthTotal.innerText = `$${state.totalSaved.toFixed(2)}`;
+        };
+                
         function toggleDisclaimer() {
             const modal = document.getElementById('disclaimer-modal');
             const panel = document.getElementById('disclaimer-panel');

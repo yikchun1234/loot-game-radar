@@ -165,6 +165,20 @@
         #col-100  { transition-duration: 1.9s; } 
         #col-10   { transition-duration: 1.2s; } 
         #col-1    { transition-duration: 0.5s; }
+
+        /* Custom Chart Animations */
+        .chart-bar { transition: height 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .chart-path { 
+            stroke-dasharray: 2000; 
+            stroke-dashoffset: 2000; 
+            transition: stroke-dashoffset 2s cubic-bezier(0.2, 1, 0.4, 1); 
+        }
+        .stats-active .chart-path { stroke-dashoffset: 0; }
+        .pie-segment {
+            stroke-dasharray: 0 100;
+            transition: stroke-dasharray 1.5s cubic-bezier(0.2, 1, 0.4, 1);
+        }
+        
     </style>
 </head>
 <body class="bg-slate-50 dark:bg-dark-bg text-gray-800 dark:text-gray-200 h-screen overflow-hidden transition-colors duration-300">
@@ -459,13 +473,18 @@
     <div id="library-modal" class="hidden fixed inset-0 z-50 flex-col bg-slate-50 dark:bg-dark-bg transition-transform duration-300 transform translate-x-full">
         <!-- Header -->
         <div class="glass-header px-4 py-4 flex items-center justify-between z-30">
-            <h2 class="text-xl md:text-2xl font-display font-black dark:text-white flex items-center gap-2">
-                <i class="ph-fill ph-gamepad text-purple-500"></i>
-                <span id="ui-lib-title">My Loot Library</span>
-            </h2>
-            <button onclick="toggleLibrary()" class="p-2 bg-gray-200 dark:bg-gray-800 rounded-full hover:bg-red-500 hover:text-white dark:hover:bg-red-500 transition-transform active:scale-90">
-                <i class="ph-bold ph-x text-xl"></i>
+          <h2 class="text-xl md:text-2xl font-display font-black dark:text-white flex items-center gap-2">
+            <i class="ph-fill ph-gamepad text-purple-500"></i>
+            <span id="ui-lib-title">My Loot Library</span>
+          </h2>
+          <div class="flex items-center gap-3">
+            <button onclick="toggleStats()" class="p-2 bg-blue-100 dark:bg-neon-blue/10 text-blue-600 dark:text-neon-blue rounded-full hover:bg-blue-500 hover:text-white dark:hover:bg-neon-blue dark:hover:text-black transition-all active:scale-90 shadow-sm" title="Loot Analytics">
+              <i class="ph-bold ph-chart-polar text-xl"></i>
             </button>
+            <button onclick="toggleLibrary()" class="p-2 bg-gray-200 dark:bg-gray-800 rounded-full hover:bg-red-500 hover:text-white dark:hover:bg-red-500 transition-transform active:scale-90">
+              <i class="ph-bold ph-x text-xl"></i>
+            </button>
+          </div>
         </div>
         
         <!-- Controls Panel -->
@@ -534,6 +553,23 @@
                 </div>
             </div>
         </div>
+    </div>
+
+    <div id="stats-modal" class="hidden fixed inset-0 z-[60] flex-col bg-slate-50 dark:bg-dark-bg transition-transform duration-300 transform translate-x-full">
+      <div class="glass-header px-4 py-4 flex items-center justify-between z-30">
+        <button onclick="toggleStats()" class="p-2 -ml-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-neon-blue transition-colors rounded-full active:scale-90">
+          <i class="ph-bold ph-arrow-left text-2xl"></i>
+        </button>
+        <h2 class="text-xl md:text-2xl font-display font-black dark:text-white flex items-center gap-2">
+          <i class="ph-fill ph-chart-line-up text-green-500"></i>
+          <span>Loot Analytics</span>
+        </h2>
+        <div class="w-8"></div> </div>
+      
+      <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 relative z-0 library-scroll-area">
+        <div class="max-w-4xl mx-auto space-y-6 pb-12" id="stats-container">
+           </div>
+      </div>
     </div>
     
     <button id="scroll-to-top-btn" onclick="scrollToTop()" class="fixed bottom-8 right-6 z-[9999] p-3.5 rounded-full bg-blue-600 text-white dark:bg-neon-blue dark:text-black shadow-[0_4px_15px_rgba(37,99,235,0.4)] dark:shadow-[0_0_20px_rgba(0,243,255,0.4)] transition-all duration-300 ease-out opacity-0 translate-y-4 scale-90 pointer-events-none hover:scale-110 hover:bg-blue-700 dark:hover:bg-[#00d2dd] active:scale-95" title="Scroll to Top">
@@ -1244,6 +1280,187 @@
             }, 300);
           }
         }
+
+        // --- LOOT ANALYTICS LOGIC ---
+        function toggleStats() {
+          const modal = document.getElementById('stats-modal');
+          const container = document.getElementById('stats-container');
+          
+          if (modal.classList.contains('hidden')) {
+            // 1. Unhide and render charts at 0%
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            renderStats();
+            
+            // 2. Slide in
+            void modal.offsetWidth;
+            modal.classList.remove('translate-x-full');
+            
+            // 3. Trigger the chart animations exactly as the slide finishes!
+            setTimeout(() => {
+                container.classList.add('stats-active');
+                
+                // Animate Bar Charts
+                const bars = document.querySelectorAll('.chart-bar');
+                bars.forEach(bar => {
+                    bar.style.height = bar.getAttribute('data-target-height');
+                });
+        
+                // Animate Pie Chart Segments
+                const pies = document.querySelectorAll('.pie-segment');
+                pies.forEach(pie => {
+                    pie.style.strokeDasharray = pie.getAttribute('data-target-dash');
+                });
+            }, 300);
+            
+          } else {
+            // Hide gracefully
+            modal.classList.add('translate-x-full');
+            container.classList.remove('stats-active');
+            
+            // Reset bars instantly so they are ready for the next time it opens
+            const bars = document.querySelectorAll('.chart-bar');
+            bars.forEach(bar => bar.style.height = '0%');
+            
+            const pies = document.querySelectorAll('.pie-segment');
+            pies.forEach(pie => pie.style.strokeDasharray = '0 100');
+            
+            setTimeout(() => {
+              modal.classList.add('hidden');
+              modal.classList.remove('flex');
+            }, 300);
+          }
+        }
+        
+        function renderStats() {
+            const container = document.getElementById('stats-container');
+            const games = Object.values(state.claimedGames);
+            
+            if (games.length === 0) {
+                container.innerHTML = `<div class="flex flex-col items-center justify-center py-20 text-center text-gray-500 dark:text-gray-400"><i class="ph-fill ph-chart-polar text-6xl mb-4 opacity-50"></i><p>Claim some games to generate your analytics!</p></div>`;
+                return;
+            }
+        
+            // --- DATA AGGREGATION ---
+            games.sort((a,b) => new Date(a.date) - new Date(b.date));
+        
+            // 1. Platform Pie Chart Data
+            const platCounts = {};
+            games.forEach(g => {
+                // Normalize platform names
+                let p = (g.platforms || 'PC').split(',')[0].trim();
+                if(p.toLowerCase().includes('epic')) p = 'Epic Games';
+                else if(p.toLowerCase().includes('steam')) p = 'Steam';
+                else if(p.toLowerCase().includes('gog')) p = 'GOG';
+                else if(p.toLowerCase().includes('prime')) p = 'Prime Gaming';
+                else p = 'Other';
+                platCounts[p] = (platCounts[p] || 0) + 1;
+            });
+        
+            const platArray = Object.entries(platCounts).sort((a,b) => b[1] - a[1]);
+            const topPlats = platArray.slice(0, 4);
+            const colors = ['#00f3ff', '#bc13fe', '#3b82f6', '#10b981', '#f59e0b'];
+            
+            let pieHtml = '';
+            let legendHtml = '';
+            let currentOffset = 0;
+            
+            topPlats.forEach((p, i) => {
+                const percentage = (p[1] / games.length) * 100;
+                // SVG circle trick for donut charts
+                pieHtml += `<circle class="pie-segment" cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="${colors[i]}" stroke-width="6" stroke-dashoffset="${-currentOffset}" data-target-dash="${percentage} ${100 - percentage}"></circle>`;
+                legendHtml += `<div class="flex items-center gap-2"><div class="w-3 h-3 rounded-full" style="background-color: ${colors[i]}"></div><span class="text-xs font-bold dark:text-gray-300">${p[0]} (${Math.round(percentage)}%)</span></div>`;
+                currentOffset += percentage;
+            });
+        
+            // 2. Savings Line Chart Data
+            let cumulativeValue = 0;
+            const linePoints = [];
+            games.forEach((g, i) => {
+                cumulativeValue += (g.value || 0);
+                const x = (i / Math.max(1, games.length - 1)) * 1000;
+                const y = 200 - ((cumulativeValue / Math.max(1, state.totalSaved)) * 180);
+                linePoints.push(`${x},${y}`);
+            });
+            const pathString = linePoints.length > 0 ? `M 0,200 L ${linePoints.join(' L ')}` : '';
+        
+            // 3. Activity Bar Chart Data (Last 6 Active Months)
+            const monthCounts = {};
+            games.forEach(g => {
+                const d = new Date(g.date);
+                const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+                const label = d.toLocaleString('en', { month: 'short', year: '2-digit' });
+                if(!monthCounts[key]) monthCounts[key] = { label, count: 0 };
+                monthCounts[key].count++;
+            });
+            
+            const activeMonths = Object.values(monthCounts).slice(-6); // Take up to last 6
+            const maxBarCount = Math.max(...activeMonths.map(m => m.count), 1);
+            
+            let barsHtml = activeMonths.map(m => {
+                const heightPct = (m.count / maxBarCount) * 100;
+                return `
+                    <div class="flex flex-col items-center gap-2 flex-1 group">
+                        <span class="text-xs font-bold text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">${m.count}</span>
+                        <div class="w-full max-w-[40px] bg-gray-200 dark:bg-gray-800 rounded-t-lg flex items-end h-32 relative overflow-hidden">
+                            <div class="chart-bar w-full bg-gradient-to-t from-purple-600 to-neon-purple rounded-t-lg" style="height: 0%" data-target-height="${heightPct}%"></div>
+                        </div>
+                        <span class="text-[10px] font-bold text-gray-400 uppercase">${m.label}</span>
+                    </div>
+                `;
+            }).join('');
+        
+            // --- RENDER DOM ---
+            container.innerHTML = `
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 flex flex-col items-center justify-center">
+                        <h3 class="w-full text-left text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-6">Loot by Platform</h3>
+                        <div class="flex items-center gap-8">
+                            <div class="relative w-40 h-40">
+                                <svg width="100%" height="100%" viewBox="0 0 42 42" class="transform -rotate-90 drop-shadow-[0_0_10px_rgba(0,243,255,0.3)]">
+                                    <circle cx="21" cy="21" r="15.91549430918954" fill="transparent" stroke="rgba(128,128,128,0.2)" stroke-width="6"></circle>
+                                    ${pieHtml}
+                                </svg>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                    <span class="text-2xl font-black dark:text-white">${games.length}</span>
+                                    <span class="text-[9px] font-bold text-gray-500 uppercase">Games</span>
+                                </div>
+                            </div>
+                            <div class="flex flex-col gap-3">
+                                ${legendHtml}
+                            </div>
+                        </div>
+                    </div>
+        
+                    <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 flex flex-col">
+                        <h3 class="w-full text-left text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4">Looting Activity (Monthly)</h3>
+                        <div class="flex-1 flex items-end gap-2 justify-between mt-auto">
+                            ${barsHtml}
+                        </div>
+                    </div>
+        
+                    <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 lg:col-span-2 relative overflow-hidden">
+                        <h3 class="w-full text-left text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4 z-10 relative">Lifetime Wealth Generated</h3>
+                        <div class="relative h-48 w-full z-10 flex items-end">
+                            <svg viewBox="0 0 1000 200" preserveAspectRatio="none" class="absolute inset-0 w-full h-full overflow-visible drop-shadow-[0_0_12px_rgba(16,185,129,0.6)]">
+                                <path class="chart-path" d="${pathString}" fill="none" stroke="#10b981" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+                                <path class="chart-path opacity-20" d="${pathString} L 1000,200 L 0,200 Z" fill="url(#greenGradient)" stroke="none"></path>
+                                <defs>
+                                    <linearGradient id="greenGradient" x1="0" x2="0" y1="0" y2="1">
+                                        <stop offset="0%" stop-color="#10b981" />
+                                        <stop offset="100%" stop-color="transparent" />
+                                    </linearGradient>
+                                </defs>
+                            </svg>
+                        </div>
+                        <div class="absolute top-6 right-6 text-right z-10">
+                            <p class="text-3xl font-black text-green-500 tracking-wide">$${state.totalSaved.toFixed(2)}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        // ----------------------------
 
         function toggleDisclaimer() {
             const modal = document.getElementById('disclaimer-modal');

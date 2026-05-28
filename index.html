@@ -1182,18 +1182,21 @@
                 closeDeleteModal();
             }
         
-        function init() {
-            applyTheme();
-            setupLangMenu();
-            updateLanguageUI();
-            updateWalletUI();
-            setupPullToRefresh();
-            fetchGames();
-            checkAndShowIOSPrompt(); 
-            setupScrollToTop();
-            setupTabsScroll();
+            function init() {
+              applyTheme();
+              setupLangMenu();
+              updateLanguageUI();
+              updateWalletUI();
+              setupPullToRefresh();
+              fetchGames();
+              checkAndShowIOSPrompt();
+              setupScrollToTop();
+              setupTabsScroll();
+              
+              // 🚀 NEW: Pre-build the library in the background instantly!
+              renderLibrary();
             
-            document.addEventListener('click', (e) => {
+              document.addEventListener('click', (e) => {
                 const btn = document.getElementById('lang-dropdown-btn');
                 const menu = document.getElementById('lang-menu');
                 if(btn && menu && !btn.contains(e.target) && !menu.contains(e.target) && !menu.classList.contains('hidden')) {
@@ -1228,28 +1231,23 @@
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             
-            // 1. 🚀 START ANIMATION IMMEDIATELY (Do not wait for rendering)
+            // Slide in immediately! (The games are already pre-rendered!)
             void modal.offsetWidth;
             modal.classList.remove('translate-x-full');
         
-            // 2. 🚀 SMART Z-INDEX FIX
+            // SMART Z-INDEX FIX
             let libScrollTop = 0;
             const libScroll = document.querySelector('.library-scroll-area');
             if (libScroll) libScrollTop = libScroll.scrollTop;
         
             if (scrollTopBtn) {
               if (libScrollTop <= 300) {
-                scrollTopBtn.style.zIndex = '40'; // Hide under the incoming panel
+                scrollTopBtn.style.zIndex = '40'; 
               } else {
-                scrollTopBtn.style.zIndex = '';   // Fade in smoothly on top
+                scrollTopBtn.style.zIndex = '';   
               }
             }
             window.updateScrollButtonState();
-        
-            // 3. 🚀 DEFER HEAVY RENDERING (This completely removes the lag!)
-            setTimeout(() => {
-                renderLibrary();
-            }, 50);
         
             setTimeout(() => {
               if (scrollTopBtn) scrollTopBtn.style.zIndex = '';
@@ -1257,7 +1255,7 @@
             }, 350);
         
           } else {
-            // --- CLOSING THE LIBRARY (Leave this bottom half exactly as it is!) ---
+            // --- CLOSING THE LIBRARY ---
             modal.classList.add('translate-x-full');
         
             const appContainer = document.getElementById('app-container');
@@ -1749,14 +1747,12 @@
             
             // 🔄 UPDATE UI INSTANTLY
             updateWalletUI();
-            renderGames(); // Forces the main grid to redraw the buttons!
-            
-            // If the library modal is currently open, refresh that too
-            if (!document.getElementById('library-modal').classList.contains('hidden')) {
-              renderLibrary();
-            }
-          }
-        };
+            renderGames(); 
+
+            // 🚀 NEW: ALWAYS update the library in the background so it's perfectly ready for when they open it!
+            renderLibrary();
+        }
+    };
 
         window.updateLibFilter = function(val) { state.libFilter = val; renderLibrary(); };
         window.updateLibSort = function(val) { state.libSort = val; renderLibrary(); };

@@ -1227,28 +1227,29 @@
             // --- OPENING THE LIBRARY ---
             modal.classList.remove('hidden');
             modal.classList.add('flex');
+            
+            // 1. 🚀 START ANIMATION IMMEDIATELY (Do not wait for rendering)
+            void modal.offsetWidth;
+            modal.classList.remove('translate-x-full');
         
-            renderLibrary();
-        
-            // 🚀 SMART Z-INDEX FIX: Only push it to the background if it needs to hide.
-            // If the library is already scrolled down, keep it in the foreground to fade in smoothly!
+            // 2. 🚀 SMART Z-INDEX FIX
             let libScrollTop = 0;
             const libScroll = document.querySelector('.library-scroll-area');
             if (libScroll) libScrollTop = libScroll.scrollTop;
         
             if (scrollTopBtn) {
-                if (libScrollTop <= 300) {
-                    scrollTopBtn.style.zIndex = '40'; // Hide under the incoming panel
-                } else {
-                    scrollTopBtn.style.zIndex = '';   // Fade in smoothly on top
-                }
+              if (libScrollTop <= 300) {
+                scrollTopBtn.style.zIndex = '40'; // Hide under the incoming panel
+              } else {
+                scrollTopBtn.style.zIndex = '';   // Fade in smoothly on top
+              }
             }
-        
-            // Instantly sync the button's fade state with the menu slide
             window.updateScrollButtonState();
         
-            void modal.offsetWidth;
-            modal.classList.remove('translate-x-full');
+            // 3. 🚀 DEFER HEAVY RENDERING (This completely removes the lag!)
+            setTimeout(() => {
+                renderLibrary();
+            }, 50);
         
             setTimeout(() => {
               if (scrollTopBtn) scrollTopBtn.style.zIndex = '';
@@ -1256,7 +1257,7 @@
             }, 350);
         
           } else {
-            // --- CLOSING THE LIBRARY ---
+            // --- CLOSING THE LIBRARY (Leave this bottom half exactly as it is!) ---
             modal.classList.add('translate-x-full');
         
             const appContainer = document.getElementById('app-container');

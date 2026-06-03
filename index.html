@@ -230,7 +230,7 @@
                 </div>
 
                 <div class="flex items-center gap-1 md:gap-3 relative">
-                    <button onclick="toggleLibrary()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-transform active:scale-90 text-blue-600 dark:text-neon-blue" title="My Loot Library">
+                    <button onclick="" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-transform active:scale-90 text-blue-600 dark:text-neon-blue" title="My Loot Library">
                         <span class="flex items-center justify-center text-xl md:text-2xl drop-shadow-md pb-0.5">🎮</span>
                     </button>
 
@@ -494,7 +494,7 @@
             <button onclick="toggleStats()" class="p-2 bg-blue-100 dark:bg-neon-blue/10 text-blue-600 dark:text-neon-blue rounded-full hover:bg-blue-500 hover:text-white dark:hover:bg-neon-blue dark:hover:text-black transition-all active:scale-90 shadow-sm" title="Loot Analytics">
               <i class="ph-bold ph-chart-polar text-xl"></i>
             </button>
-            <button onclick="toggleLibrary()" class="p-2 bg-gray-200 dark:bg-gray-800 rounded-full hover:bg-red-500 hover:text-white dark:hover:bg-red-500 transition-transform active:scale-90">
+            <button onclick="" class="p-2 bg-gray-200 dark:bg-gray-800 rounded-full hover:bg-red-500 hover:text-white dark:hover:bg-red-500 transition-transform active:scale-90">
               <i class="ph-bold ph-x text-xl"></i>
             </button>
           </div>
@@ -1258,7 +1258,14 @@
             // Slide in immediately! (The games are already pre-rendered!)
             void modal.offsetWidth;
             modal.classList.remove('translate-x-full');
-        
+
+            // 🚀 NEW: Re-trigger the odometer animation right as the menu slides in!
+            setTimeout(() => {
+                const totalGames = Object.keys(state.claimedGames).length;
+                animateOdometer('lib-total-count', totalGames, false);
+                animateOdometer('lib-total-saved', state.totalSaved, true);
+            }, 150); // 150ms delay makes it roll perfectly as the slide finishes
+              
             // SMART Z-INDEX FIX
             let libScrollTop = 0;
             const libScroll = document.querySelector('.library-scroll-area');

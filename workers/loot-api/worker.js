@@ -1,6 +1,6 @@
 /**
  * Loot API Worker - Game Data Aggregator
- * 
+ *
  * Endpoints:
  * GET  /api/reddit-deals    - Proxy Reddit free game deals
  * GET  /api/epic-free       - Fetch Epic Games free titles
@@ -230,17 +230,19 @@ async function fetchAndroidFreeApps() {
 
     // Parse HTML to extract app data
     const apps = [];
-    const appRegex = /<div class="app-item">(.*?)<\/div>\s*<\/a>/gs;
+
+    // Match each sale-list-item block
+    const itemRegex = /<div class="card-panel sale-list-item[^"]*">(.*?)<\/div>\s*<\/div>/gs;
     let match;
 
-    while ((match = appRegex.exec(html)) !== null) {
+    while ((match = itemRegex.exec(html)) !== null) {
       const block = match[1];
 
-      // Extract title
-      const titleMatch = block.match(/<h3[^>]*>(.*?)<\/h3>/s);
+      // Extract title from app-name
+      const titleMatch = block.match(/<p class="app-name">\s*([^<]+)</);
       const title = titleMatch ? titleMatch[1].trim() : '';
 
-      // Extract original price
+      // Extract price
       const priceMatch = block.match(/<span class="original-price">([^<]+)</);
       const worth = priceMatch ? priceMatch[1].trim() : 'N/A';
 

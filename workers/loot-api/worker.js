@@ -1,6 +1,6 @@
 /**
  * Loot API Worker - Game Data Aggregator
- *
+ * 
  * Endpoints:
  * GET  /api/reddit-deals    - Proxy Reddit free game deals
  * GET  /api/epic-free       - Fetch Epic Games free titles

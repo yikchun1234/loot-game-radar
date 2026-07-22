@@ -232,7 +232,8 @@ async function fetchAndroidFreeApps() {
     const apps = [];
 
     // Match each sale-list-item block
-    const itemRegex = /<div class="card-panel sale-list-item[^"]*">(.*?)<\/div>\s*<\/div>/gs;
+    // Pattern: <div class="card-panel sale-list-item ">...</div>
+    const itemRegex = /<div class="card-panel sale-list-item[^"]*">([\s\S]*?)<\/div>\s*<\/div>\s*<\/div>/g;
     let match;
 
     while ((match = itemRegex.exec(html)) !== null) {
@@ -242,16 +243,16 @@ async function fetchAndroidFreeApps() {
       const titleMatch = block.match(/<p class="app-name">\s*([^<]+)</);
       const title = titleMatch ? titleMatch[1].trim() : '';
 
-      // Extract price
-      const priceMatch = block.match(/<span class="original-price">([^<]+)</);
+      // Extract price from price-old
+      const priceMatch = block.match(/<div class="price-old">([^<]+)</);
       const worth = priceMatch ? priceMatch[1].trim() : 'N/A';
 
       // Extract Google Play link
-      const linkMatch = block.match(/href="([^"]*play\.google\.com[^"]*)"/);
+      const linkMatch = block.match(/href="(https:\/\/play\.google\.com\/store\/apps\/details\?id=[^"]+)"/);
       const open_giveaway = linkMatch ? linkMatch[1] : '';
 
       // Extract icon
-      const iconMatch = block.match(/<img[^>]+src="([^"]+)"/);
+      const iconMatch = block.match(/<div class="app-icon"><img src="([^"]+)"/);
       const image = iconMatch ? iconMatch[1] : 'https://images.unsplash.com/photo-1607252654015-f84f1b578d51?w=400&h=200&fit=crop';
 
       if (title && open_giveaway) {

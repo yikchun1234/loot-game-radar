@@ -153,17 +153,19 @@ async function fetchEpicFreeGames() {
 
 /**
  * Aggregate all game sources
- * GET /api/all-games?reddit=true&epic=true&gamerpower=true
+ * GET /api/all-games?reddit=true&epic=true&gamerpower=true&android=true
  */
 async function fetchAllGames(params) {
   const includeReddit = params.get('reddit') !== 'false';
   const includeEpic = params.get('epic') !== 'false';
   const includeGamerPower = params.get('gamerpower') !== 'false';
+  const includeAndroid = params.get('android') !== 'false';
 
   const results = await Promise.allSettled([
     includeReddit ? fetchRedditDeals() : Promise.resolve([]),
     includeEpic ? fetchEpicFreeGames() : Promise.resolve([]),
     includeGamerPower ? fetchGamerPowerGames() : Promise.resolve([]),
+    includeAndroid ? fetchAndroidFreeApps() : Promise.resolve([]),
   ]);
 
   const allGames = [];
@@ -209,6 +211,67 @@ async function fetchGamerPowerGames() {
   }
 }
 
+/**
+ * Scrape app-sales.net for free Android apps
+ * GET /api/android-free
+ */
+async function fetchAndroidFreeApps() {
+  try {
+    const res = await fetch('https://www.app-sales.net/nowfree/', {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+      },
+      cf: { cacheTtl: 300, cacheEverything: true }, // Cache for 5 min
+    });
+
+    if (!res.ok) return [];
+
+    const html = await res.text();
+
+    // Parse HTML to extract app data
+    const apps = [];
+    const appRegex = /<div class="app-item">(.*?)<\/div>\s*<\/a>/gs;
+    let match;
+
+    while ((match = appRegex.exec(html)) !== null) {
+      const block = match[1];
+
+      // Extract title
+      const titleMatch = block.match(/<h3[^>]*>(.*?)<\/h3>/s);
+      const title = titleMatch ? titleMatch[1].trim() : '';
+
+      // Extract original price
+      const priceMatch = block.match(/<span class="original-price">([^<]+)</);
+      const worth = priceMatch ? priceMatch[1].trim() : 'N/A';
+
+      // Extract Google Play link
+      const linkMatch = block.match(/href="([^"]*play\.google\.com[^"]*)"/);
+      const open_giveaway = linkMatch ? linkMatch[1] : '';
+
+      // Extract icon
+      const iconMatch = block.match(/<img[^>]+src="([^"]+)"/);
+      const image = iconMatch ? iconMatch[1] : 'https://images.unsplash.com/photo-1607252654015-f84f1b578d51?w=400&h=200&fit=crop';
+
+      if (title && open_giveaway) {
+        apps.push({
+          id: 'android_' + title.slice(0, 30),
+          title,
+          image,
+          worth,
+          platforms: 'Android',
+          open_giveaway,
+          published_date: new Date().toISOString(),
+          source: 'AppSales',
+        });
+      }
+    }
+
+    return apps;
+  } catch (err) {
+    return [];
+  }
+}
+
 // Main request handler
 export default {
   async fetch(request) {
@@ -244,6 +307,18 @@ export default {
       }
     }
 
+    // Route: GET /api/android-free
+    if (pathname === '/api/android-free') {
+      try {
+        const apps = await fetchAndroidFreeApps();
+        return new Response(JSON.stringify(apps), {
+          headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        });
+      } catch (err) {
+        return errorResponse('Failed to fetch Android apps: ' + err.message);
+      }
+    }
+
     // Route: GET /api/all-games
     if (pathname === '/api/all-games') {
       try {
@@ -261,16 +336,18 @@ export default {
       return new Response(
         JSON.stringify({
           name: 'Loot API',
-          version: '1.0',
+          version: '1.1',
           endpoints: {
             'GET /api/reddit-deals': 'Fetch free game deals from Reddit',
             'GET /api/epic-free': 'Fetch Epic Games free titles',
-            'GET /api/all-games': 'Aggregate all sources (gamerpower + reddit + epic)',
+            'GET /api/android-free': 'Scrape free Android apps from AppSales',
+            'GET /api/all-games': 'Aggregate all sources (gamerpower + reddit + epic + android)',
           },
           params: {
             reddit: 'true|false (default: true)',
             epic: 'true|false (default: true)',
             gamerpower: 'true|false (default: true)',
+            android: 'true|false (default: true)',
           },
         }),
         { headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' } }

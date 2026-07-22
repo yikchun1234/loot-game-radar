@@ -6,10 +6,11 @@
         // 1. DOMAIN LOCKDOWN
         const allowedDomains = [
             "gamelootradar.pages.dev",
-            "gamelootradar.us.ci",     
-            "localhost", 
-            "127.0.0.1", 
-            ""                           
+            "gamelootradar.us.ci",
+            "loot-api.yikchun1234.workers.dev",
+            "localhost",
+            "127.0.0.1",
+            ""
         ];
         const currentDomain = window.location.hostname;
 
@@ -1661,29 +1662,20 @@
 
         async function fetchRedditDeals() {
             try {
-                const [gpJson, fgaJson, iosJson] = await Promise.all([
-                    fetchWithFallbacks('https://www.reddit.com/r/googleplaydeals/new.json?limit=100'),
-                    fetchWithFallbacks('https://www.reddit.com/r/FreeGamesOnAndroid/new.json?limit=50'),
-                    fetchWithFallbacks('https://www.reddit.com/r/AppHookup/search.json?q=flair_name%3A%22iOS%20Universal%22%20OR%20flair_name%3A%22iOS%20Game%22&restrict_sr=1&sort=new&limit=100')
-                ]);
-
-                let androidDeals = [], iosDeals = [];
-
-                if (gpJson && gpJson.data && gpJson.data.children) {
-                    const deals = gpJson.data.children.filter(c => c.data.title.toLowerCase().includes('free') || c.data.title.includes('100%')).map(c => processRedditPost(c.data, 'Android'));
-                    androidDeals.push(...deals);
-                }
-
-                if (fgaJson && fgaJson.data && fgaJson.data.children) {
-                    const deals = fgaJson.data.children.map(c => processRedditPost(c.data, 'Android'));
-                    androidDeals.push(...deals);
-                }
-
-                if (iosJson && iosJson.data && iosJson.data.children) {
-                    iosDeals = iosJson.data.children.filter(c => c.data.title.toLowerCase().includes('free') || c.data.title.includes('100%')).map(c => processRedditPost(c.data, 'iOS'));
-                }
-
-                return [...androidDeals, ...iosDeals];
+                const res = await fetch('https://loot-api.yikchun1234.workers.dev/api/reddit-deals');
+                if (!res.ok) return [];
+                const deals = await res.json();
+                // 标准化格式以匹配现有 processRedditPost 的输出
+                return deals.map(d => ({
+                    id: 'rdt_' + (d.source || '') + '_' + (d.title || '').slice(0, 20),
+                    title: d.title,
+                    image: d.image,
+                    description: `Community discovered ${d.platforms} deal via Reddit.`,
+                    worth: d.worth || 'N/A',
+                    platforms: d.platforms || 'Android',
+                    open_giveaway: d.open_giveaway,
+                    published_date: d.published_date || new Date().toISOString()
+                }));
             } catch (e) { return []; }
         }
 

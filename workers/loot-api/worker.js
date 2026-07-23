@@ -268,16 +268,10 @@ async function fetchAllGames(params) {
     }
   }
 
-  // Step 2: If Reddit failed, use fallbacks
-  let androidData = [];
+  // Step 2: If Reddit failed, use iOS fallback
   let iosData = [];
 
   if (!redditSuccess) {
-    if (includeAndroid) {
-      try {
-        androidData = await fetchAndroidFreeApps();
-      } catch (err) {}
-    }
     if (includeIOS) {
       try {
         iosData = await fetchIOSFreeApps();
@@ -288,7 +282,6 @@ async function fetchAllGames(params) {
   // Step 3: Fetch other sources in parallel
   const results = await Promise.allSettled([
     Promise.resolve(redditData),
-    Promise.resolve(androidData),
     Promise.resolve(iosData),
     includeEpic ? fetchEpicFreeGames() : Promise.resolve([]),
     includeGamerPower ? fetchGamerPowerGames() : Promise.resolve([]),

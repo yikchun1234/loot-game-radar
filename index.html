@@ -1715,9 +1715,14 @@
             if (refreshIcon) refreshIcon.classList.add('animate-spin', 'text-blue-500', 'dark:text-neon-blue');
 
             try {
+                // Use Worker's aggregated endpoint (handles Reddit → AppSales fallback)
+                const workerRes = await fetch('https://loot-api.yikchun1234.workers.dev/api/all-games?gamerpower=false');
+                const workerGames = workerRes.ok ? await workerRes.json() : [];
+
+                // Also fetch GamerPower directly (PC games)
                 const gpData = await fetchWithFallbacks('https://www.gamerpower.com/api/giveaways');
                 let validGpData = [];
-                
+
                 if (gpData && Array.isArray(gpData)) {
                     validGpData = gpData.filter(game => {
                         const title = (game.title || '').toLowerCase();
@@ -1725,10 +1730,7 @@
                     });
                 }
 
-                const redditData = await fetchRedditDeals();
-                const androidData = await fetchAndroidFreeApps();
-
-                let allGames = [...validGpData, ...redditData, ...androidData];
+                let allGames = [...workerGames, ...validGpData];
                 
                 const uniqueMap = new Map();
                 allGames.forEach(g => {

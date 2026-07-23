@@ -1707,6 +1707,15 @@
             };
         }
 
+        // --- PUBLISH DATE STORAGE (for ID-based deduplication) ---
+        function loadPublishDates() {
+            return loadSafeStorage('lootradar_publish_dates') || {};
+        }
+
+        function savePublishDates(dates) {
+            saveSafeStorage('lootradar_publish_dates', dates);
+        }
+
         async function fetchGames(force = false) {
             if (state.isLoading) return;
             state.isLoading = true;
@@ -1715,7 +1724,11 @@
             if (refreshIcon) refreshIcon.classList.add('animate-spin', 'text-blue-500', 'dark:text-neon-blue');
 
             try {
-                // Use Worker's aggregated endpoint (handles Reddit → AppSales/CheapCharts fallback)
+                // Load existing publish dates from localStorage
+                let publishDates = loadPublishDates();
+                let needsSave = false;
+
+                // Fetch from Worker (Reddit → AppSales/CheapCharts fallback)
                 const workerRes = await fetch('https://loot-api.yikchun1234.workers.dev/api/all-games');
                 const workerGames = workerRes.ok ? await workerRes.json() : [];
 
@@ -1741,6 +1754,45 @@
 
                 allGames = Array.from(uniqueMap.values());
 
+                // Process each game for publish date logic
+                allGames.forEach(game => {
+                    const id = game.open_giveaway;
+                    if (!id) return;
+
+                    const source = game.source || '';
+                    const isReddit = source.includes('reddit') || source.startsWith('r/');
+                    const existingData = publishDates[id];
+
+                    if (isReddit) {
+                        // Reddit: always use Reddit's date (most accurate)
+                        publishDates[id] = {
+                            date: game.published_date,
+                            source: 'reddit',
+                            updatedAt: new Date().toISOString()
+                        };
+                        game.published_date = game.published_date; // Keep Reddit's date
+                        needsSave = true;
+                    } else if (existingData) {
+                        // AppSales/AppStore with existing record: use stored date
+                        game.published_date = existingData.date;
+                    } else {
+                        // New app (no existing record): use today's date
+                        const today = new Date().toISOString();
+                        publishDates[id] = {
+                            date: today,
+                            source: game.source || 'unknown',
+                            createdAt: today
+                        };
+                        game.published_date = today;
+                        needsSave = true;
+                    }
+                });
+
+                // Save publish dates if changed
+                if (needsSave) {
+                    savePublishDates(publishDates);
+                }
+
                 // Frontend sorting: Date (newest first) → Price (highest first for same date)
                 allGames.sort((a, b) => {
                     const dateA = new Date(a.published_date || 0);
@@ -1756,7 +1808,7 @@
                 });
 
                 state.games = allGames;
-                autoHealLegacySaves(); // 👈 ADD THIS LINE HERE
+                autoHealLegacySaves();
                 
                 renderTabs();
                 renderGames();

@@ -311,9 +311,17 @@ async function fetchAllGames(params) {
     }
   });
 
-  // Sort by date (newest first)
+  // Sort by date (newest first), then by price (highest first) for same-date items
   const sorted = Array.from(uniqueMap.values()).sort((a, b) => {
-    return new Date(b.published_date) - new Date(a.published_date);
+    const dateA = new Date(a.published_date);
+    const dateB = new Date(b.published_date);
+    if (dateB.getTime() !== dateA.getTime()) {
+      return dateB - dateA;
+    }
+    // Same date: sort by price (highest first)
+    const priceA = parseFloat(a.worth?.replace(/[^0-9.]/g, '')) || 0;
+    const priceB = parseFloat(b.worth?.replace(/[^0-9.]/g, '')) || 0;
+    return priceB - priceA;
   });
 
   return sorted;

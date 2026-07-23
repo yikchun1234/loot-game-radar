@@ -95,6 +95,89 @@ async function fetchRedditDeals() {
 }
 
 /**
+ * Fetch Reddit deals via RSS (more stable than JSON API)
+ * GET /api/reddit-rss
+ */
+async function fetchRedditRSS() {
+  const subreddits = ['googleplaydeals', 'FreeGamesOnAndroid', 'AppHookup'];
+  const allPosts = [];
+
+  for (const sub of subreddits) {
+    try {
+      const res = await fetch(`https://www.reddit.com/r/${sub}/.rss?limit=50`, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        },
+        cf: { cacheTtl: 300, cacheEverything: true }, // Cache for 5 min
+      });
+
+      if (!res.ok) continue;
+
+      const xml = await res.text();
+
+      // Parse XML entries
+      const entryRegex = /<entry>([\s\S]*?)<\/entry>/g;
+      let entryMatch;
+
+      while ((entryMatch = entryRegex.exec(xml)) !== null) {
+        const entry = entryMatch[1];
+
+        // Extract title
+        const titleMatch = entry.match(/<title[^>]*>(.*?)<\/title>/);
+        const title = titleMatch ? titleMatch[1].trim() : '';
+
+        // Filter for free games
+        if (!/free|100%|giveaway/i.test(title)) continue;
+
+        // Extract link
+        const linkMatch = entry.match(/<link[^>]+href="([^"]+)"/);
+        const link = linkMatch ? linkMatch[1] : '';
+
+        // Extract published date
+        const dateMatch = entry.match(/<published>(.*?)<\/published>/);
+        const published = dateMatch ? dateMatch[1] : new Date().toISOString();
+
+        // Extract image (from media:thumbnail or first image in content)
+        let image = 'https://images.unsplash.com/photo-1556438064-2d7646166914?w=400&h=200&fit=crop';
+        const thumbMatch = entry.match(/<media:thumbnail[^>]+url="([^"]+)"/);
+        if (thumbMatch) {
+          image = thumbMatch[1];
+        } else {
+          const contentMatch = entry.match(/<content[^>]*>([\s\S]*?)<\/content>/);
+          if (contentMatch) {
+            const imgMatch = contentMatch[1].match(/src="([^"]+\.(?:jpg|png|gif)[^"]*)"/);
+            if (imgMatch) image = imgMatch[1];
+          }
+        }
+
+        // Determine platform
+        let platforms = 'Android';
+        if (sub === 'AppHookup') platforms = 'iOS/Android';
+        if (sub === 'FreeGamesOnAndroid') platforms = 'Android';
+
+        // Extract price
+        const priceMatch = title.match(/(?:\$|€|£)\s?([0-9.]+)/);
+        const worth = priceMatch ? `$${priceMatch[1]}` : 'Free';
+
+        allPosts.push({
+          title: title.replace(/\[.*?\]\s*/g, '').trim(),
+          image,
+          worth,
+          platforms,
+          open_giveaway: link,
+          published_date: published,
+          source: `r/${sub}`,
+        });
+      }
+    } catch (err) {
+      continue;
+    }
+  }
+
+  return allPosts;
+}
+
+/**
  * Fetch Epic Games free titles
  * GET /api/epic-free
  */
@@ -161,8 +244,21 @@ async function fetchAllGames(params) {
   const includeGamerPower = params.get('gamerpower') !== 'false';
   const includeAndroid = params.get('android') !== 'false';
 
+  // Reddit: try RSS first (more stable), fallback to JSON API
+  let redditData = [];
+  if (includeReddit) {
+    try {
+      redditData = await fetchRedditRSS();
+      if (redditData.length === 0) {
+        redditData = await fetchRedditDeals();
+      }
+    } catch (err) {
+      redditData = await fetchRedditDeals();
+    }
+  }
+
   const results = await Promise.allSettled([
-    includeReddit ? fetchRedditDeals() : Promise.resolve([]),
+    Promise.resolve(redditData),
     includeEpic ? fetchEpicFreeGames() : Promise.resolve([]),
     includeGamerPower ? fetchGamerPowerGames() : Promise.resolve([]),
     includeAndroid ? fetchAndroidFreeApps() : Promise.resolve([]),
@@ -295,6 +391,18 @@ export default {
         });
       } catch (err) {
         return errorResponse('Failed to fetch Reddit deals: ' + err.message);
+      }
+    }
+
+    // Route: GET /api/reddit-rss (more stable)
+    if (pathname === '/api/reddit-rss') {
+      try {
+        const deals = await fetchRedditRSS();
+        return new Response(JSON.stringify(deals), {
+          headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        });
+      } catch (err) {
+        return errorResponse('Failed to fetch Reddit RSS: ' + err.message);
       }
     }
 

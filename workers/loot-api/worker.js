@@ -99,12 +99,16 @@ async function fetchRedditDeals() {
  * GET /api/reddit-rss
  */
 async function fetchRedditRSS() {
-  const subreddits = ['googleplaydeals', 'FreeGamesOnAndroid', 'AppHookup'];
+  const subreddits = [
+    { name: 'googleplaydeals', platform: 'Android', domain: 'play.google.com' },
+    { name: 'FreeGamesOnAndroid', platform: 'Android', domain: 'play.google.com' },
+    { name: 'AppHookup', platform: 'iOS', domain: 'apps.apple.com' }
+  ];
   const allPosts = [];
 
   for (const sub of subreddits) {
     try {
-      const res = await fetch(`https://www.reddit.com/r/${sub}/.rss?limit=50`, {
+      const res = await fetch(`https://www.reddit.com/r/${sub.name}/.rss?limit=50`, {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         },
@@ -133,6 +137,9 @@ async function fetchRedditRSS() {
         const linkMatch = entry.match(/<link[^>]+href="([^"]+)"/);
         const link = linkMatch ? linkMatch[1] : '';
 
+        // STRICT domain check - only accept links matching the platform
+        if (!link.includes(sub.domain)) continue;
+
         // Extract published date
         const dateMatch = entry.match(/<published>(.*?)<\/published>/);
         const published = dateMatch ? dateMatch[1] : new Date().toISOString();
@@ -150,11 +157,6 @@ async function fetchRedditRSS() {
           }
         }
 
-        // Determine platform
-        let platforms = 'Android';
-        if (sub === 'AppHookup') platforms = 'iOS/Android';
-        if (sub === 'FreeGamesOnAndroid') platforms = 'Android';
-
         // Extract price
         const priceMatch = title.match(/(?:\$|€|£)\s?([0-9.]+)/);
         const worth = priceMatch ? `$${priceMatch[1]}` : 'Free';
@@ -163,10 +165,10 @@ async function fetchRedditRSS() {
           title: title.replace(/\[.*?\]\s*/g, '').trim(),
           image,
           worth,
-          platforms,
+          platforms: sub.platform,
           open_giveaway: link,
           published_date: published,
-          source: `r/${sub}`,
+          source: `r/${sub.name}`,
         });
       }
     } catch (err) {

@@ -133,12 +133,25 @@ async function fetchRedditRSS() {
         // Filter for free games
         if (!/free|100%|giveaway/i.test(title)) continue;
 
-        // Extract link
-        const linkMatch = entry.match(/<link[^>]+href="([^"]+)"/);
-        const link = linkMatch ? linkMatch[1] : '';
+        // Extract Google Play / App Store link from content (not Reddit link)
+        const contentMatch = entry.match(/<content[^>]*>([\s\S]*?)<\/content>/);
+        let storeLink = '';
 
-        // STRICT domain check - only accept links matching the platform
-        if (!link.includes(sub.domain)) continue;
+        if (contentMatch) {
+          const content = contentMatch[1];
+          // Extract play.google.com or apps.apple.com link
+          const playMatch = content.match(/href="(https:\/\/play\.google\.com\/store\/apps\/details\?id=[^"&]+)/);
+          const appleMatch = content.match(/href="(https:\/\/apps\.apple\.com\/[^"&]+)/);
+
+          if (playMatch && sub.domain === 'play.google.com') {
+            storeLink = playMatch[1];
+          } else if (appleMatch && sub.domain === 'apps.apple.com') {
+            storeLink = appleMatch[1];
+          }
+        }
+
+        // Skip if no valid store link found
+        if (!storeLink) continue;
 
         // Extract published date
         const dateMatch = entry.match(/<published>(.*?)<\/published>/);
@@ -149,12 +162,9 @@ async function fetchRedditRSS() {
         const thumbMatch = entry.match(/<media:thumbnail[^>]+url="([^"]+)"/);
         if (thumbMatch) {
           image = thumbMatch[1];
-        } else {
-          const contentMatch = entry.match(/<content[^>]*>([\s\S]*?)<\/content>/);
-          if (contentMatch) {
-            const imgMatch = contentMatch[1].match(/src="([^"]+\.(?:jpg|png|gif)[^"]*)"/);
-            if (imgMatch) image = imgMatch[1];
-          }
+        } else if (contentMatch) {
+          const imgMatch = contentMatch[1].match(/src="([^"]+\.(?:jpg|png|gif)[^"]*)"/);
+          if (imgMatch) image = imgMatch[1];
         }
 
         // Extract price
@@ -166,7 +176,7 @@ async function fetchRedditRSS() {
           image,
           worth,
           platforms: sub.platform,
-          open_giveaway: link,
+          open_giveaway: storeLink,  // Use the actual store link, not Reddit link
           published_date: published,
           source: `r/${sub.name}`,
         });

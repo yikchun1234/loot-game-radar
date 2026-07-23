@@ -1662,8 +1662,12 @@
 
         async function fetchRedditDeals() {
             try {
-                const res = await fetch('https://loot-api.yikchun1234.workers.dev/api/reddit-deals');
-                if (!res.ok) return [];
+                // Try RSS first (more stable)
+                let res = await fetch('https://loot-api.yikchun1234.workers.dev/api/reddit-rss');
+                if (!res.ok) {
+                    // Fallback to JSON API
+                    res = await fetch('https://loot-api.yikchun1234.workers.dev/api/reddit-deals');
+                }
                 const deals = await res.json();
                 // 标准化格式以匹配现有 processRedditPost 的输出
                 return deals.map(d => ({

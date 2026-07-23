@@ -418,7 +418,7 @@ async function fetchIOSFreeApps() {
     if (!res.ok) return [];
 
     const data = await res.json();
-    const apps = data?.apps || [];
+    const apps = data?.results?.apps || [];
 
     return apps.map(a => ({
       id: 'ios_' + (a.itunesItemId || a.title || '').slice(0, 30),

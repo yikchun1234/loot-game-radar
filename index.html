@@ -1739,8 +1739,8 @@
                 });
                 
                 allGames = Array.from(uniqueMap.values());
-                allGames.sort((a, b) => new Date(b.published_date) - new Date(a.published_date));
-                
+                // Sorting handled by Worker (date + price)
+
                 state.games = allGames;
                 autoHealLegacySaves(); // 👈 ADD THIS LINE HERE
                 

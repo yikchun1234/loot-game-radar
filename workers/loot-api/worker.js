@@ -221,7 +221,7 @@ async function fetchAndroidFreeApps() {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
       },
-      cf: { cacheTtl: 300, cacheEverything: true }, // Cache for 5 min
+      cf: { cacheTtl: 43200, cacheEverything: true }, // Cache for 12 hours
     });
 
     if (!res.ok) return [];

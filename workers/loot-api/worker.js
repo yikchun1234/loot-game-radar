@@ -238,18 +238,20 @@ async function fetchEpicFreeGames() {
 
 /**
  * Aggregate all game sources
- * GET /api/all-games?reddit=true&epic=true&gamerpower=true&android=true
+ * GET /api/all-games?reddit=true&epic=true&gamerpower=true&android=true&ios=true
  *
  * Priority:
  * 1. Reddit RSS (Android + iOS)
  * 2. AppSales (Android fallback if Reddit fails)
- * 3. GamerPower (PC)
+ * 3. CheapCharts (iOS fallback if Reddit fails)
+ * 4. GamerPower (PC)
  */
 async function fetchAllGames(params) {
   const includeReddit = params.get('reddit') !== 'false';
   const includeEpic = params.get('epic') !== 'false';
   const includeGamerPower = params.get('gamerpower') !== 'false';
   const includeAndroid = params.get('android') !== 'false';
+  const includeIOS = params.get('ios') !== 'false';
 
   // Step 1: Try Reddit RSS
   let redditData = [];
@@ -266,13 +268,20 @@ async function fetchAllGames(params) {
     }
   }
 
-  // Step 2: If Reddit failed, use AppSales as fallback (Android only)
+  // Step 2: If Reddit failed, use fallbacks
   let androidData = [];
-  if (includeAndroid && !redditSuccess) {
-    try {
-      androidData = await fetchAndroidFreeApps();
-    } catch (err) {
-      // AppSales also failed
+  let iosData = [];
+
+  if (!redditSuccess) {
+    if (includeAndroid) {
+      try {
+        androidData = await fetchAndroidFreeApps();
+      } catch (err) {}
+    }
+    if (includeIOS) {
+      try {
+        iosData = await fetchIOSFreeApps();
+      } catch (err) {}
     }
   }
 
@@ -280,6 +289,7 @@ async function fetchAllGames(params) {
   const results = await Promise.allSettled([
     Promise.resolve(redditData),
     Promise.resolve(androidData),
+    Promise.resolve(iosData),
     includeEpic ? fetchEpicFreeGames() : Promise.resolve([]),
     includeGamerPower ? fetchGamerPowerGames() : Promise.resolve([]),
   ]);
@@ -391,6 +401,40 @@ async function fetchAndroidFreeApps() {
   }
 }
 
+/**
+ * Fetch iOS free apps from CheapCharts API
+ * GET /api/ios-free
+ */
+async function fetchIOSFreeApps() {
+  try {
+    const res = await fetch(
+      'https://buster.cheapcharts.de/v1/OfferList.php?store=itunes&listType=nowfree&country=us&itemType=apps&genreIds=0&quality=hd&sort=latestPricechange&offset=0&limit=50&releaseYear=1900-2026&offers=all&plattform=1&paid=1&priceRange=all',
+      {
+        headers: { 'User-Agent': 'LootRadar/1.0' },
+        cf: { cacheTtl: 43200, cacheEverything: true }, // Cache for 12 hours
+      }
+    );
+
+    if (!res.ok) return [];
+
+    const data = await res.json();
+    const apps = data?.apps || [];
+
+    return apps.map(a => ({
+      id: 'ios_' + (a.itunesItemId || a.title || '').slice(0, 30),
+      title: a.title || '',
+      image: a.imageMediumUrl || 'https://images.unsplash.com/photo-1591337676887-a21bfc42dd5b?w=400&h=200&fit=crop',
+      worth: a.priceBefore ? `$${a.priceBefore}` : 'N/A',
+      platforms: 'iOS',
+      open_giveaway: a.iTunesUrl || '',
+      published_date: a.priceLastChangeDate ? new Date(a.priceLastChangeDate).toISOString() : new Date().toISOString(),
+      source: 'CheapCharts',
+    }));
+  } catch (err) {
+    return [];
+  }
+}
+
 // Main request handler
 export default {
   async fetch(request) {
@@ -447,6 +491,18 @@ export default {
         });
       } catch (err) {
         return errorResponse('Failed to fetch Android apps: ' + err.message);
+      }
+    }
+
+    // Route: GET /api/ios-free
+    if (pathname === '/api/ios-free') {
+      try {
+        const apps = await fetchIOSFreeApps();
+        return new Response(JSON.stringify(apps), {
+          headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        });
+      } catch (err) {
+        return errorResponse('Failed to fetch iOS apps: ' + err.message);
       }
     }
 

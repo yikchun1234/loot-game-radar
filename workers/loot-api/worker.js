@@ -239,6 +239,11 @@ async function fetchEpicFreeGames() {
 /**
  * Aggregate all game sources
  * GET /api/all-games?reddit=true&epic=true&gamerpower=true&android=true
+ *
+ * Priority:
+ * 1. Reddit RSS (Android + iOS)
+ * 2. AppSales (Android fallback if Reddit fails)
+ * 3. GamerPower (PC)
  */
 async function fetchAllGames(params) {
   const includeReddit = params.get('reddit') !== 'false';
@@ -246,24 +251,37 @@ async function fetchAllGames(params) {
   const includeGamerPower = params.get('gamerpower') !== 'false';
   const includeAndroid = params.get('android') !== 'false';
 
-  // Reddit: try RSS first (more stable), fallback to JSON API
+  // Step 1: Try Reddit RSS
   let redditData = [];
+  let redditSuccess = false;
+
   if (includeReddit) {
     try {
       redditData = await fetchRedditRSS();
-      if (redditData.length === 0) {
-        redditData = await fetchRedditDeals();
+      if (redditData.length > 0) {
+        redditSuccess = true;
       }
     } catch (err) {
-      redditData = await fetchRedditDeals();
+      // Reddit failed
     }
   }
 
+  // Step 2: If Reddit failed, use AppSales as fallback (Android only)
+  let androidData = [];
+  if (includeAndroid && !redditSuccess) {
+    try {
+      androidData = await fetchAndroidFreeApps();
+    } catch (err) {
+      // AppSales also failed
+    }
+  }
+
+  // Step 3: Fetch other sources in parallel
   const results = await Promise.allSettled([
     Promise.resolve(redditData),
+    Promise.resolve(androidData),
     includeEpic ? fetchEpicFreeGames() : Promise.resolve([]),
     includeGamerPower ? fetchGamerPowerGames() : Promise.resolve([]),
-    includeAndroid ? fetchAndroidFreeApps() : Promise.resolve([]),
   ]);
 
   const allGames = [];

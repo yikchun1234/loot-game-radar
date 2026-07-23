@@ -268,10 +268,19 @@ async function fetchAllGames(params) {
     }
   }
 
-  // Step 2: If Reddit failed, use iOS fallback
+  // Step 2: If Reddit failed, use fallbacks
+  let androidData = [];
   let iosData = [];
 
   if (!redditSuccess) {
+    // Android: try AppSales
+    if (includeAndroid) {
+      try {
+        androidData = await fetchAndroidFreeApps();
+      } catch (err) {}
+    }
+
+    // iOS: try CheapCharts
     if (includeIOS) {
       try {
         iosData = await fetchIOSFreeApps();
@@ -282,6 +291,7 @@ async function fetchAllGames(params) {
   // Step 3: Fetch other sources in parallel
   const results = await Promise.allSettled([
     Promise.resolve(redditData),
+    Promise.resolve(androidData),
     Promise.resolve(iosData),
     includeEpic ? fetchEpicFreeGames() : Promise.resolve([]),
     includeGamerPower ? fetchGamerPowerGames() : Promise.resolve([]),
@@ -304,20 +314,8 @@ async function fetchAllGames(params) {
     }
   });
 
-  // Sort by date (newest first), then by price (highest first) for same-date items
-  const sorted = Array.from(uniqueMap.values()).sort((a, b) => {
-    const dateA = new Date(a.published_date);
-    const dateB = new Date(b.published_date);
-    if (dateB.getTime() !== dateA.getTime()) {
-      return dateB - dateA;
-    }
-    // Same date: sort by price (highest first)
-    const priceA = parseFloat(a.worth?.replace(/[^0-9.]/g, '')) || 0;
-    const priceB = parseFloat(b.worth?.replace(/[^0-9.]/g, '')) || 0;
-    return priceB - priceA;
-  });
-
-  return sorted;
+  // No sorting here - let frontend handle sorting
+  return Array.from(uniqueMap.values());
 }
 
 /**

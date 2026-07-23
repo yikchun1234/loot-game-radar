@@ -17,6 +17,7 @@
   
   <img src="https://img.shields.io/badge/PWA-5A0FC8?style=for-the-badge&logo=pwa&logoColor=white" alt="PWA Ready">
   <img src="https://img.shields.io/badge/Cloudflare-F38020?style=for-the-badge&logo=cloudflare&logoColor=white" alt="Cloudflare">
+  <img src="https://img.shields.io/badge/Workers-API-orange?style=for-the-badge&logo=cloudflare&logoColor=white" alt="Cloudflare Workers">
   <img src="https://img.shields.io/badge/CSS3-1572B6?style=for-the-badge&logo=css3&logoColor=white" alt="CSS3">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge" alt="License">
 
@@ -30,7 +31,7 @@
 ---
 
 ### ✨ Features
-* 🌍 **Universal Tracking:** Automatically scrapes and aggregates free game deals from Steam, Epic Games, Prime Gaming, GOG, Ubisoft, iOS, Android, and Consoles. Utilizes a highly stable Reddit-fallback scraping engine!
+* 🌍 **Universal Tracking:** Automatically scrapes and aggregates free game deals from Steam, Epic Games, Prime Gaming, GOG, Ubisoft, iOS, Android, and Consoles. Powered by **Cloudflare Worker API** with multi-source fallback: Reddit RSS → AppSales (Android) / CheapCharts (iOS). Features **ID-based deduplication** with persistent publish date tracking across data sources!
 * 💰 **My Loot Library & Wallet:** Keep a permanent record of every game you claim. The app automatically calculates your **Total Lifetime Savings**. Manage your library with precision by removing expired, failed, or paywalled games (featuring custom visual UI states) to keep your financial stats 100% accurate, with full support to reclaim them later!
 * 📊 **Loot Analytics Dashboard:** A zero-dependency, 100% Vanilla JS and SVG-powered statistics dashboard. Features interactive Donut Charts for platform breakdowns, monthly activity Bar Charts, and a Robinhood-style Line Chart with an interactive date scrubber to track your lifetime wealth generation.
 * 🗜️ **Extreme Storage Optimization:** Utilizes **LZ-String UTF-16 Compression** directly on local storage, shrinking save data by up to 90%. This bypasses standard 5MB browser limits, allowing users to effortlessly store over **100,000+ items** locally. Features seamless background "Auto-Healing" to upgrade legacy V1 saves without data loss.
@@ -80,9 +81,25 @@ You can install LootRadar to use exactly like a native mobile app!
 
 ---
 
+### 🏗️ Architecture
+
+```
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│  Cloudflare     │     │  Frontend        │     │  localStorage   │
+│  Worker API     │────▶│  (index.html)    │────▶│  (compressed)   │
+│                 │     │                  │     │                 │
+│ - Reddit RSS    │     │ - Deduplication  │     │ - claimed_games │
+│ - AppSales      │     │ - Sorting        │     │ - publish_dates │
+│ - CheapCharts   │     │ - LZ-String      │     │ - deleted_hist  │
+│ - GamerPower    │     │                  │     │                 │
+└─────────────────┘     └──────────────────┘     └─────────────────┘
+```
+
+---
+
 ### ⚖️ Disclaimer
 
-Games are fetched via third-party APIs and community web scraping (Reddit). Offers are time-limited. Always verify that the final price on the store page is "Free" or "0.00" before confirming any purchase. LootRadar is an independent tracker and is not affiliated with Steam, Epic Games, Apple, Google, or other listed platforms.
+Games are fetched via third-party APIs and community web scraping (Reddit RSS, AppSales.net, CheapCharts, GamerPower). Offers are time-limited. Always verify that the final price on the store page is "Free" or "0.00" before confirming any purchase. LootRadar is an independent tracker and is not affiliated with Steam, Epic Games, Apple, Google, or other listed platforms.
 
 ---
 

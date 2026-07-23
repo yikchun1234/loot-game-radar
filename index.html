@@ -1679,6 +1679,18 @@
             } catch (e) { return []; }
         }
 
+        async function fetchAndroidFreeApps() {
+            try {
+                const res = await fetch('https://loot-api.yikchun1234.workers.dev/api/android-free');
+                if (!res.ok) return [];
+                const apps = await res.json();
+                return apps.map(a => ({
+                    ...a,
+                    description: `Free Android app via AppSales.`
+                }));
+            } catch (e) { return []; }
+        }
+
         function processRedditPost(post, platform) {
             const priceMatch = post.title.match(/(?:\$|€|£)\s?([0-9.]+)/);
             let imgUrl = platform === 'iOS' ? 'https://images.unsplash.com/photo-1591337676887-a21bfc42dd5b?auto=format&fit=crop&w=400&q=80' : 'https://images.unsplash.com/photo-1607252654015-f84f1b578d51?auto=format&fit=crop&w=400&q=80';
@@ -1710,8 +1722,9 @@
                 }
 
                 const redditData = await fetchRedditDeals();
-                
-                let allGames = [...validGpData, ...redditData];
+                const androidData = await fetchAndroidFreeApps();
+
+                let allGames = [...validGpData, ...redditData, ...androidData];
                 
                 const uniqueMap = new Map();
                 allGames.forEach(g => {

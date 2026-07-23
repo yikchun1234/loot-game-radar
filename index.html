@@ -1715,8 +1715,8 @@
             if (refreshIcon) refreshIcon.classList.add('animate-spin', 'text-blue-500', 'dark:text-neon-blue');
 
             try {
-                // Use Worker's aggregated endpoint (handles Reddit → AppSales fallback)
-                const workerRes = await fetch('https://loot-api.yikchun1234.workers.dev/api/all-games?gamerpower=false');
+                // Use Worker's aggregated endpoint (handles Reddit → AppSales/CheapCharts fallback)
+                const workerRes = await fetch('https://loot-api.yikchun1234.workers.dev/api/all-games');
                 const workerGames = workerRes.ok ? await workerRes.json() : [];
 
                 // Also fetch GamerPower directly (PC games)
@@ -1731,15 +1731,29 @@
                 }
 
                 let allGames = [...workerGames, ...validGpData];
-                
+
+                // Deduplicate by URL (use open_giveaway as unique ID)
                 const uniqueMap = new Map();
                 allGames.forEach(g => {
-                    const key = g.open_giveaway; 
-                    if (!uniqueMap.has(key)) uniqueMap.set(key, g);
+                    const key = g.open_giveaway;
+                    if (key && !uniqueMap.has(key)) uniqueMap.set(key, g);
                 });
-                
+
                 allGames = Array.from(uniqueMap.values());
-                // Sorting handled by Worker (date + price)
+
+                // Frontend sorting: Date (newest first) → Price (highest first for same date)
+                allGames.sort((a, b) => {
+                    const dateA = new Date(a.published_date || 0);
+                    const dateB = new Date(b.published_date || 0);
+                    // Sort by date first (newest first)
+                    if (dateB.getTime() !== dateA.getTime()) {
+                        return dateB - dateA;
+                    }
+                    // Same date: sort by price (highest first)
+                    const priceA = parseFloat((a.worth || '0').replace(/[^0-9.]/g, '')) || 0;
+                    const priceB = parseFloat((b.worth || '0').replace(/[^0-9.]/g, '')) || 0;
+                    return priceB - priceA;
+                });
 
                 state.games = allGames;
                 autoHealLegacySaves(); // 👈 ADD THIS LINE HERE

@@ -609,7 +609,7 @@
     
     <script>
         const langs = [
-            { code: 'en', name: 'English' }, { code: 'zh', name: '中文' }, { code: 'es', name: 'Español' },
+            { code: 'en', name: 'English' }, { code: 'zh-CN', name: '简体中文' }, { code: 'zh-TW', name: '繁體中文' }, { code: 'es', name: 'Español' },
             { code: 'fr', name: 'Français' }, { code: 'de', name: 'Deutsch' }, { code: 'ja', name: '日本語' },
             { code: 'ko', name: '한국어' }, { code: 'ru', name: 'Русский' }, { code: 'pt', name: 'Português' }
         ];
@@ -642,20 +642,20 @@
                 syncExportInst: "Enter this PIN on your other device within 15 minutes.",
                 syncImportWarn: "Warning: Importing will permanently overwrite your current library and savings on this device."
             },
-            zh: {
-                title: "白嫖雷达", subtitle: "全网免费游戏限免实时追踪平台", 
-                loading: ["正在扫描白嫖资源...", "正在黑入 Epic 游戏金库...", "正在给 G 胖塞钱...", "正在定位 Prime 隐藏掉落...", "正在叫醒服务器的小仓鼠...", "正在给雷达加注燃料...", "不要走开，马上就好..."], 
+            'zh-CN': {
+                title: "白嫖雷达", subtitle: "全网免费游戏限免实时追踪平台",
+                loading: ["正在扫描白嫖资源...", "正在黑入 Epic 游戏金库...", "正在给 G 胖塞钱...", "正在定位 Prime 隐藏掉落...", "正在叫醒服务器的小仓鼠...", "正在给雷达加注燃料...", "不要走开，马上就好..."],
                 error: "连接服务器失败，请稍后再试。", empty: "该平台当前暂无免费游戏。", ptrPull: "下拉刷新...", ptrRelease: "松开开始扫描...", free: "免费", worth: "原价 ", getBtn: "立即领取", claimedBtn: "已入库", platformAll: "全部平台", platformPC: "PC通用", newTip: "新发布", prime: "Prime特权", ubisoft: "育碧", epicPhone: "Epic Game Phone",
                 savedSince: "自安装起累计省下", libTitle: "我的白嫖库", libTotal: "游戏总数", libSaved: "累计省下", libEmpty: "你的游戏库空空如也，快去白嫖吧！", libNoFilter: "没有找到符合该平台的游戏。",
                 instTitle: "安装 白嫖雷达", instDesc: "添加到桌面以快速访问！我们将为您永久记录入库游戏并计算省下的总金额。", instB1: "记录领取历史与封面", instB2: "计算终身省下的金钱", instBtn: "立即安装", instDismiss: "以后再说",
                 instIos1: "1. 点击浏览器底部的『分享』图标", instIos2: "2. 选择『添加到主屏幕』", instGotIt: "我知道了",
                 sortNewest: "入库时间: 最新的在前", sortOldest: "入库时间: 最旧的在前", sortPriceHigh: "节省金额: 从高到低", sortPriceLow: "节省金额: 从低到高", sortPlatform: "平台名称 (A-Z)",
                 viewGrid: "网格视图", viewList: "列表视图", getLink: "获取",
-                discTitle: "免责声明", 
-                disc1: "游戏数据是通过 API 和社区爬虫自动抓取得到的。", 
-                disc2: "部分游戏可能有错误显示，或者没有完整显示信息。", 
-                disc3: "里面的游戏不代表全网所有的免费游戏，也有可能会遇到区域限制（锁区）的游戏。", 
-                disc4: "领取按钮和平台图标偶尔可能会错误显示。", 
+                discTitle: "免责声明",
+                disc1: "游戏数据是通过 API 和社区爬虫自动抓取得到的。",
+                disc2: "部分游戏可能有错误显示，或者没有完整显示信息。",
+                disc3: "里面的游戏不代表全网所有的免费游戏，也有可能会遇到区域限制（锁区）的游戏。",
+                disc4: "领取按钮和平台图标偶尔可能会错误显示。",
                 disc5: "限免活动随时可能结束。在最终商店页面确认领取或购买前，请务必再次核对价格是否为『免费』或『0』。",
                 disc6: "本站为独立追踪工具，与 Steam、Epic Games、Google、Apple 等提到的任何官方游戏平台无关联及赞助关系。",
                 disc7: "您的数据（领取记录与省下的金额）仅保存在本地设备中，不会被公开。累计节省金额自应用安装之日起计算。若卸载应用或清除缓存，这些记录将被永久删除。",
@@ -668,6 +668,33 @@
                 syncImportDataBtn: "导入数据",
                 syncExportInst: "请在15分钟内于另一台设备上输入此PIN码。",
                 syncImportWarn: "警告：导入操作将永久覆盖本设备上的当前游戏库和节省金额。"
+            },
+            'zh-TW': {
+                title: "白嫖雷達", subtitle: "全網免費遊戲限免實時追蹤平台",
+                loading: ["正在掃描白嫖資源...", "正在駭入 Epic 遊戲金庫...", "正在給 G 胖塞錢...", "正在定位 Prime 隱藏掉落...", "正在叫醒伺服器的小倉鼠...", "正在給雷達加注燃料...", "不要走開，馬上就好..."],
+                error: "連線伺服器失敗，請稍後再試。", empty: "該平台目前暫無免費遊戲。", ptrPull: "下拉重新整理...", ptrRelease: "鬆開開始掃描...", free: "免費", worth: "原價 ", getBtn: "立即領取", claimedBtn: "已入库", platformAll: "全部平台", platformPC: "PC通用", newTip: "新發布", prime: "Prime特權", ubisoft: "育碧", epicPhone: "Epic Game Phone",
+                savedSince: "自安裝起累計省下", libTitle: "我的白嫖庫", libTotal: "遊戲總數", libSaved: "累計省下", libEmpty: "你的遊戲庫空空如也，快去白嫖吧！", libNoFilter: "沒有找到符合該平台的遊戲。",
+                instTitle: "安裝 白嫖雷達", instDesc: "新增到桌面以快速存取！我們將為您永久記錄入庫遊戲並計算省下的總金額。", instB1: "記錄領取歷史與封面", instB2: "計算終身省下的金錢", instBtn: "立即安裝", instDismiss: "以後再說",
+                instIos1: "1. 點擊瀏覽器底部的『分享』圖示", instIos2: "2. 選擇『加入到主畫面』", instGotIt: "我知道了",
+                sortNewest: "入庫時間: 最新的在前", sortOldest: "入庫時間: 最舊的在前", sortPriceHigh: "節省金額: 從高到低", sortPriceLow: "節省金額: 從低到高", sortPlatform: "平台名稱 (A-Z)",
+                viewGrid: "網格檢視", viewList: "清單檢視", getLink: "獲取",
+                discTitle: "免責聲明",
+                disc1: "遊戲資料是透過 API 和社區爬蟲自動抓取得到的。",
+                disc2: "部分遊戲可能會有錯誤顯示，或者沒有完整顯示資訊。",
+                disc3: "裡面的遊戲不代表全網所有的免費遊戲，也有可能會有區域限制（鎖區）的遊戲。",
+                disc4: "領取按鈕和平台圖示偶爾可能會錯誤顯示。",
+                disc5: "限免活動隨時可能結束。在最終商店頁面確認領取或购买前，請務必再次核對價格是否為『免費』或『0』。",
+                disc6: "本站為獨立追蹤工具，與 Steam、Epic Games、Google、Apple 等提到的任何官方遊戲平台無關聯及贊助關係。",
+                disc7: "您的資料（領取記錄與省下的金額）僅儲存在本機裝置中，不會被公開。累計節省金額自應用安裝之日起計算。若卸載應用或清除快取，這些記錄將被永久刪除。",
+                disc8: "最重要的是，玩遊戲記得要開心玩！",
+                syncTitle: "裝置同步",
+                syncDesc: "使用15分鐘有效的PIN碼，安全地將您領取的遊戲和總節省金額遷移到另一台裝置。",
+                syncExportBtn: "匯出",
+                syncImportBtn: "匯入",
+                syncExportDataBtn: "匯出資料",
+                syncImportDataBtn: "匯入資料",
+                syncExportInst: "請在15分鐘內於另一台裝置上輸入此PIN碼。",
+                syncImportWarn: "警告：匯入操作將永久覆蓋本裝置上的目前遊戲庫和節省金額。"
             },
             es: {
                 title: "RadarLoot", subtitle: "Rastreando juegos gratis en el multiverso", 
@@ -862,7 +889,8 @@
 
         // --- INJECT DELETE MODAL TRANSLATIONS ---
         Object.assign(i18n.en, { delTitle: "Remove from Library?", delDesc: "Why are you removing this item?", delR1: "Offer Expired", delR1D: "Missed the claim window time-limit.", delR2: "Failed to Redeem", delR2D: "Key ran out, error code, or region-locked.", delR3: "Requires Purchase", delR3D: "Account limited (e.g., Steam $5 spend required).", delR4: "Others / Accident", delR4D: "Changed my mind or clicked by mistake.", delCancel: "Cancel", delConfirm: "Confirm Delete" });
-        Object.assign(i18n.zh, { delTitle: "移出游戏库？", delDesc: "请问您为什么要移除此记录？", delR1: "活动已结束", delR1D: "错过了免费领取的限时时间段。", delR2: "领取失败", delR2D: "激活码发完、报错或锁区。", delR3: "需要消费限制", delR3D: "账号受限（如 Steam 需先消费 5 美金）。", delR4: "其他 / 误触", delR4D: "改变主意或不小心点错了。", delCancel: "取消", delConfirm: "确认移除" });
+        Object.assign(i18n['zh-CN'], { delTitle: "移出游戏库？", delDesc: "请问您为什么要移除此记录？", delR1: "活动已结束", delR1D: "错过了免费领取的限时时间段。", delR2: "领取失败", delR2D: "激活码发完、报错或锁区。", delR3: "需要消费限制", delR3D: "账号受限（如 Steam 需先消费 5 美金）。", delR4: "其他 / 误触", delR4D: "改变主意或不小心点错了。", delCancel: "取消", delConfirm: "确认移除" });
+        Object.assign(i18n['zh-TW'], { delTitle: "移出遊戲庫？", delDesc: "請問您為什麼要移除此記錄？", delR1: "活動已結束", delR1D: "錯過了免費領取的限時時間段。", delR2: "領取失敗", delR2D: "啟用碼發完、報錯或鎖區。", delR3: "需要消費限制", delR3D: "帳號受限（如 Steam 需先消費 5 美金）。", delR4: "其他 / 誤觸", delR4D: "改變主意或不小心點錯了。", delCancel: "取消", delConfirm: "確認移除" });
         Object.assign(i18n.es, { delTitle: "¿Eliminar de la biblioteca?", delDesc: "¿Por qué eliminas este artículo?", delR1: "Oferta expirada", delR1D: "Se acabó el tiempo límite.", delR2: "Error al canjear", delR2D: "Sin claves, error o bloqueo regional.", delR3: "Requiere compra", delR3D: "Cuenta limitada (ej. Steam requiere gastar $5).", delR4: "Otros / Accidente", delR4D: "Cambié de opinión o clic por error.", delCancel: "Cancelar", delConfirm: "Confirmar" });
         Object.assign(i18n.fr, { delTitle: "Retirer de la bibliothèque ?", delDesc: "Pourquoi retirez-vous cet élément ?", delR1: "Offre expirée", delR1D: "Temps limite dépassé.", delR2: "Échec de l'obtention", delR2D: "Plus de clés, erreur ou bloqué par région.", delR3: "Achat requis", delR3D: "Compte limité (ex. Steam nécessite 5$).", delR4: "Autres / Erreur", delR4D: "J'ai changé d'avis ou cliqué par erreur.", delCancel: "Annuler", delConfirm: "Confirmer" });
         Object.assign(i18n.de, { delTitle: "Aus Bibliothek entfernen?", delDesc: "Warum entfernst du dieses Element?", delR1: "Angebot abgelaufen", delR1D: "Zeitlimit verpasst.", delR2: "Einlösen fehlgeschlagen", delR2D: "Keine Keys mehr, Fehler oder Region-Lock.", delR3: "Kauf erforderlich", delR3D: "Eingeschränktes Konto (z.B. Steam $5 Limit).", delR4: "Andere / Versehen", delR4D: "Meinung geändert oder aus Versehen geklickt.", delCancel: "Abbrechen", delConfirm: "Löschen" });
@@ -873,7 +901,8 @@
         
         // --- INJECT STATS MODAL TRANSLATIONS ---
         Object.assign(i18n.en, { statsTitle: "Loot Analytics", statsEmpty: "Claim some games to generate your analytics!", statsPlatform: "Loot by Platform", statsActivity: "Looting Activity (Monthly)", statsWealth: "Lifetime Wealth Generated", statsGames: "Games", statsDate: "Date" });
-        Object.assign(i18n.zh, { statsTitle: "白嫖数据统计", statsEmpty: "领取一些游戏来生成您的数据分析吧！", statsPlatform: "各平台战利品", statsActivity: "白嫖活跃度（每月）", statsWealth: "累计创造的财富", statsGames: "款游戏", statsDate: "日期" });
+        Object.assign(i18n['zh-CN'], { statsTitle: "白嫖数据统计", statsEmpty: "领取一些游戏来生成您的数据分析吧！", statsPlatform: "各平台战利品", statsActivity: "白嫖活跃度（每月）", statsWealth: "累计创造的财富", statsGames: "款游戏", statsDate: "日期" });
+        Object.assign(i18n['zh-TW'], { statsTitle: "白嫖資料統計", statsEmpty: "領取一些遊戲來產生您的資料分析吧！", statsPlatform: "各平台戰利品", statsActivity: "白嫖活躍度（每月）", statsWealth: "累計創造的財富", statsGames: "款遊戲", statsDate: "日期" });
         Object.assign(i18n.es, { statsTitle: "Análisis de Botín", statsEmpty: "¡Reclama algunos juegos para generar tus análisis!", statsPlatform: "Botín por Plataforma", statsActivity: "Actividad (Mensual)", statsWealth: "Riqueza Total Generada", statsGames: "Juegos", statsDate: "Fecha" });
         Object.assign(i18n.fr, { statsTitle: "Analyse du Butin", statsEmpty: "Réclamez des jeux pour générer vos analyses !", statsPlatform: "Butin par Plateforme", statsActivity: "Activité (Mensuelle)", statsWealth: "Richesse Totale Générée", statsGames: "Jeux", statsDate: "Date" });
         Object.assign(i18n.de, { statsTitle: "Loot-Analyse", statsEmpty: "Hol dir Spiele, um deine Analysen zu generieren!", statsPlatform: "Loot nach Plattform", statsActivity: "Aktivität (Monatlich)", statsWealth: "Generiertes Gesamtvermögen", statsGames: "Spiele", statsDate: "Datum" });
@@ -1462,7 +1491,7 @@
             let cumulativeValue = 0;
             const linePoints = [];
             
-            const localeStr = state.lang === 'zh' ? 'zh-CN' : 'en-US';
+            const localeStr = (state.lang === 'zh-CN' || state.lang === 'zh-TW') ? (state.lang === 'zh-TW' ? 'zh-TW' : 'zh-CN') : 'en-US';
         
             games.forEach((g, i) => {
                 cumulativeValue += (g.value || 0);
@@ -2385,7 +2414,9 @@
             safeSetText('ui-loading', Array.isArray(t.loading) ? t.loading[0] : t.loading);
             safeSetText('ui-error', t.error);
             safeSetText('ui-empty', t.empty);
-            safeSetText('lang-btn', state.lang);
+            // Show short lang code for button
+            const langBtnText = state.lang === 'zh-CN' ? '简' : state.lang === 'zh-TW' ? '繁' : state.lang.toUpperCase();
+            safeSetText('lang-btn', langBtnText);
             
             const walletContainer = document.getElementById('wallet-container');
             if (walletContainer) walletContainer.title = t.savedSince;

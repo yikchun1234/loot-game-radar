@@ -32,15 +32,15 @@
 
 ### ✨ Features
 * 🌍 **Universal Tracking:** Automatically scrapes and aggregates free game deals from Steam, Epic Games, Prime Gaming, GOG, Ubisoft, iOS, Android, and Consoles. Powered by **Cloudflare Worker API** with multi-source fallback: Reddit RSS → AppSales (Android) / CheapCharts (iOS). Features **ID-based deduplication** with persistent publish date tracking across data sources!
-* 💰 **My Loot Library & Wallet:** Keep a permanent record of every game you claim. The app automatically calculates your **Total Lifetime Savings**. Manage your library with precision by removing expired, failed, or paywalled games (featuring custom visual UI states) to keep your financial stats 100% accurate, with full support to reclaim them later!
+* 💰 **My Loot Library & Wallet:** Keep a permanent record of every game you claim. The app automatically calculates your **Total Lifetime Savings**. Manage your library with precision by removing expired, failed, or paywalled games (featuring custom visual UI states) to keep your financial stats 100% accurate, with full support to reclaim them later! Features **Grid/List View toggle**, **clickable cards** (link directly to store pages), **collapsible dropdowns** on mobile for space-saving, and multiple sort options (Date, Price, Name A-Z/Z-A).
 * 📊 **Loot Analytics Dashboard:** A zero-dependency, 100% Vanilla JS and SVG-powered statistics dashboard. Features interactive Donut Charts for platform breakdowns, monthly activity Bar Charts, and a Robinhood-style Line Chart with an interactive date scrubber to track your lifetime wealth generation.
 * 🗜️ **Extreme Storage Optimization:** Utilizes **LZ-String UTF-16 Compression** directly on local storage, shrinking save data by up to 90%. This bypasses standard 5MB browser limits, allowing users to effortlessly store over **100,000+ items** locally. Features seamless background "Auto-Healing" to upgrade legacy V1 saves without data loss.
 * ☁️ **Cloud Sync (PIN Transfer):** Securely migrate your claimed games library, deleted item history, and total savings to another device in seconds using a 15-minute 5-digit PIN (Powered by Cloudflare Workers & highly-compressed payloads).
 * 📱 **Native App Experience & Fluid UI:** Fully installable as a PWA on iOS and Android. Features mobile-native interactions like **Pull-to-Refresh**, context-aware **Scroll-to-Top**, and desktop-optimized **Mouse Drag-to-Scroll** navigation. Wrapped in a slick glassmorphism UI with flawless Z-index sliding animations.
-* 🌐 **International Support (9 Languages):** Fully localized in English, 简体中文, Español, Français, Deutsch, Русский, 日本語, 한국어, and Português (Including dynamic translations for all charts and analytics).
+* 🌐 **International Support (10 Languages):** Fully localized in English, 简体中文, 繁體中文, Español, Français, Deutsch, Русский, 日本語, 한국어, and Português (Including dynamic translations for all charts and analytics).
 * 🛡️ **Advanced Security:** Built-in Domain Lockdown and Anti-Debugger/Inspect Element blockers to prevent unauthorized scraping or cloning of the app.
 * 🌓 **Dynamic Theming:** Seamless Light and Dark mode toggling.
-* ⚡ **Lightning Fast Performance:** Highly optimized DOM rendering uses Document Fragments, **Background Pre-rendering**, and decoupled CSS transitions to instantly load, filter, and render hundreds of games with zero layout thrashing or lag.
+* ⚡ **Lightning Fast Performance:** Highly optimized DOM rendering uses Document Fragments, **Pre-rendered Modals** (zero layout recalculation on open), **CSS Grid-based animations** with cubic-bezier easing, and decoupled CSS transitions to instantly load, filter, and render hundreds of games with zero layout thrashing or lag.
 
 ---
 

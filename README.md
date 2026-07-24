@@ -121,14 +121,31 @@ const allowedDomains = [
 ];
 ```
 
-#### 4. (Optional) Deploy Cloud Sync Worker
+#### 4. (Optional) Cloud Sync - Remove if Not Needed
 
-If you want device-to-device sync functionality:
+The Cloud Sync feature uses a separate Worker (`cloud-sync-api.yikchun1234.workers.dev`). If you don't need device-to-device sync:
 
-```bash
-# The Cloud Sync Worker code is in a separate repo
-# You'll need to create your own or use a key-value store
+**Option A: Just leave it** - The sync button won't work (points to original author's Worker), but won't break anything.
+
+**Option B: Remove Cloud Sync completely** - Search and delete in `index.html`:
+
 ```
+// Search and delete these sections:
+
+1. Remove "Device Sync" button from disclaimer modal
+   - Search for: syncExportBtn, syncImportBtn
+   - Delete the whole sync button section
+
+2. Remove Sync Modal HTML
+   - Search for: id="sync-modal"
+   - Delete the entire <div id="sync-modal">...</div> block
+
+3. Remove Sync JavaScript functions
+   - Search for: toggleSyncModal, handleExportData, handleImportData
+   - Delete these functions
+```
+
+If you want to implement your own Cloud Sync, you'll need a key-value store (Cloudflare KV, Redis, etc.) to store the PIN data temporarily.
 
 #### 5. Deploy Frontend
 

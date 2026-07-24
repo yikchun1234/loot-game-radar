@@ -484,7 +484,7 @@
     </div>
         
     <!-- My Library Modal -->
-    <div id="library-modal" class="hidden fixed inset-0 z-50 flex-col bg-slate-50 dark:bg-dark-bg transition-transform duration-300 transform translate-x-full">
+    <div id="library-modal" class="hidden fixed inset-0 z-50 flex-col bg-slate-50 dark:bg-dark-bg transition-transform duration-300 transform translate-x-full will-change-[transform]">
         <!-- Header -->
         <div class="glass-header px-4 py-4 flex items-center justify-between z-30">
           <h2 class="text-xl md:text-2xl font-display font-black dark:text-white flex items-center gap-2">
@@ -1340,9 +1340,12 @@
             // Restore dropdown collapse state (mobile)
             restoreLibDropdownState();
 
-            // Slide in immediately! (The games are already pre-rendered!)
-            void modal.offsetWidth;
-            modal.classList.remove('translate-x-full');
+            // Slide in smoothly using requestAnimationFrame (no forced reflow)
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    modal.classList.remove('translate-x-full');
+                });
+            });
 
             // 🚀 NEW: Re-trigger the odometer animation right as the menu slides in!
             setTimeout(() => {

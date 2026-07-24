@@ -1324,49 +1324,49 @@
 
           if (modal.classList.contains('hidden')) {
             // --- OPENING THE LIBRARY ---
+            // 1. IMMEDIATELY show and start animation (priority!)
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-
-            // Set view select value and icon
-            const viewSelect = document.getElementById('lib-view-select');
-            if (viewSelect) viewSelect.value = state.libView;
-            const viewIcon = document.getElementById('lib-view-icon');
-            if (viewIcon) {
-                viewIcon.className = state.libView === 'list'
-                    ? 'ph-fill ph-list-bullets text-green-500 dark:text-green-400 text-lg group-hover:scale-110 transition-transform'
-                    : 'ph-fill ph-squares-four text-green-500 dark:text-green-400 text-lg group-hover:scale-110 transition-transform';
-            }
-
-            // Restore dropdown collapse state (mobile)
-            restoreLibDropdownState();
-
-            // Slide in smoothly using requestAnimationFrame (no forced reflow)
             requestAnimationFrame(() => {
                 requestAnimationFrame(() => {
                     modal.classList.remove('translate-x-full');
                 });
             });
 
-            // 🚀 NEW: Re-trigger the odometer animation right as the menu slides in!
+            // 2. Defer all other work until AFTER animation starts
             setTimeout(() => {
+                // Set view select value and icon
+                const viewSelect = document.getElementById('lib-view-select');
+                if (viewSelect) viewSelect.value = state.libView;
+                const viewIcon = document.getElementById('lib-view-icon');
+                if (viewIcon) {
+                    viewIcon.className = state.libView === 'list'
+                        ? 'ph-fill ph-list-bullets text-green-500 dark:text-green-400 text-lg group-hover:scale-110 transition-transform'
+                        : 'ph-fill ph-squares-four text-green-500 dark:text-green-400 text-lg group-hover:scale-110 transition-transform';
+                }
+
+                // Restore dropdown collapse state (mobile)
+                restoreLibDropdownState();
+
+                // Re-trigger the odometer animation
                 const totalGames = Object.keys(state.claimedGames).length;
                 animateOdometer('lib-total-count', totalGames, false);
                 animateOdometer('lib-total-saved', state.totalSaved, true);
-            }, 150); // 150ms delay makes it roll perfectly as the slide finishes
-              
-            // SMART Z-INDEX FIX
-            let libScrollTop = 0;
-            const libScroll = document.querySelector('.library-scroll-area');
-            if (libScroll) libScrollTop = libScroll.scrollTop;
-        
-            if (scrollTopBtn) {
-              if (libScrollTop <= 300) {
-                scrollTopBtn.style.zIndex = '40'; 
-              } else {
-                scrollTopBtn.style.zIndex = '';   
-              }
-            }
-            window.updateScrollButtonState();
+
+                // Smart z-index fix
+                let libScrollTop = 0;
+                const libScroll = document.querySelector('.library-scroll-area');
+                if (libScroll) libScrollTop = libScroll.scrollTop;
+
+                if (scrollTopBtn) {
+                  if (libScrollTop <= 300) {
+                    scrollTopBtn.style.zIndex = '40';
+                  } else {
+                    scrollTopBtn.style.zIndex = '';
+                  }
+                }
+                window.updateScrollButtonState();
+            }, 50); // Wait 50ms for animation to start, then do setup work
         
             setTimeout(() => {
               if (scrollTopBtn) scrollTopBtn.style.zIndex = '';

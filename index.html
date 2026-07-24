@@ -528,8 +528,8 @@
                 <div id="lib-dropdown-container" class="relative">
                     <!-- Grid animation wrapper -->
                     <div id="lib-dropdown-grid" class="grid grid-rows-[1fr] transition-[grid-template-rows] duration-400 ease-[cubic-bezier(0.4,0,0.2,1)] sm:grid-rows-[1fr]">
-                        <!-- Inner overflow wrapper -->
-                        <div class="min-h-0 overflow-hidden">
+                        <!-- Inner overflow wrapper (overflow controlled by JS) -->
+                        <div id="lib-dropdown-overflow" class="min-h-0">
                             <div id="lib-dropdown-wrapper" class="flex flex-col sm:flex-row gap-3 relative z-10 transition-opacity duration-300 sm:opacity-100">
                                 <!-- Filter -->
                                 <div class="relative flex-1 group">
@@ -1960,6 +1960,7 @@
         // Library Dropdown Collapse Toggle (mobile only)
         window.toggleLibDropdown = function() {
             const grid = document.getElementById('lib-dropdown-grid');
+            const overflow = document.getElementById('lib-dropdown-overflow');
             const wrapper = document.getElementById('lib-dropdown-wrapper');
             const arrow = document.getElementById('lib-dropdown-arrow');
             const text = document.getElementById('lib-dropdown-text');
@@ -1973,13 +1974,19 @@
                 // Expand - smooth grid-rows animation
                 grid.classList.remove('grid-rows-[0fr]');
                 grid.classList.add('grid-rows-[1fr]');
+                if (overflow) overflow.classList.add('overflow-hidden');
                 if (wrapper) wrapper.classList.remove('opacity-0');
                 if (wrapper) wrapper.classList.add('opacity-100');
                 if (arrow) arrow.className = 'ph-bold ph-caret-up text-gray-500 dark:text-gray-400 group-hover:text-purple-500 dark:group-hover:text-neon-purple transition-colors';
                 if (text) text.textContent = t.collapse || 'Collapse';
                 state.libDropdownCollapsed = false;
+                // Remove overflow after animation completes so dropdown options aren't clipped
+                setTimeout(() => {
+                    if (overflow && !state.libDropdownCollapsed) overflow.classList.remove('overflow-hidden');
+                }, 420);
             } else {
                 // Collapse - smooth grid-rows animation
+                if (overflow) overflow.classList.add('overflow-hidden');
                 grid.classList.remove('grid-rows-[1fr]');
                 grid.classList.add('grid-rows-[0fr]');
                 if (wrapper) wrapper.classList.remove('opacity-100');
@@ -1997,6 +2004,7 @@
             const collapsed = localStorage.getItem('lootradar_lib_dropdown_collapsed') === '1';
             if (collapsed) {
                 const grid = document.getElementById('lib-dropdown-grid');
+                const overflow = document.getElementById('lib-dropdown-overflow');
                 const wrapper = document.getElementById('lib-dropdown-wrapper');
                 const arrow = document.getElementById('lib-dropdown-arrow');
                 const text = document.getElementById('lib-dropdown-text');
@@ -2005,6 +2013,7 @@
                 if (grid) {
                     grid.classList.remove('grid-rows-[1fr]');
                     grid.classList.add('grid-rows-[0fr]');
+                    if (overflow) overflow.classList.add('overflow-hidden');
                     if (wrapper) {
                         wrapper.classList.remove('opacity-100');
                         wrapper.classList.add('opacity-0');
@@ -2013,6 +2022,10 @@
                     if (text) text.textContent = t.expand || 'Expand';
                     state.libDropdownCollapsed = true;
                 }
+            } else {
+                // Expanded state - no overflow clipping
+                const overflow = document.getElementById('lib-dropdown-overflow');
+                if (overflow) overflow.classList.remove('overflow-hidden');
             }
         }
 

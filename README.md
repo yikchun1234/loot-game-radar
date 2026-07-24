@@ -83,16 +83,39 @@ You can install LootRadar to use exactly like a native mobile app!
 
 ### 🏗️ Architecture
 
-```
-┌─────────────────┐     ┌──────────────────┐     ┌─────────────────┐
-│  Cloudflare     │     │  Frontend        │     │  localStorage   │
-│  Worker API     │────▶│  (index.html)    │────▶│  (compressed)   │
-│                 │     │                  │     │                 │
-│ - Reddit RSS    │     │ - Deduplication  │     │ - claimed_games │
-│ - AppSales      │     │ - Sorting        │     │ - publish_dates │
-│ - CheapCharts   │     │ - LZ-String      │     │ - deleted_hist  │
-│ - GamerPower    │     │                  │     │                 │
-└─────────────────┘     └──────────────────┘     └─────────────────┘
+```mermaid
+flowchart LR
+    subgraph Worker["☁️ Cloudflare Worker API"]
+        direction TB
+        R["🔴 Reddit RSS"]
+        A["📱 AppSales"]
+        C["🍎 CheapCharts"]
+        G["🎮 GamerPower"]
+        R -->|fallback| A
+        R -->|fallback| C
+    end
+
+    subgraph Frontend["🖥️ Frontend (index.html)"]
+        direction TB
+        D["🔄 ID Deduplication"]
+        S["📊 Sort: Date → Price"]
+        L["🗜️ LZ-String Compress"]
+        D --> S --> L
+    end
+
+    subgraph Storage["💾 localStorage (compressed)"]
+        direction TB
+        CG["✅ claimed_games"]
+        PD["📅 publish_dates"]
+        DH["🗑️ deleted_history"]
+    end
+
+    Worker -->|JSON data| Frontend
+    Frontend -->|save| Storage
+
+    style Worker fill:#f38020,color:#fff,stroke:#333
+    style Frontend fill:#38bdf8,color:#fff,stroke:#333
+    style Storage fill:#22c55e,color:#fff,stroke:#333
 ```
 
 ---

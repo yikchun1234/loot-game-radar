@@ -2358,10 +2358,11 @@
             if(combined.includes('prime') || combined.includes('amazon')) return '<i class="ph-fill ph-amazon-logo"></i> Prime';
             if(combined.includes('gog') || combined.includes('gog.com')) return '<i class="ph-fill ph-disc"></i> GOG';
             if(combined.includes('ubisoft') || combined.includes('uplay')) return '<i class="ph-fill ph-gamepad"></i> Ubisoft';
-            if(combined.includes('itch.io') || combined.includes('itch')) return '<i class="ph-fill ph-alien"></i> Itch.io';
-            if(combined.includes('xbox') || combined.includes('ps4') || combined.includes('ps5') || combined.includes('switch') || combined.includes('playstation')) return '<i class="ph-fill ph-playstation-logo"></i> Console';
+            // Check mobile platforms BEFORE itch.io (URL might contain itch.io but platform is iOS/Android)
             if(combined.includes('android') || combined.includes('google play') || combined.includes('play.google.com')) return '<i class="ph-fill ph-android-logo"></i> Android';
             if(combined.includes('ios') || combined.includes('app store') || combined.includes('apps.apple.com')) return '<i class="ph-fill ph-app-store-logo"></i> iOS';
+            if(combined.includes('itch.io') || combined.includes('itch')) return '<i class="ph-fill ph-alien"></i> Itch.io';
+            if(combined.includes('xbox') || combined.includes('ps4') || combined.includes('ps5') || combined.includes('switch') || combined.includes('playstation')) return '<i class="ph-fill ph-playstation-logo"></i> Console';
             
             return '<i class="ph-fill ph-desktop"></i> PC';
         }

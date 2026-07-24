@@ -552,6 +552,22 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- View Mode Toggle -->
+                <div class="mt-4 relative z-10">
+                    <div class="relative group max-w-[200px]">
+                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                            <i id="lib-view-icon" class="ph-fill ph-squares-four text-green-500 dark:text-green-400 text-lg group-hover:scale-110 transition-transform"></i>
+                        </div>
+                        <select id="lib-view-select" onchange="updateLibView(this.value)" class="w-full appearance-none bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 py-3 pl-12 pr-10 rounded-2xl outline-none focus:ring-2 focus:ring-green-500/50 dark:focus:ring-green-400/50 transition-all font-bold text-sm cursor-pointer shadow-sm hover:shadow-md">
+                            <option value="grid">&nbsp;&nbsp;&nbsp;Grid View</option>
+                            <option value="list">&nbsp;&nbsp;&nbsp;List View</option>
+                        </select>
+                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                            <i class="ph-bold ph-caret-down text-gray-400 group-hover:text-green-500 dark:group-hover:text-green-400 transition-colors"></i>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -925,6 +941,7 @@
           totalSaved: parseFloat(localStorage.getItem('lootradar_saved_money')) || 0,
           libSort: 'date_desc',
           libFilter: 'All',
+          libView: localStorage.getItem('lootradar_lib_view') || 'grid',
           deletedHistory: loadSafeStorage('lootradar_deleted_history') || []
         };
     
@@ -1250,12 +1267,22 @@
         function toggleLibrary() {
           const modal = document.getElementById('library-modal');
           const scrollTopBtn = document.getElementById('scroll-to-top-btn');
-        
+
           if (modal.classList.contains('hidden')) {
             // --- OPENING THE LIBRARY ---
             modal.classList.remove('hidden');
             modal.classList.add('flex');
-            
+
+            // Set view select value and icon
+            const viewSelect = document.getElementById('lib-view-select');
+            if (viewSelect) viewSelect.value = state.libView;
+            const viewIcon = document.getElementById('lib-view-icon');
+            if (viewIcon) {
+                viewIcon.className = state.libView === 'list'
+                    ? 'ph-fill ph-list-bullets text-green-500 dark:text-green-400 text-lg group-hover:scale-110 transition-transform'
+                    : 'ph-fill ph-squares-four text-green-500 dark:text-green-400 text-lg group-hover:scale-110 transition-transform';
+            }
+
             // Slide in immediately! (The games are already pre-rendered!)
             void modal.offsetWidth;
             modal.classList.remove('translate-x-full');
@@ -1860,6 +1887,18 @@
 
         window.updateLibFilter = function(val) { state.libFilter = val; renderLibrary(); };
         window.updateLibSort = function(val) { state.libSort = val; renderLibrary(); };
+        window.updateLibView = function(val) {
+            state.libView = val;
+            localStorage.setItem('lootradar_lib_view', val);
+            // Update icon
+            const icon = document.getElementById('lib-view-icon');
+            if (icon) {
+                icon.className = val === 'list'
+                    ? 'ph-fill ph-list-bullets text-green-500 dark:text-green-400 text-lg group-hover:scale-110 transition-transform'
+                    : 'ph-fill ph-squares-four text-green-500 dark:text-green-400 text-lg group-hover:scale-110 transition-transform';
+            }
+            renderLibrary();
+        };
 
         function renderLibrary() {
             const grid = document.getElementById('library-grid');
@@ -1928,36 +1967,76 @@
                     emptyState.classList.remove('flex');
                 }
             }
-            
+
+            // Update grid class based on view mode
+            if (state.libView === 'list') {
+                grid.className = 'flex flex-col gap-3 pb-12';
+            } else {
+                grid.className = 'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-6 gap-4 pb-12';
+            }
+
             // 4. Render clean templates using explicit, stable IDs
+            const isListView = state.libView === 'list';
+
             grid.innerHTML = filteredGames.map(game => {
                 const mockGameForIcon = { platforms: game.platforms, open_giveaway: game.open_giveaway };
                 const libPlatformIcon = getPlatformIconHtml(mockGameForIcon);
                 const gameLink = game.open_giveaway || '#';
 
-           return `
-             <a href="${gameLink}" target="_blank" rel="noopener noreferrer" class="block bg-white dark:bg-dark-card rounded-xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-800 relative group animate-[fadeUp_0.3s_ease_forwards] hover:scale-105 hover:shadow-xl hover:border-blue-500/50 dark:hover:border-neon-blue/50 transition-all duration-300">
-                <div class="h-24 md:h-32 w-full bg-gray-200 dark:bg-gray-800 relative">
-                    <img src="${game.image}" class="w-full h-full object-cover" loading="lazy" onerror="this.src='https://placehold.co/400x200/1e293b/ffffff?text=Game+Image+Unavailable'">
+                if (isListView) {
+                    // List View - horizontal card
+                    return `
+                    <a href="${gameLink}" target="_blank" rel="noopener noreferrer" class="flex bg-white dark:bg-dark-card rounded-xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-800 relative group animate-[fadeUp_0.3s_ease_forwards] hover:shadow-xl hover:border-blue-500/50 dark:hover:border-neon-blue/50 transition-all duration-300">
+                        <div class="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 bg-gray-200 dark:bg-gray-800 relative">
+                            <img src="${game.image}" class="w-full h-full object-cover" loading="lazy" onerror="this.src='https://placehold.co/200x200/1e293b/ffffff?text=Game'">
+                            <div class="absolute top-1 right-1 bg-black/70 text-white text-[9px] font-semibold px-1 py-0.5 rounded flex items-center gap-0.5">
+                                ${libPlatformIcon}
+                            </div>
+                        </div>
+                        <div class="flex-1 p-3 flex flex-col justify-between min-w-0">
+                            <div>
+                                <p class="text-sm font-bold truncate dark:text-gray-200" title="${game.title}">${game.title}</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-1">
+                                    <i class="ph-bold ph-piggy-bank text-green-500"></i>
+                                    <span class="text-green-500 dark:text-green-400 font-bold">+${game.worth || 'Free'}</span>
+                                    <span class="text-gray-400 mx-1">·</span>
+                                    <span class="text-blue-500 dark:text-neon-blue"><i class="ph-bold ph-arrow-square-out"></i> Get</span>
+                                </p>
+                            </div>
+                            ${game.date ? `<p class="text-[10px] text-gray-400 mt-1"><i class="ph-bold ph-calendar"></i> ${new Date(game.date).toLocaleDateString()}</p>` : ''}
+                        </div>
                         <button onclick="event.preventDefault(); event.stopPropagation(); handleDeleteFromLibrary(event, '${game.id}')"
-                                class="absolute top-2 left-2 z-30 w-7 h-7 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center justify-center shadow-md transition-all active:scale-90 opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                                class="absolute top-2 right-2 z-30 w-7 h-7 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center justify-center shadow-md transition-all active:scale-90 opacity-100 md:opacity-0 md:group-hover:opacity-100"
                                 title="Remove from Library">
                             <i class="ph-bold ph-trash text-sm"></i>
                         </button>
-
-                        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-2">
-                            <span class="text-green-400 font-bold text-xs flex items-center gap-1"><i class="ph-bold ph-piggy-bank"></i> +${game.worth || 'Free'}</span>
+                    </a>
+                    `;
+                } else {
+                    // Grid View - vertical card (existing)
+                    return `
+                    <a href="${gameLink}" target="_blank" rel="noopener noreferrer" class="block bg-white dark:bg-dark-card rounded-xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-800 relative group animate-[fadeUp_0.3s_ease_forwards] hover:scale-105 hover:shadow-xl hover:border-blue-500/50 dark:hover:border-neon-blue/50 transition-all duration-300">
+                        <div class="h-24 md:h-32 w-full bg-gray-200 dark:bg-gray-800 relative">
+                            <img src="${game.image}" class="w-full h-full object-cover" loading="lazy" onerror="this.src='https://placehold.co/400x200/1e293b/ffffff?text=Game+Image+Unavailable'">
+                            <button onclick="event.preventDefault(); event.stopPropagation(); handleDeleteFromLibrary(event, '${game.id}')"
+                                    class="absolute top-2 left-2 z-30 w-7 h-7 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center justify-center shadow-md transition-all active:scale-90 opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                                    title="Remove from Library">
+                                <i class="ph-bold ph-trash text-sm"></i>
+                            </button>
+                            <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent flex items-end p-2">
+                                <span class="text-green-400 font-bold text-xs flex items-center gap-1"><i class="ph-bold ph-piggy-bank"></i> +${game.worth || 'Free'}</span>
+                            </div>
+                            <div class="absolute top-2 right-2 bg-black/70 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded flex items-center gap-1">
+                                ${libPlatformIcon}
+                            </div>
                         </div>
-                        <div class="absolute top-2 right-2 bg-black/70 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded flex items-center gap-1">
-                            ${libPlatformIcon}
+                        <div class="p-2">
+                            <p class="text-xs font-bold truncate dark:text-gray-200" title="${game.title}">${game.title}</p>
+                            <p class="text-[10px] text-blue-500 dark:text-neon-blue mt-0.5 flex items-center gap-0.5"><i class="ph-bold ph-arrow-square-out"></i> Tap to get</p>
                         </div>
-                    </div>
-                    <div class="p-2">
-                        <p class="text-xs font-bold truncate dark:text-gray-200" title="${game.title}">${game.title}</p>
-                        <p class="text-[10px] text-blue-500 dark:text-neon-blue mt-0.5 flex items-center gap-0.5"><i class="ph-bold ph-arrow-square-out"></i> Tap to get</p>
-                    </div>
-                 </a>
-                `;
+                    </a>
+                    `;
+                }
             }).join('');
             
             // 🔄 If library filters changed, re-evaluate the scroll button

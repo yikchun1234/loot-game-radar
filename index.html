@@ -524,7 +524,9 @@
                     
                 </div>
 
-                <div class="flex flex-col sm:flex-row gap-4 relative z-10">
+                <!-- Filter | Sort | View Mode - All in one row -->
+                <div class="flex flex-col sm:flex-row gap-3 relative z-10">
+                    <!-- Filter -->
                     <div class="relative flex-1 group">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <i class="ph-fill ph-funnel text-blue-500 dark:text-neon-blue text-lg group-hover:scale-110 transition-transform"></i>
@@ -536,6 +538,7 @@
                         </div>
                     </div>
 
+                    <!-- Sort -->
                     <div class="relative flex-1 group">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <i class="ph-fill ph-sort-ascending text-purple-500 dark:text-neon-purple text-lg group-hover:scale-110 transition-transform"></i>
@@ -551,15 +554,13 @@
                             <i class="ph-bold ph-caret-down text-gray-400 group-hover:text-purple-500 dark:group-hover:text-neon-purple transition-colors"></i>
                         </div>
                     </div>
-                </div>
 
-                <!-- View Mode Toggle -->
-                <div class="mt-4 relative z-10">
-                    <div class="relative group max-w-[200px]">
+                    <!-- View Mode -->
+                    <div class="relative flex-1 group">
                         <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                             <i id="lib-view-icon" class="ph-fill ph-squares-four text-green-500 dark:text-green-400 text-lg group-hover:scale-110 transition-transform"></i>
                         </div>
-                        <select id="lib-view-select" onchange="updateLibView(this.value)" class="w-full appearance-none bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 py-3 pl-12 pr-10 rounded-2xl outline-none focus:ring-2 focus:ring-green-500/50 dark:focus:ring-green-400/50 transition-all font-bold text-sm cursor-pointer shadow-sm hover:shadow-md">
+                        <select id="lib-view-select" onchange="updateLibView(this.value)" class="w-full appearance-none bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 py-3.5 pl-12 pr-10 rounded-2xl outline-none focus:ring-2 focus:ring-green-500/50 dark:focus:ring-green-400/50 transition-all font-bold text-sm cursor-pointer shadow-sm hover:shadow-md">
                             <option value="grid">&nbsp;&nbsp;&nbsp;Grid View</option>
                             <option value="list">&nbsp;&nbsp;&nbsp;List View</option>
                         </select>

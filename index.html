@@ -524,51 +524,59 @@
                     
                 </div>
 
-                <!-- Filter | Sort | View Mode -->
-                <div class="flex flex-col sm:flex-row gap-3 relative z-10">
-                    <!-- Filter -->
-                    <div class="relative flex-1 group">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <i class="ph-fill ph-funnel text-blue-500 dark:text-neon-blue text-lg group-hover:scale-110 transition-transform"></i>
+                <!-- Filter | Sort | View Mode (Collapsible on mobile) -->
+                <div id="lib-dropdown-container" class="relative">
+                    <div id="lib-dropdown-wrapper" class="flex flex-col sm:flex-row gap-3 relative z-10 transition-all duration-300 ease-in-out overflow-hidden">
+                        <!-- Filter -->
+                        <div class="relative flex-1 group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i class="ph-fill ph-funnel text-blue-500 dark:text-neon-blue text-lg group-hover:scale-110 transition-transform"></i>
+                            </div>
+                            <select id="lib-filter-select" onchange="updateLibFilter(this.value)" class="w-full appearance-none bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 py-3.5 pl-12 pr-10 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-neon-blue/50 transition-all font-bold text-sm cursor-pointer shadow-sm hover:shadow-md">
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                <i class="ph-bold ph-caret-down text-gray-400 group-hover:text-blue-500 dark:group-hover:text-neon-blue transition-colors"></i>
+                            </div>
                         </div>
-                        <select id="lib-filter-select" onchange="updateLibFilter(this.value)" class="w-full appearance-none bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 py-3.5 pl-12 pr-10 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-neon-blue/50 transition-all font-bold text-sm cursor-pointer shadow-sm hover:shadow-md">
-                        </select>
-                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                            <i class="ph-bold ph-caret-down text-gray-400 group-hover:text-blue-500 dark:group-hover:text-neon-blue transition-colors"></i>
+
+                        <!-- Sort -->
+                        <div class="relative flex-1 group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i class="ph-fill ph-sort-ascending text-purple-500 dark:text-neon-purple text-lg group-hover:scale-110 transition-transform"></i>
+                            </div>
+                            <select id="lib-sort-select" onchange="updateLibSort(this.value)" class="w-full appearance-none bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 py-3.5 pl-12 pr-10 rounded-2xl outline-none focus:ring-2 focus:ring-purple-500/50 dark:focus:ring-neon-purple/50 transition-all font-bold text-sm cursor-pointer shadow-sm hover:shadow-md">
+                                <option value="date_desc" id="opt-sort-newest">&nbsp;&nbsp;&nbsp;Newest First</option>
+                                <option value="date_asc" id="opt-sort-oldest">&nbsp;&nbsp;&nbsp;Oldest First</option>
+                                <option value="price_desc" id="opt-sort-price-high">&nbsp;&nbsp;&nbsp;Price: High to Low</option>
+                                <option value="price_asc" id="opt-sort-price-low">&nbsp;&nbsp;&nbsp;Price: Low to High</option>
+                                <option value="name_asc" id="opt-sort-name-az">&nbsp;&nbsp;&nbsp;Name (A-Z)</option>
+                                <option value="name_desc" id="opt-sort-name-za">&nbsp;&nbsp;&nbsp;Name (Z-A)</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                <i class="ph-bold ph-caret-down text-gray-400 group-hover:text-purple-500 dark:group-hover:text-neon-purple transition-colors"></i>
+                            </div>
+                        </div>
+
+                        <!-- View Mode -->
+                        <div class="relative flex-1 group">
+                            <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                                <i id="lib-view-icon" class="ph-fill ph-squares-four text-green-500 dark:text-green-400 text-lg group-hover:scale-110 transition-transform"></i>
+                            </div>
+                            <select id="lib-view-select" onchange="updateLibView(this.value)" class="w-full appearance-none bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 py-3.5 pl-12 pr-10 rounded-2xl outline-none focus:ring-2 focus:ring-green-500/50 dark:focus:ring-green-400/50 transition-all font-bold text-sm cursor-pointer shadow-sm hover:shadow-md">
+                                <option value="grid" id="opt-view-grid">&nbsp;&nbsp;&nbsp;Grid View</option>
+                                <option value="list" id="opt-view-list">&nbsp;&nbsp;&nbsp;List View</option>
+                            </select>
+                            <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                                <i class="ph-bold ph-caret-down text-gray-400 group-hover:text-green-500 dark:group-hover:text-green-400 transition-colors"></i>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Sort -->
-                    <div class="relative flex-1 group">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <i class="ph-fill ph-sort-ascending text-purple-500 dark:text-neon-purple text-lg group-hover:scale-110 transition-transform"></i>
-                        </div>
-                        <select id="lib-sort-select" onchange="updateLibSort(this.value)" class="w-full appearance-none bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 py-3.5 pl-12 pr-10 rounded-2xl outline-none focus:ring-2 focus:ring-purple-500/50 dark:focus:ring-neon-purple/50 transition-all font-bold text-sm cursor-pointer shadow-sm hover:shadow-md">
-                            <option value="date_desc" id="opt-sort-newest">&nbsp;&nbsp;&nbsp;Newest First</option>
-                            <option value="date_asc" id="opt-sort-oldest">&nbsp;&nbsp;&nbsp;Oldest First</option>
-                            <option value="price_desc" id="opt-sort-price-high">&nbsp;&nbsp;&nbsp;Price: High to Low</option>
-                            <option value="price_asc" id="opt-sort-price-low">&nbsp;&nbsp;&nbsp;Price: Low to High</option>
-                            <option value="name_asc" id="opt-sort-name-az">&nbsp;&nbsp;&nbsp;Name (A-Z)</option>
-                            <option value="name_desc" id="opt-sort-name-za">&nbsp;&nbsp;&nbsp;Name (Z-A)</option>
-                        </select>
-                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                            <i class="ph-bold ph-caret-down text-gray-400 group-hover:text-purple-500 dark:group-hover:text-neon-purple transition-colors"></i>
-                        </div>
-                    </div>
-
-                    <!-- View Mode -->
-                    <div class="relative flex-1 group">
-                        <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                            <i id="lib-view-icon" class="ph-fill ph-squares-four text-green-500 dark:text-green-400 text-lg group-hover:scale-110 transition-transform"></i>
-                        </div>
-                        <select id="lib-view-select" onchange="updateLibView(this.value)" class="w-full appearance-none bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 py-3.5 pl-12 pr-10 rounded-2xl outline-none focus:ring-2 focus:ring-green-500/50 dark:focus:ring-green-400/50 transition-all font-bold text-sm cursor-pointer shadow-sm hover:shadow-md">
-                            <option value="grid" id="opt-view-grid">&nbsp;&nbsp;&nbsp;Grid View</option>
-                            <option value="list" id="opt-view-list">&nbsp;&nbsp;&nbsp;List View</option>
-                        </select>
-                        <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
-                            <i class="ph-bold ph-caret-down text-gray-400 group-hover:text-green-500 dark:group-hover:text-green-400 transition-colors"></i>
-                        </div>
-                    </div>
+                    <!-- Mobile Toggle Button -->
+                    <button id="lib-dropdown-toggle" onclick="toggleLibDropdown()" class="sm:hidden mt-3 mx-auto flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-dark-card/80 backdrop-blur-md border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all active:scale-95 group">
+                        <i id="lib-dropdown-arrow" class="ph-bold ph-caret-up text-gray-500 dark:text-gray-400 group-hover:text-purple-500 dark:group-hover:text-neon-purple transition-colors"></i>
+                        <span id="lib-dropdown-text" class="text-xs font-bold text-gray-500 dark:text-gray-400 group-hover:text-purple-500 dark:group-hover:text-neon-purple transition-colors">Collapse</span>
+                    </button>
                 </div>
             </div>
         </div>
@@ -624,7 +632,7 @@
                 instTitle: "Install LootRadar", instDesc: "Install to access instantly! We will track your claimed games and calculate your total lifetime savings.", instB1: "Track Claimed History", instB2: "Calculate Total Savings", instBtn: "Install App", instDismiss: "Maybe Later",
                 instIos1: "1. Tap the Share icon below", instIos2: "2. Select 'Add to Home Screen'", instGotIt: "Got it!",
                 sortNewest: "Date: Newest First", sortOldest: "Date: Oldest First", sortPriceHigh: "Price: High to Low", sortPriceLow: "Price: Low to High", sortName: "Name (A-Z)", sortNameZA: "Name (Z-A)",
-                viewGrid: "Grid View", viewList: "List View", getLink: "Get",
+                viewGrid: "Grid View", viewList: "List View", getLink: "Get", collapse: "Collapse", expand: "Expand",
                 discTitle: "Notice & Disclaimer", 
                 disc1: "Games are fetched via third-party APIs and web scraping.", 
                 disc2: "Information may sometimes be displayed incorrectly or incompletely.", 
@@ -651,7 +659,7 @@
                 instTitle: "安装 白嫖雷达", instDesc: "添加到桌面以快速访问！我们将为您永久记录入库游戏并计算省下的总金额。", instB1: "记录领取历史与封面", instB2: "计算终身省下的金钱", instBtn: "立即安装", instDismiss: "以后再说",
                 instIos1: "1. 点击浏览器底部的『分享』图标", instIos2: "2. 选择『添加到主屏幕』", instGotIt: "我知道了",
                 sortNewest: "入库时间: 最新的在前", sortOldest: "入库时间: 最旧的在前", sortPriceHigh: "节省金额: 从高到低", sortPriceLow: "节省金额: 从低到高", sortName: "名称 (A-Z)", sortNameZA: "名称 (Z-A)",
-                viewGrid: "网格视图", viewList: "列表视图", getLink: "获取",
+                viewGrid: "网格视图", viewList: "列表视图", getLink: "获取", collapse: "收起", expand: "展开",
                 discTitle: "免责声明",
                 disc1: "游戏数据是通过 API 和社区爬虫自动抓取得到的。",
                 disc2: "部分游戏可能有错误显示，或者没有完整显示信息。",
@@ -678,7 +686,7 @@
                 instTitle: "安裝 白嫖雷達", instDesc: "新增到桌面以快速存取！我們將為您永久記錄入庫遊戲並計算省下的總金額。", instB1: "記錄領取歷史與封面", instB2: "計算終身省下的金錢", instBtn: "立即安裝", instDismiss: "以後再說",
                 instIos1: "1. 點擊瀏覽器底部的『分享』圖示", instIos2: "2. 選擇『加入到主畫面』", instGotIt: "我知道了",
                 sortNewest: "入庫時間: 最新的在前", sortOldest: "入庫時間: 最舊的在前", sortPriceHigh: "節省金額: 從高到低", sortPriceLow: "節省金額: 從低到高", sortName: "名稱 (A-Z)", sortNameZA: "名稱 (Z-A)",
-                viewGrid: "網格檢視", viewList: "清單檢視", getLink: "獲取",
+                viewGrid: "網格檢視", viewList: "清單檢視", getLink: "獲取", collapse: "收起", expand: "展開",
                 discTitle: "免責聲明",
                 disc1: "遊戲資料是透過 API 和社區爬蟲自動抓取得到的。",
                 disc2: "部分遊戲可能會有錯誤顯示，或者沒有完整顯示資訊。",
@@ -705,7 +713,7 @@
                 instTitle: "Instalar RadarLoot", instDesc: "¡Instálalo para acceso rápido! Rastrearemos tus juegos reclamados y el ahorro total.", instB1: "Historial de juegos", instB2: "Ahorro total", instBtn: "Instalar App", instDismiss: "Más tarde",
                 instIos1: "1. Toca el ícono de Compartir abajo", instIos2: "2. Selecciona 'Agregar a inicio'", instGotIt: "¡Entendido!",
                 sortNewest: "Fecha: Más recientes", sortOldest: "Fecha: Más antiguos", sortPriceHigh: "Precio: Mayor a Menor", sortPriceLow: "Precio: Menor a Mayor", sortName: "Nombre (A-Z)", sortNameZA: "Nombre (Z-A)",
-                viewGrid: "Vista cuadrícula", viewList: "Vista lista", getLink: "Obtener",
+                viewGrid: "Vista cuadrícula", viewList: "Vista lista", getLink: "Obtener", collapse: "Colapsar", expand: "Expandir",
                 discTitle: "Aviso legal", 
                 disc1: "Los juegos se obtienen a través de API y web scraping.", 
                 disc2: "La información puede mostrarse de forma incorrecta o incompleta.", 
@@ -732,7 +740,7 @@
                 instTitle: "Installer RadarButin", instDesc: "Installez pour un accès instantané ! Nous suivrons vos jeux et vos économies.", instB1: "Historique des jeux", instB2: "Calcul des économies", instBtn: "Installer", instDismiss: "Plus tard",
                 instIos1: "1. Touchez l'icône Partager ci-dessous", instIos2: "2. Sélectionnez 'Sur l'écran d'accueil'", instGotIt: "J'ai compris",
                 sortNewest: "Date: Plus récents", sortOldest: "Date: Plus anciens", sortPriceHigh: "Prix: Décroissant", sortPriceLow: "Prix: Croissant", sortName: "Nom (A-Z)", sortNameZA: "Nom (Z-A)",
-                viewGrid: "Vue grille", viewList: "Vue liste", getLink: "Obtenir",
+                viewGrid: "Vue grille", viewList: "Vue liste", getLink: "Obtenir", collapse: "Réduire", expand: "Développer",
                 discTitle: "Avertissement", 
                 disc1: "Les jeux sont récupérés via des API et du scraping Web.", 
                 disc2: "Les informations peuvent parfois être incorrectes ou incomplètes.", 
@@ -759,7 +767,7 @@
                 instTitle: "Installiere LootRadar", instDesc: "Installiere für sofortigen Zugriff! Wir speichern deine Spiele und Ersparnisse.", instB1: "Spielverlauf speichern", instB2: "Ersparnisse berechnen", instBtn: "App installieren", instDismiss: "Später",
                 instIos1: "1. Tippe unten auf das Teilen-Symbol", instIos2: "2. Wähle 'Zum Home-Bildschirm'", instGotIt: "Verstanden",
                 sortNewest: "Datum: Neueste zuerst", sortOldest: "Datum: Älteste zuerst", sortPriceHigh: "Preis: Absteigend", sortPriceLow: "Preis: Aufsteigend", sortName: "Name (A-Z)", sortNameZA: "Name (Z-A)",
-                viewGrid: "Rasteransicht", viewList: "Listenansicht", getLink: "Holen",
+                viewGrid: "Rasteransicht", viewList: "Listenansicht", getLink: "Holen", collapse: "Einklappen", expand: "Erweitern",
                 discTitle: "Haftungsausschluss", 
                 disc1: "Spiele werden über APIs und Web-Scraping bezogen.", 
                 disc2: "Informationen können manchmal falsch oder unvollständig angezeigt werden.", 
@@ -786,7 +794,7 @@
                 instTitle: "Установить Радар", instDesc: "Установите для быстрого доступа! Мы сохраним вашу историю и посчитаем экономию.", instB1: "История игр", instB2: "Сумма экономии", instBtn: "Установить", instDismiss: "Позже",
                 instIos1: "1. Нажмите иконку 'Поделиться' внизу", instIos2: "2. Выберите 'На экран «Домой»'", instGotIt: "Понятно",
                 sortNewest: "Сначала новые", sortOldest: "Сначала старые", sortPriceHigh: "Цена: по убыванию", sortPriceLow: "Цена: по возрастанию", sortName: "Название (А-Я)", sortNameZA: "Название (Я-А)",
-                viewGrid: "Сетка", viewList: "Список", getLink: "Получить",
+                viewGrid: "Сетка", viewList: "Список", getLink: "Получить", collapse: "Свернуть", expand: "Развернуть",
                 discTitle: "Отказ от ответственности", 
                 disc1: "Игры получены через API и парсинг веб-сайтов.", 
                 disc2: "Информация может отображаться некорректно или не полностью.", 
@@ -813,7 +821,7 @@
                 instTitle: "アプリをインストール", instDesc: "ホーム画面に追加して素早くアクセス！取得履歴と節約額を記録します。", instB1: "取得履歴の保存", instB2: "節約額の計算", instBtn: "インストール", instDismiss: "後で",
                 instIos1: "1. 下の「共有」アイコンをタップ", instIos2: "2. 「ホーム画面に追加」を選択", instGotIt: "了解",
                 sortNewest: "取得日: 新しい順", sortOldest: "取得日: 古い順", sortPriceHigh: "価格: 高い順", sortPriceLow: "価格: 低い順", sortName: "名前 (A-Z)", sortNameZA: "名前 (Z-A)",
-                viewGrid: "グリッド表示", viewList: "リスト表示", getLink: "入手",
+                viewGrid: "グリッド表示", viewList: "リスト表示", getLink: "入手", collapse: "折りたたむ", expand: "展開する",
                 discTitle: "免責事項", 
                 disc1: "ゲームはAPIとWebスクレイピングを通じて取得されます。", 
                 disc2: "情報が誤って表示されたり、不完全な場合があります。", 
@@ -840,7 +848,7 @@
                 instTitle: "앱 설치", instDesc: "홈 화면에 추가하세요! 획득 기록과 절약한 금액을 저장해 줍니다.", instB1: "획득 기록 저장", instB2: "절약액 계산", instBtn: "설치하기", instDismiss: "나중에",
                 instIos1: "1. 하단의 '공유' 아이콘을 탭하세요", instIos2: "2. '홈 화면에 추가'를 선택하세요", instGotIt: "확인",
                 sortNewest: "획득일: 최신순", sortOldest: "획득일: 오래된순", sortPriceHigh: "가격: 높은순", sortPriceLow: "가격: 낮은순", sortName: "이름 (A-Z)", sortNameZA: "이름 (Z-A)",
-                viewGrid: "그리드 보기", viewList: "리스트 보기", getLink: "받기",
+                viewGrid: "그리드 보기", viewList: "리스트 보기", getLink: "받기", collapse: "접기", expand: "펼치기",
                 discTitle: "면책 조항", 
                 disc1: "게임은 API 및 웹 스크래핑을 통해 가져옵니다.", 
                 disc2: "정보가 잘못 표시되거나 불완전할 수 있습니다.", 
@@ -867,7 +875,7 @@
                 instTitle: "Instalar RadarLoot", instDesc: "Instale para acesso rápido! Salvaremos seu histórico e sua economia total.", instB1: "Histórico de jogos", instB2: "Economia total", instBtn: "Instalar", instDismiss: "Mais tarde",
                 instIos1: "1. Toque no ícone Compartilhar abaixo", instIos2: "2. Selecione 'Adicionar à Tela de Início'", instGotIt: "Entendi!",
                 sortNewest: "Data: Mais Recentes", sortOldest: "Data: Mais Antigos", sortPriceHigh: "Preço: Maior a Menor", sortPriceLow: "Preço: Menor a Maior", sortName: "Nome (A-Z)", sortNameZA: "Nome (Z-A)",
-                viewGrid: "Visualização grade", viewList: "Visualização lista", getLink: "Obter",
+                viewGrid: "Visualização grade", viewList: "Visualização lista", getLink: "Obter", collapse: "Recolher", expand: "Expandir",
                 discTitle: "Aviso Legal", 
                 disc1: "Os jogos são obtidos via APIs e web scraping.", 
                 disc2: "As informações podem ocasionalmente ser exibidas incorretamente ou incompletas.", 
@@ -1322,6 +1330,9 @@
                     ? 'ph-fill ph-list-bullets text-green-500 dark:text-green-400 text-lg group-hover:scale-110 transition-transform'
                     : 'ph-fill ph-squares-four text-green-500 dark:text-green-400 text-lg group-hover:scale-110 transition-transform';
             }
+
+            // Restore dropdown collapse state (mobile)
+            restoreLibDropdownState();
 
             // Slide in immediately! (The games are already pre-rendered!)
             void modal.offsetWidth;
@@ -1939,6 +1950,55 @@
             }
             renderLibrary();
         };
+
+        // Library Dropdown Collapse Toggle (mobile only)
+        window.toggleLibDropdown = function() {
+            const wrapper = document.getElementById('lib-dropdown-wrapper');
+            const arrow = document.getElementById('lib-dropdown-arrow');
+            const text = document.getElementById('lib-dropdown-text');
+            const t = i18n[state.lang];
+
+            if (!wrapper) return;
+
+            const isCollapsed = wrapper.classList.contains('max-h-0');
+
+            if (isCollapsed) {
+                // Expand
+                wrapper.classList.remove('max-h-0', 'opacity-0', 'mb-0');
+                wrapper.classList.add('max-h-[500px]', 'opacity-100');
+                arrow.className = 'ph-bold ph-caret-up text-gray-500 dark:text-gray-400 group-hover:text-purple-500 dark:group-hover:text-neon-purple transition-colors';
+                text.textContent = t.collapse || 'Collapse';
+                state.libDropdownCollapsed = false;
+            } else {
+                // Collapse
+                wrapper.classList.remove('max-h-[500px]', 'opacity-100');
+                wrapper.classList.add('max-h-0', 'opacity-0', 'mb-0');
+                arrow.className = 'ph-bold ph-caret-down text-gray-500 dark:text-gray-400 group-hover:text-purple-500 dark:group-hover:text-neon-purple transition-colors';
+                text.textContent = t.expand || 'Expand';
+                state.libDropdownCollapsed = true;
+            }
+
+            localStorage.setItem('lootradar_lib_dropdown_collapsed', state.libDropdownCollapsed ? '1' : '0');
+        };
+
+        // Restore dropdown state on load
+        function restoreLibDropdownState() {
+            const collapsed = localStorage.getItem('lootradar_lib_dropdown_collapsed') === '1';
+            if (collapsed) {
+                const wrapper = document.getElementById('lib-dropdown-wrapper');
+                const arrow = document.getElementById('lib-dropdown-arrow');
+                const text = document.getElementById('lib-dropdown-text');
+                const t = i18n[state.lang];
+
+                if (wrapper) {
+                    wrapper.classList.remove('max-h-[500px]', 'opacity-100');
+                    wrapper.classList.add('max-h-0', 'opacity-0', 'mb-0');
+                    if (arrow) arrow.className = 'ph-bold ph-caret-down text-gray-500 dark:text-gray-400 group-hover:text-purple-500 dark:group-hover:text-neon-purple transition-colors';
+                    if (text) text.textContent = t.expand || 'Expand';
+                    state.libDropdownCollapsed = true;
+                }
+            }
+        }
 
         function renderLibrary() {
             const grid = document.getElementById('library-grid');

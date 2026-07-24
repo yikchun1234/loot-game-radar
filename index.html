@@ -561,8 +561,8 @@
                             <i id="lib-view-icon" class="ph-fill ph-squares-four text-green-500 dark:text-green-400 text-lg group-hover:scale-110 transition-transform"></i>
                         </div>
                         <select id="lib-view-select" onchange="updateLibView(this.value)" class="w-full appearance-none bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 py-3.5 pl-12 pr-10 rounded-2xl outline-none focus:ring-2 focus:ring-green-500/50 dark:focus:ring-green-400/50 transition-all font-bold text-sm cursor-pointer shadow-sm hover:shadow-md">
-                            <option value="grid">&nbsp;&nbsp;&nbsp;Grid View</option>
-                            <option value="list">&nbsp;&nbsp;&nbsp;List View</option>
+                            <option value="grid" id="opt-view-grid">&nbsp;&nbsp;&nbsp;Grid View</option>
+                            <option value="list" id="opt-view-list">&nbsp;&nbsp;&nbsp;List View</option>
                         </select>
                         <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                             <i class="ph-bold ph-caret-down text-gray-400 group-hover:text-green-500 dark:group-hover:text-green-400 transition-colors"></i>
@@ -623,6 +623,7 @@
                 instTitle: "Install LootRadar", instDesc: "Install to access instantly! We will track your claimed games and calculate your total lifetime savings.", instB1: "Track Claimed History", instB2: "Calculate Total Savings", instBtn: "Install App", instDismiss: "Maybe Later",
                 instIos1: "1. Tap the Share icon below", instIos2: "2. Select 'Add to Home Screen'", instGotIt: "Got it!",
                 sortNewest: "Date: Newest First", sortOldest: "Date: Oldest First", sortPriceHigh: "Price: High to Low", sortPriceLow: "Price: Low to High", sortPlatform: "Platform (A-Z)",
+                viewGrid: "Grid View", viewList: "List View", getLink: "Get",
                 discTitle: "Notice & Disclaimer", 
                 disc1: "Games are fetched via third-party APIs and web scraping.", 
                 disc2: "Information may sometimes be displayed incorrectly or incompletely.", 
@@ -649,6 +650,7 @@
                 instTitle: "安装 白嫖雷达", instDesc: "添加到桌面以快速访问！我们将为您永久记录入库游戏并计算省下的总金额。", instB1: "记录领取历史与封面", instB2: "计算终身省下的金钱", instBtn: "立即安装", instDismiss: "以后再说",
                 instIos1: "1. 点击浏览器底部的『分享』图标", instIos2: "2. 选择『添加到主屏幕』", instGotIt: "我知道了",
                 sortNewest: "入库时间: 最新的在前", sortOldest: "入库时间: 最旧的在前", sortPriceHigh: "节省金额: 从高到低", sortPriceLow: "节省金额: 从低到高", sortPlatform: "平台名称 (A-Z)",
+                viewGrid: "网格视图", viewList: "列表视图", getLink: "获取",
                 discTitle: "免责声明", 
                 disc1: "游戏数据是通过 API 和社区爬虫自动抓取得到的。", 
                 disc2: "部分游戏可能有错误显示，或者没有完整显示信息。", 
@@ -675,6 +677,7 @@
                 instTitle: "Instalar RadarLoot", instDesc: "¡Instálalo para acceso rápido! Rastrearemos tus juegos reclamados y el ahorro total.", instB1: "Historial de juegos", instB2: "Ahorro total", instBtn: "Instalar App", instDismiss: "Más tarde",
                 instIos1: "1. Toca el ícono de Compartir abajo", instIos2: "2. Selecciona 'Agregar a inicio'", instGotIt: "¡Entendido!",
                 sortNewest: "Fecha: Más recientes", sortOldest: "Fecha: Más antiguos", sortPriceHigh: "Precio: Mayor a Menor", sortPriceLow: "Precio: Menor a Mayor", sortPlatform: "Plataforma (A-Z)",
+                viewGrid: "Vista cuadrícula", viewList: "Vista lista", getLink: "Obtener",
                 discTitle: "Aviso legal", 
                 disc1: "Los juegos se obtienen a través de API y web scraping.", 
                 disc2: "La información puede mostrarse de forma incorrecta o incompleta.", 
@@ -701,6 +704,7 @@
                 instTitle: "Installer RadarButin", instDesc: "Installez pour un accès instantané ! Nous suivrons vos jeux et vos économies.", instB1: "Historique des jeux", instB2: "Calcul des économies", instBtn: "Installer", instDismiss: "Plus tard",
                 instIos1: "1. Touchez l'icône Partager ci-dessous", instIos2: "2. Sélectionnez 'Sur l'écran d'accueil'", instGotIt: "J'ai compris",
                 sortNewest: "Date: Plus récents", sortOldest: "Date: Plus anciens", sortPriceHigh: "Prix: Décroissant", sortPriceLow: "Prix: Croissant", sortPlatform: "Plateforme (A-Z)",
+                viewGrid: "Vue grille", viewList: "Vue liste", getLink: "Obtenir",
                 discTitle: "Avertissement", 
                 disc1: "Les jeux sont récupérés via des API et du scraping Web.", 
                 disc2: "Les informations peuvent parfois être incorrectes ou incomplètes.", 
@@ -727,6 +731,7 @@
                 instTitle: "Installiere LootRadar", instDesc: "Installiere für sofortigen Zugriff! Wir speichern deine Spiele und Ersparnisse.", instB1: "Spielverlauf speichern", instB2: "Ersparnisse berechnen", instBtn: "App installieren", instDismiss: "Später",
                 instIos1: "1. Tippe unten auf das Teilen-Symbol", instIos2: "2. Wähle 'Zum Home-Bildschirm'", instGotIt: "Verstanden",
                 sortNewest: "Datum: Neueste zuerst", sortOldest: "Datum: Älteste zuerst", sortPriceHigh: "Preis: Absteigend", sortPriceLow: "Preis: Aufsteigend", sortPlatform: "Plattform (A-Z)",
+                viewGrid: "Rasteransicht", viewList: "Listenansicht", getLink: "Holen",
                 discTitle: "Haftungsausschluss", 
                 disc1: "Spiele werden über APIs und Web-Scraping bezogen.", 
                 disc2: "Informationen können manchmal falsch oder unvollständig angezeigt werden.", 
@@ -753,6 +758,7 @@
                 instTitle: "Установить Радар", instDesc: "Установите для быстрого доступа! Мы сохраним вашу историю и посчитаем экономию.", instB1: "История игр", instB2: "Сумма экономии", instBtn: "Установить", instDismiss: "Позже",
                 instIos1: "1. Нажмите иконку 'Поделиться' внизу", instIos2: "2. Выберите 'На экран «Домой»'", instGotIt: "Понятно",
                 sortNewest: "Сначала новые", sortOldest: "Сначала старые", sortPriceHigh: "Цена: по убыванию", sortPriceLow: "Цена: по возрастанию", sortPlatform: "Платформа (А-Я)",
+                viewGrid: "Сетка", viewList: "Список", getLink: "Получить",
                 discTitle: "Отказ от ответственности", 
                 disc1: "Игры получены через API и парсинг веб-сайтов.", 
                 disc2: "Информация может отображаться некорректно или не полностью.", 
@@ -779,6 +785,7 @@
                 instTitle: "アプリをインストール", instDesc: "ホーム画面に追加して素早くアクセス！取得履歴と節約額を記録します。", instB1: "取得履歴の保存", instB2: "節約額の計算", instBtn: "インストール", instDismiss: "後で",
                 instIos1: "1. 下の「共有」アイコンをタップ", instIos2: "2. 「ホーム画面に追加」を選択", instGotIt: "了解",
                 sortNewest: "取得日: 新しい順", sortOldest: "取得日: 古い順", sortPriceHigh: "価格: 高い順", sortPriceLow: "価格: 低い順", sortPlatform: "プラットフォーム (A-Z)",
+                viewGrid: "グリッド表示", viewList: "リスト表示", getLink: "入手",
                 discTitle: "免責事項", 
                 disc1: "ゲームはAPIとWebスクレイピングを通じて取得されます。", 
                 disc2: "情報が誤って表示されたり、不完全な場合があります。", 
@@ -805,6 +812,7 @@
                 instTitle: "앱 설치", instDesc: "홈 화면에 추가하세요! 획득 기록과 절약한 금액을 저장해 줍니다.", instB1: "획득 기록 저장", instB2: "절약액 계산", instBtn: "설치하기", instDismiss: "나중에",
                 instIos1: "1. 하단의 '공유' 아이콘을 탭하세요", instIos2: "2. '홈 화면에 추가'를 선택하세요", instGotIt: "확인",
                 sortNewest: "획득일: 최신순", sortOldest: "획득일: 오래된순", sortPriceHigh: "가격: 높은순", sortPriceLow: "가격: 낮은순", sortPlatform: "플랫폼 (A-Z)",
+                viewGrid: "그리드 보기", viewList: "리스트 보기", getLink: "받기",
                 discTitle: "면책 조항", 
                 disc1: "게임은 API 및 웹 스크래핑을 통해 가져옵니다.", 
                 disc2: "정보가 잘못 표시되거나 불완전할 수 있습니다.", 
@@ -831,6 +839,7 @@
                 instTitle: "Instalar RadarLoot", instDesc: "Instale para acesso rápido! Salvaremos seu histórico e sua economia total.", instB1: "Histórico de jogos", instB2: "Economia total", instBtn: "Instalar", instDismiss: "Mais tarde",
                 instIos1: "1. Toque no ícone Compartilhar abaixo", instIos2: "2. Selecione 'Adicionar à Tela de Início'", instGotIt: "Entendi!",
                 sortNewest: "Data: Mais Recentes", sortOldest: "Data: Mais Antigos", sortPriceHigh: "Preço: Maior a Menor", sortPriceLow: "Preço: Menor a Maior", sortPlatform: "Plataforma (A-Z)",
+                viewGrid: "Visualização grade", viewList: "Visualização lista", getLink: "Obter",
                 discTitle: "Aviso Legal", 
                 disc1: "Os jogos são obtidos via APIs e web scraping.", 
                 disc2: "As informações podem ocasionalmente ser exibidas incorretamente ou incompletas.", 
@@ -1978,6 +1987,7 @@
 
             // 4. Render clean templates using explicit, stable IDs
             const isListView = state.libView === 'list';
+            const t = i18n[state.lang];
 
             grid.innerHTML = filteredGames.map(game => {
                 const mockGameForIcon = { platforms: game.platforms, open_giveaway: game.open_giveaway };
@@ -2001,7 +2011,7 @@
                                     <i class="ph-bold ph-piggy-bank text-green-500"></i>
                                     <span class="text-green-500 dark:text-green-400 font-bold">+${game.worth || 'Free'}</span>
                                     <span class="text-gray-400 mx-1">·</span>
-                                    <span class="text-blue-500 dark:text-neon-blue"><i class="ph-bold ph-arrow-square-out"></i> Get</span>
+                                    <span class="text-blue-500 dark:text-neon-blue"><i class="ph-bold ph-arrow-square-out"></i> ${t.getLink}</span>
                                 </p>
                             </div>
                             ${game.date ? `<p class="text-[10px] text-gray-400 mt-1"><i class="ph-bold ph-calendar"></i> ${new Date(game.date).toLocaleDateString()}</p>` : ''}
@@ -2033,7 +2043,7 @@
                         </div>
                         <div class="p-2">
                             <p class="text-xs font-bold truncate dark:text-gray-200" title="${game.title}">${game.title}</p>
-                            <p class="text-[10px] text-blue-500 dark:text-neon-blue mt-0.5 flex items-center gap-0.5"><i class="ph-bold ph-arrow-square-out"></i> Get</p>
+                            <p class="text-[10px] text-blue-500 dark:text-neon-blue mt-0.5 flex items-center gap-0.5"><i class="ph-bold ph-arrow-square-out"></i> ${t.getLink}</p>
                         </div>
                     </a>
                     `;
@@ -2438,7 +2448,10 @@
             safeSetOption('opt-sort-price-high', t.sortPriceHigh);
             safeSetOption('opt-sort-price-low', t.sortPriceLow);
             safeSetOption('opt-sort-platform', t.sortPlatform);
-            
+
+            safeSetOption('opt-view-grid', t.viewGrid);
+            safeSetOption('opt-view-list', t.viewList);
+
             document.documentElement.lang = state.lang;
 
             // Update Sync UI Text (Bulletproof Vanilla JS)

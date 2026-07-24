@@ -74,6 +74,72 @@ You can install LootRadar to use exactly like a native mobile app!
 
 ---
 
+### 🔧 Self-Hosting Guide
+
+If you want to fork and host your own version of LootRadar, follow these steps:
+
+#### 1. Deploy the Loot API Worker
+
+The frontend requires a Cloudflare Worker to aggregate game data from multiple sources (Reddit, AppSales, CheapCharts, GamerPower).
+
+```bash
+# Clone your fork
+git clone https://github.com/YOUR_USERNAME/loot-game-radar.git
+cd loot-game-radar
+
+# Deploy the Worker (you need Cloudflare account)
+cd workers/loot-api
+npx wrangler deploy
+```
+
+After deployment, note your Worker URL (e.g., `loot-api.YOUR_SUBDOMAIN.workers.dev`).
+
+#### 2. Update Frontend Worker URL
+
+Open `index.html` and find/replace the Worker URL:
+
+```javascript
+// Find this line (around line 1750):
+const workerRes = await fetch('https://loot-api.yikchun1234.workers.dev/api/all-games');
+
+// Replace with your Worker URL:
+const workerRes = await fetch('https://loot-api.YOUR_SUBDOMAIN.workers.dev/api/all-games');
+```
+
+#### 3. Update Allowed Domains
+
+At the very top of `index.html`, add your domain to `allowedDomains`:
+
+```javascript
+const allowedDomains = [
+    "gamelootradar.pages.dev",
+    "gamelootradar.us.ci",
+    "YOUR_DOMAIN.com",        // ← Add your domain here
+    "localhost",
+    "127.0.0.1",
+    ""
+];
+```
+
+#### 4. (Optional) Deploy Cloud Sync Worker
+
+If you want device-to-device sync functionality:
+
+```bash
+# The Cloud Sync Worker code is in a separate repo
+# You'll need to create your own or use a key-value store
+```
+
+#### 5. Deploy Frontend
+
+You can host `index.html` on:
+- **GitHub Pages** (free)
+- **Cloudflare Pages** (free)
+- **Netlify** (free)
+- Any static hosting service
+
+---
+
 ### 📄 License & Usage
 
 * **Non-Commercial Use Only:** This project is strictly for personal, educational, and non-commercial use. You may not use this application, its source code, or its scraping logic for any business, commercial, or monetized purposes.

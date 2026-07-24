@@ -484,7 +484,7 @@
     </div>
         
     <!-- My Library Modal -->
-    <div id="library-modal" class="hidden fixed inset-0 z-50 flex-col bg-slate-50 dark:bg-dark-bg transition-transform duration-300 transform translate-x-full will-change-[transform]">
+    <div id="library-modal" class="fixed inset-0 z-50 flex flex-col bg-slate-50 dark:bg-dark-bg transition-transform duration-300 transform translate-x-full pointer-events-none will-change-[transform]">
         <!-- Header -->
         <div class="glass-header px-4 py-4 flex items-center justify-between z-30">
           <h2 class="text-xl md:text-2xl font-display font-black dark:text-white flex items-center gap-2">
@@ -1331,18 +1331,18 @@
           const scrollTopBtn = document.getElementById('scroll-to-top-btn');
           const spinner = document.getElementById('lib-loading-spinner');
 
-          if (modal.classList.contains('hidden')) {
+          if (modal.classList.contains('pointer-events-none')) {
             // --- OPENING THE LIBRARY ---
-            // 1. IMMEDIATELY show modal + spinner, start animation
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            if (spinner) spinner.classList.remove('hidden');
-            if (spinner) spinner.classList.add('flex');
+            // 1. IMMEDIATELY enable interaction + show spinner, start animation
+            modal.classList.remove('pointer-events-none');
+            if (spinner) {
+                spinner.classList.remove('hidden');
+                spinner.classList.add('flex');
+            }
 
+            // No layout recalculation needed - modal is already rendered!
             requestAnimationFrame(() => {
-                requestAnimationFrame(() => {
-                    modal.classList.remove('translate-x-full');
-                });
+                modal.classList.remove('translate-x-full');
             });
 
             // 2. Defer setup work, hide spinner when done
@@ -1397,11 +1397,12 @@
           } else {
             // --- CLOSING THE LIBRARY ---
             modal.classList.add('translate-x-full');
-        
+            modal.classList.add('pointer-events-none');
+
             const appContainer = document.getElementById('app-container');
             if (appContainer && scrollTopBtn) {
                 scrollTopBtn.style.zIndex = '';
-                
+
                 // Evaluate the main menu instantly while the library slides away
                 if (appContainer.scrollTop > 300) {
                     scrollTopBtn.classList.remove('opacity-0', 'translate-y-4', 'scale-90', 'pointer-events-none');
@@ -1411,12 +1412,8 @@
                     scrollTopBtn.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
                 }
             }
-        
-            setTimeout(() => {
-              modal.classList.add('hidden');
-              modal.classList.remove('flex');
-              window.updateScrollButtonState();
-            }, 300);
+
+            window.updateScrollButtonState();
           }
         }
 

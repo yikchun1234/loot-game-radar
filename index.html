@@ -2717,7 +2717,7 @@
           let currentScrollTop = 0;
         
           // 1. Detect which screen is currently visible and get ITS specific scroll position
-          if (libraryModal && !libraryModal.classList.contains('hidden')) {
+          if (libraryModal && !libraryModal.classList.contains('pointer-events-none')) {
             const libScroll = document.querySelector('.library-scroll-area');
             if (libScroll) currentScrollTop = libScroll.scrollTop;
           } else {
@@ -2752,7 +2752,7 @@
           const libraryModal = document.getElementById('library-modal');
           
           // Check which screen is currently open, and smoothly scroll that specific container
-          if (!libraryModal.classList.contains('hidden')) {
+          if (!libraryModal.classList.contains('pointer-events-none')) {
              const libScroll = document.querySelector('.library-scroll-area');
              if(libScroll) libScroll.scrollTo({ top: 0, behavior: 'smooth' });
           } else {

@@ -1435,18 +1435,21 @@
             // 3. Trigger the chart animations exactly as the slide finishes!
             setTimeout(() => {
                 container.classList.add('stats-active');
-                
+
                 // Animate Bar Charts
                 const bars = document.querySelectorAll('.chart-bar');
                 bars.forEach(bar => {
                     bar.style.height = bar.getAttribute('data-target-height');
                 });
-        
+
                 // Animate Pie Chart Segments
                 const pies = document.querySelectorAll('.pie-segment');
                 pies.forEach(pie => {
                     pie.style.strokeDasharray = pie.getAttribute('data-target-dash');
                 });
+
+                // Initialize bar chart scroll (auto-scroll to newest, show fade if needed)
+                initBarChartScroll();
             }, 300);
             
           } else {
@@ -1560,19 +1563,19 @@
                 if(!monthCounts[key]) monthCounts[key] = { label, count: 0 };
                 monthCounts[key].count++;
             });
-            
-            const activeMonths = Object.values(monthCounts).slice(-6); 
+
+            const activeMonths = Object.values(monthCounts); // Show ALL months
             const maxBarCount = Math.max(...activeMonths.map(m => m.count), 1);
-            
+
             let barsHtml = activeMonths.map(m => {
                 const heightPct = (m.count / maxBarCount) * 100;
                 return `
-                    <div class="flex flex-col items-center gap-2 flex-1 group">
+                    <div class="flex flex-col items-center gap-2 group" style="min-width: 52px;">
                         <span class="text-xs font-bold text-gray-500 opacity-0 group-hover:opacity-100 transition-opacity">${m.count}</span>
                         <div class="w-full max-w-[40px] bg-gray-200 dark:bg-gray-800 rounded-t-lg flex items-end h-32 relative overflow-hidden">
                             <div class="chart-bar w-full bg-gradient-to-t from-purple-600 to-neon-purple rounded-t-lg" style="height: 0%" data-target-height="${heightPct}%"></div>
                         </div>
-                        <span class="text-[10px] font-bold text-gray-400 uppercase">${m.label}</span>
+                        <span class="text-[10px] font-bold text-gray-400 uppercase whitespace-nowrap">${m.label}</span>
                     </div>
                 `;
             }).join('');
@@ -1601,8 +1604,13 @@
         
                     <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 flex flex-col">
                         <h3 class="w-full text-left text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4">${t.statsActivity}</h3>
-                        <div class="flex-1 flex items-end gap-2 justify-between mt-auto">
-                            ${barsHtml}
+                        <div class="flex-1 flex items-end mt-auto relative">
+                            <!-- Left fade indicator (shown when scrollable) -->
+                            <div id="bar-chart-fade" class="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-white dark:from-dark-card to-transparent z-10 pointer-events-none opacity-0 transition-opacity duration-300"></div>
+                            <!-- Scrollable bar container -->
+                            <div id="bar-chart-scroll" class="flex items-end gap-2 overflow-x-auto w-full pb-2" onscroll="updateBarChartFade()" style="scroll-behavior: smooth; scrollbar-width: thin;">
+                                ${barsHtml}
+                            </div>
                         </div>
                     </div>
         
@@ -1722,11 +1730,37 @@
         window.hideChartHover = function() {
             const scrubber = document.getElementById('chart-scrubber');
             if(scrubber) scrubber.style.opacity = '0';
-            
+
             // Restore the giant total number when they move their mouse away
             const wealthTotal = document.getElementById('wealth-total-display');
             if(wealthTotal) wealthTotal.innerText = `$${state.totalSaved.toFixed(2)}`;
         };
+
+        // Update bar chart fade indicator based on scroll position
+        window.updateBarChartFade = function() {
+            const scrollContainer = document.getElementById('bar-chart-scroll');
+            const fade = document.getElementById('bar-chart-fade');
+            if (!scrollContainer || !fade) return;
+
+            // Show fade only when scrolled away from the left edge
+            if (scrollContainer.scrollLeft > 10) {
+                fade.style.opacity = '1';
+            } else {
+                fade.style.opacity = '0';
+            }
+        };
+
+        // Check if bar chart is scrollable and auto-scroll to end (newest)
+        function initBarChartScroll() {
+            const scrollContainer = document.getElementById('bar-chart-scroll');
+            if (!scrollContainer) return;
+
+            // Auto-scroll to show newest months (right side)
+            scrollContainer.scrollLeft = scrollContainer.scrollWidth;
+
+            // Initial fade check
+            setTimeout(() => window.updateBarChartFade(), 100);
+        }
                 
         function toggleDisclaimer() {
             const modal = document.getElementById('disclaimer-modal');

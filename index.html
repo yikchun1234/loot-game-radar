@@ -384,22 +384,7 @@
                     <i class="ph-fill ph-game-controller text-xl text-purple-500 animate-bounce"></i>
                 </div>
             </div>
-                <div class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 relative z-10">
-                <div class="flex items-center gap-2 mb-2">
-                    <i class="ph-bold ph-arrows-left-right text-blue-500 dark:text-neon-blue"></i>
-                    <h4 id="ui-sync-title" class="font-bold text-sm dark:text-white">Device Sync</h4>
-                </div>
-                <p id="ui-sync-desc" class="text-[11px] text-gray-500 dark:text-gray-400 mb-3 leading-tight">Securely migrate your claimed games and total savings to another device using a 15-minute PIN.</p>
-                <div class="flex gap-2">
-                    <button onclick="toggleSyncModal('export')" class="flex-1 py-2 bg-blue-500 hover:bg-blue-600 dark:bg-neon-blue dark:hover:bg-[#00d2dd] dark:text-black text-white rounded-xl text-xs font-bold transition-colors shadow-sm flex justify-center items-center gap-1">
-                        <i class="ph-bold ph-upload-simple"></i> <span id="ui-sync-export">Export</span>
-                    </button>
-                    <button onclick="toggleSyncModal('import')" class="flex-1 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-bold transition-colors shadow-sm border border-gray-200 dark:border-gray-700 flex justify-center items-center gap-1">
-                        <i class="ph-bold ph-download-simple"></i> <span id="ui-sync-import">Import</span>
-                    </button>
-                </div>
-            </div>
-        </div> 
+        </div>
     </div>
     
     <div id="sync-modal" class="hidden fixed inset-0 z-[60] items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">
@@ -646,10 +631,62 @@
       <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
         <div class="max-w-md mx-auto space-y-6">
 
+          <!-- Language Section -->
+          <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800">
+            <h3 class="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4 flex items-center gap-2">
+              <i class="ph-fill ph-globe text-blue-500"></i>
+              <span id="ui-settings-language">Language</span>
+            </h3>
+            <div class="relative">
+              <select id="settings-lang-select" onchange="setLanguage(this.value)" class="w-full appearance-none bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 py-3 pl-4 pr-10 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-neon-blue/50 transition-all font-bold text-sm cursor-pointer">
+              </select>
+              <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+                <i class="ph-bold ph-caret-down text-gray-400"></i>
+              </div>
+            </div>
+          </div>
+
+          <!-- Theme Section -->
+          <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800">
+            <h3 class="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4 flex items-center gap-2">
+              <i class="ph-fill ph-paint-brush text-purple-500"></i>
+              <span id="ui-settings-theme">Theme</span>
+            </h3>
+            <div class="flex gap-3">
+              <button onclick="setTheme('light')" id="theme-light-btn" class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-yellow-400 dark:hover:border-yellow-400 transition-all font-bold text-sm">
+                <i class="ph-fill ph-sun text-yellow-500 text-lg"></i>
+                <span id="ui-theme-light">Light</span>
+              </button>
+              <button onclick="setTheme('dark')" id="theme-dark-btn" class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-400 transition-all font-bold text-sm">
+                <i class="ph-fill ph-moon text-blue-500 text-lg"></i>
+                <span id="ui-theme-dark">Dark</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Device Sync Section -->
+          <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800">
+            <h3 class="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4 flex items-center gap-2">
+              <i class="ph-fill ph-arrows-left-right text-teal-500"></i>
+              <span id="ui-settings-sync">Device Sync</span>
+            </h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4" id="ui-settings-sync-desc">Securely migrate your claimed games and total savings to another device using a 15-minute PIN.</p>
+            <div class="flex gap-3">
+              <button onclick="toggleSyncModal('export')" class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-500 hover:bg-blue-600 dark:bg-neon-blue dark:hover:bg-[#00d2dd] text-white dark:text-black font-bold text-sm transition-all active:scale-95 shadow-sm">
+                <i class="ph-bold ph-upload-simple"></i>
+                <span id="ui-settings-export">Export</span>
+              </button>
+              <button onclick="toggleSyncModal('import')" class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold text-sm transition-all active:scale-95 border border-gray-200 dark:border-gray-700">
+                <i class="ph-bold ph-download-simple"></i>
+                <span id="ui-settings-import">Import</span>
+              </button>
+            </div>
+          </div>
+
           <!-- Share App Section -->
           <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800">
             <h3 class="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4 flex items-center gap-2">
-              <i class="ph-fill ph-share-network text-blue-500"></i>
+              <i class="ph-fill ph-share-network text-green-500"></i>
               <span id="ui-share-title">Share App</span>
             </h3>
             <p class="text-sm text-gray-600 dark:text-gray-400 mb-4" id="ui-share-desc">Share LootRadar with friends! Scan QR code or copy the link.</p>
@@ -666,7 +703,7 @@
 
             <!-- Action Buttons -->
             <div class="flex gap-3">
-              <button onclick="copyShareLink()" class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm transition-all active:scale-95">
+              <button onclick="copyShareLink()" class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-green-500 hover:bg-green-600 text-white font-bold text-sm transition-all active:scale-95">
                 <i class="ph-fill ph-copy"></i>
                 <span id="ui-copy-link">Copy Link</span>
               </button>
@@ -680,15 +717,6 @@
             <div id="copy-success" class="hidden mt-3 text-center text-sm text-green-500 font-bold">
               <i class="ph-fill ph-check-circle"></i> <span id="ui-copy-success">Link copied!</span>
             </div>
-          </div>
-
-          <!-- Quick Settings Section (Future: Language, Theme can be moved here) -->
-          <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800">
-            <h3 class="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4 flex items-center gap-2">
-              <i class="ph-fill ph-sliders-horizontal text-purple-500"></i>
-              <span id="ui-quick-settings">Quick Settings</span>
-            </h3>
-            <p class="text-sm text-gray-500 dark:text-gray-400 italic" id="ui-coming-soon">Use the header buttons for language and theme. More settings coming soon!</p>
           </div>
 
         </div>
@@ -720,6 +748,9 @@
                 copyLink: "Copy Link", shareBtn: "Share", copySuccess: "Link copied!", quickSettings: "Quick Settings",
                 comingSoon: "Use the header buttons for language and theme. More settings coming soon!",
                 shareAppTitle: "LootRadar - Free Game Tracker", shareAppText: "Track free games and save money with LootRadar!",
+                settingsLanguage: "Language", settingsTheme: "Theme", themeLight: "Light", themeDark: "Dark",
+                settingsSync: "Device Sync", settingsSyncDesc: "Securely migrate your claimed games and total savings to another device using a 15-minute PIN.",
+                settingsExport: "Export", settingsImport: "Import",
                 discTitle: "Notice & Disclaimer", 
                 disc1: "Games are fetched via third-party APIs and web scraping.", 
                 disc2: "Information may sometimes be displayed incorrectly or incompletely.", 
@@ -751,6 +782,9 @@
                 copyLink: "复制链接", shareBtn: "分享", copySuccess: "链接已复制！", quickSettings: "快速设置",
                 comingSoon: "使用顶部按钮切换语言和主题。更多设置即将推出！",
                 shareAppTitle: "LootRadar - 免费游戏追踪", shareAppText: "使用 LootRadar 追踪免费游戏，省钱！",
+                settingsLanguage: "语言", settingsTheme: "主题", themeLight: "浅色", themeDark: "深色",
+                settingsSync: "设备同步", settingsSyncDesc: "使用 15 分钟 PIN 码安全迁移您的游戏库和储蓄到另一台设备。",
+                settingsExport: "导出", settingsImport: "导入",
                 discTitle: "免责声明",
                 disc1: "游戏数据是通过 API 和社区爬虫自动抓取得到的。",
                 disc2: "部分游戏可能有错误显示，或者没有完整显示信息。",
@@ -782,6 +816,9 @@
                 copyLink: "複製連結", shareBtn: "分享", copySuccess: "連結已複製！", quickSettings: "快速設定",
                 comingSoon: "使用頂部按鈕切換語言和主題。更多設定即將推出！",
                 shareAppTitle: "LootRadar - 免費遊戲追蹤", shareAppText: "使用 LootRadar 追蹤免費遊戲，省錢！",
+                settingsLanguage: "語言", settingsTheme: "主題", themeLight: "淺色", themeDark: "深色",
+                settingsSync: "裝置同步", settingsSyncDesc: "使用 15 分鐘 PIN 碼安全遷移您的遊戲庫和儲蓄到另一台裝置。",
+                settingsExport: "匯出", settingsImport: "匯入",
                 discTitle: "免責聲明",
                 disc1: "遊戲資料是透過 API 和社區爬蟲自動抓取得到的。",
                 disc2: "部分遊戲可能會有錯誤顯示，或者沒有完整顯示資訊。",
@@ -813,6 +850,9 @@
                 copyLink: "Copiar Enlace", shareBtn: "Compartir", copySuccess: "¡Enlace copiado!", quickSettings: "Ajustes Rápidos",
                 comingSoon: "Usa los botones del header para idioma y tema. ¡Más ajustes pronto!",
                 shareAppTitle: "LootRadar - Rastreador de Juegos Gratis", shareAppText: "¡Rastrea juegos gratis y ahorra dinero con LootRadar!",
+                settingsLanguage: "Idioma", settingsTheme: "Tema", themeLight: "Claro", themeDark: "Oscuro",
+                settingsSync: "Sync Dispositivo", settingsSyncDesc: "Migra de forma segura tus juegos y ahorros a otro dispositivo con un PIN de 15 minutos.",
+                settingsExport: "Exportar", settingsImport: "Importar",
                 discTitle: "Aviso legal", 
                 disc1: "Los juegos se obtienen a través de API y web scraping.", 
                 disc2: "La información puede mostrarse de forma incorrecta o incompleta.", 
@@ -844,6 +884,9 @@
                 copyLink: "Copier le Lien", shareBtn: "Partager", copySuccess: "Lien copié !", quickSettings: "Paramètres Rapides",
                 comingSoon: "Utilisez les boutons du header pour la langue et le thème. Plus de paramètres bientôt !",
                 shareAppTitle: "LootRadar - Suivi de Jeux Gratuits", shareAppText: "Suivez les jeux gratuits et économisez avec LootRadar !",
+                settingsLanguage: "Langue", settingsTheme: "Thème", themeLight: "Clair", themeDark: "Sombre",
+                settingsSync: "Sync Appareil", settingsSyncDesc: "Migrez en sécurité vos jeux et économies vers un autre appareil avec un PIN de 15 minutes.",
+                settingsExport: "Exporter", settingsImport: "Importer",
                 discTitle: "Avertissement", 
                 disc1: "Les jeux sont récupérés via des API et du scraping Web.", 
                 disc2: "Les informations peuvent parfois être incorrectes ou incomplètes.", 
@@ -875,6 +918,9 @@
                 copyLink: "Link kopieren", shareBtn: "Teilen", copySuccess: "Link kopiert!", quickSettings: "Schnelleinstellungen",
                 comingSoon: "Nutze die Header-Buttons für Sprache und Thema. Weitere Einstellungen folgen!",
                 shareAppTitle: "LootRadar - Gratis-Spiele Tracker", shareAppText: "Verfolge Gratis-Spiele und spare Geld mit LootRadar!",
+                settingsLanguage: "Sprache", settingsTheme: "Thema", themeLight: "Hell", themeDark: "Dunkel",
+                settingsSync: "Geräte-Sync", settingsSyncDesc: "Migriere sicher deine Spiele und Ersparnisse auf ein anderes Gerät mit einer 15-Minuten-PIN.",
+                settingsExport: "Exportieren", settingsImport: "Importieren",
                 discTitle: "Haftungsausschluss", 
                 disc1: "Spiele werden über APIs und Web-Scraping bezogen.", 
                 disc2: "Informationen können manchmal falsch oder unvollständig angezeigt werden.", 
@@ -906,6 +952,9 @@
                 copyLink: "Копировать", shareBtn: "Поделиться", copySuccess: "Ссылка скопирована!", quickSettings: "Быстрые настройки",
                 comingSoon: "Используйте кнопки в шапке для языка и темы. Больше настроек скоро!",
                 shareAppTitle: "LootRadar - Трекер бесплатных игр", shareAppText: "Отслеживайте бесплатные игры и экономьте с LootRadar!",
+                settingsLanguage: "Язык", settingsTheme: "Тема", themeLight: "Светлая", themeDark: "Тёмная",
+                settingsSync: "Синхронизация", settingsSyncDesc: "Безопасно перенесите игры и сбережения на другое устройство с помощью 15-минутного PIN.",
+                settingsExport: "Экспорт", settingsImport: "Импорт",
                 discTitle: "Отказ от ответственности", 
                 disc1: "Игры получены через API и парсинг веб-сайтов.", 
                 disc2: "Информация может отображаться некорректно или не полностью.", 
@@ -937,6 +986,9 @@
                 copyLink: "リンクをコピー", shareBtn: "共有", copySuccess: "リンクをコピーしました！", quickSettings: "クイック設定",
                 comingSoon: "ヘッダーのボタンで言語とテーマを変更できます。その他の設定は近日公開！",
                 shareAppTitle: "LootRadar - 無料ゲームトラッカー", shareAppText: "LootRadarで無料ゲームを追跡してお金を節約！",
+                settingsLanguage: "言語", settingsTheme: "テーマ", themeLight: "ライト", themeDark: "ダーク",
+                settingsSync: "デバイス同期", settingsSyncDesc: "15分PINでゲームと節約額を別のデバイスに安全に移行します。",
+                settingsExport: "出力", settingsImport: "入力",
                 discTitle: "免責事項", 
                 disc1: "ゲームはAPIとWebスクレイピングを通じて取得されます。", 
                 disc2: "情報が誤って表示されたり、不完全な場合があります。", 
@@ -968,6 +1020,9 @@
                 copyLink: "링크 복사", shareBtn: "공유", copySuccess: "링크가 복사되었습니다!", quickSettings: "빠른 설정",
                 comingSoon: "헤더 버튼으로 언어와 테마를 변경하세요. 더 많은 설정이 곧 제공됩니다!",
                 shareAppTitle: "LootRadar - 무료 게임 트래커", shareAppText: "LootRadar로 무료 게임을 추적하고 돈을 절약하세요!",
+                settingsLanguage: "언어", settingsTheme: "테마", themeLight: "라이트", themeDark: "다크",
+                settingsSync: "기기 동기화", settingsSyncDesc: "15분 PIN으로 획득한 게임과 총 절약액을 다른 기기로 안전하게 마이그레이션하세요.",
+                settingsExport: "내보내기", settingsImport: "가져오기",
                 discTitle: "면책 조항", 
                 disc1: "게임은 API 및 웹 스크래핑을 통해 가져옵니다.", 
                 disc2: "정보가 잘못 표시되거나 불완전할 수 있습니다.", 
@@ -999,6 +1054,9 @@
                 copyLink: "Copiar Link", shareBtn: "Compartilhar", copySuccess: "Link copiado!", quickSettings: "Configurações Rápidas",
                 comingSoon: "Use os botões do header para idioma e tema. Mais configurações em breve!",
                 shareAppTitle: "LootRadar - Rastreador de Jogos Grátis", shareAppText: "Rastreie jogos grátis e economize com o LootRadar!",
+                settingsLanguage: "Idioma", settingsTheme: "Tema", themeLight: "Claro", themeDark: "Escuro",
+                settingsSync: "Sync Dispositivo", settingsSyncDesc: "Migre com segurança seus jogos e economia para outro dispositivo usando um PIN de 15 minutos.",
+                settingsExport: "Exportar", settingsImport: "Importar",
                 discTitle: "Aviso Legal", 
                 disc1: "Os jogos são obtidos via APIs e web scraping.", 
                 disc2: "As informações podem ocasionalmente ser exibidas incorretamente ou incompletas.", 
@@ -1589,6 +1647,9 @@
             modal.classList.remove('hidden');
             modal.classList.add('flex');
 
+            // Initialize settings panel
+            initSettingsPanel();
+
             // Generate QR code
             generateQRCode();
 
@@ -1608,6 +1669,61 @@
               modal.classList.add('hidden');
               modal.classList.remove('flex');
             }, 300);
+          }
+        }
+
+        function initSettingsPanel() {
+          // Populate language dropdown
+          const langSelect = document.getElementById('settings-lang-select');
+          if (langSelect && langSelect.options.length === 0) {
+            langs.forEach(lang => {
+              const option = document.createElement('option');
+              option.value = lang.code;
+              option.textContent = lang.name;
+              if (lang.code === state.lang) option.selected = true;
+              langSelect.appendChild(option);
+            });
+          }
+
+          // Update theme button styles
+          updateThemeButtons();
+        }
+
+        function setTheme(theme) {
+          state.theme = theme;
+          localStorage.setItem('theme', theme);
+
+          if (theme === 'dark') {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+
+          // Update theme icon in header
+          const themeIcon = document.getElementById('theme-icon');
+          if (themeIcon) {
+            if (theme === 'dark') {
+              themeIcon.className = 'ph-fill ph-sun text-lg md:text-xl text-yellow-400';
+            } else {
+              themeIcon.className = 'ph-fill ph-moon text-lg md:text-xl text-yellow-500';
+            }
+          }
+
+          updateThemeButtons();
+        }
+
+        function updateThemeButtons() {
+          const lightBtn = document.getElementById('theme-light-btn');
+          const darkBtn = document.getElementById('theme-dark-btn');
+
+          if (lightBtn && darkBtn) {
+            if (state.theme === 'light') {
+              lightBtn.classList.add('border-yellow-400', 'bg-yellow-50', 'dark:bg-yellow-900/20');
+              darkBtn.classList.remove('border-blue-400', 'bg-blue-50', 'dark:bg-blue-900/20');
+            } else {
+              darkBtn.classList.add('border-blue-400', 'bg-blue-50', 'dark:bg-blue-900/20');
+              lightBtn.classList.remove('border-yellow-400', 'bg-yellow-50', 'dark:bg-yellow-900/20');
+            }
           }
         }
 

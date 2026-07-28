@@ -92,6 +92,7 @@
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
     <style>
         /* Custom UI Enhancements */
@@ -245,6 +246,10 @@
 
                     <button onclick="toggleTheme()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-transform active:scale-90" title="Toggle Theme">
                         <i id="theme-icon" class="ph-fill ph-moon text-lg md:text-xl text-yellow-500"></i>
+                    </button>
+
+                    <button onclick="toggleSettings()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-transform active:scale-90" title="Settings">
+                        <i class="ph-fill ph-gear text-lg md:text-xl text-gray-500 dark:text-gray-400 hover:text-purple-500 dark:hover:text-neon-purple transition-colors"></i>
                     </button>
 
                     <button onclick="toggleDisclaimer()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-transform active:scale-90" title="Disclaimer / Info">
@@ -625,7 +630,71 @@
            </div>
       </div>
     </div>
-    
+
+    <!-- Settings Panel -->
+    <div id="settings-modal" class="hidden fixed inset-0 z-[55] flex-col bg-slate-50 dark:bg-dark-bg transition-transform duration-300 transform translate-x-full">
+      <div class="glass-header px-4 py-4 flex items-center justify-between z-30">
+        <h2 class="text-xl md:text-2xl font-display font-black dark:text-white flex items-center gap-2">
+          <i class="ph-fill ph-gear text-purple-500 dark:text-neon-purple"></i>
+          <span id="ui-settings-title">Settings</span>
+        </h2>
+        <button onclick="toggleSettings()" class="p-2 bg-gray-200 dark:bg-gray-800 rounded-full hover:bg-red-500 hover:text-white dark:hover:bg-red-500 transition-transform active:scale-90">
+          <i class="ph-bold ph-x text-xl"></i>
+        </button>
+      </div>
+
+      <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <div class="max-w-md mx-auto space-y-6">
+
+          <!-- Share App Section -->
+          <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800">
+            <h3 class="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4 flex items-center gap-2">
+              <i class="ph-fill ph-share-network text-blue-500"></i>
+              <span id="ui-share-title">Share App</span>
+            </h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4" id="ui-share-desc">Share LootRadar with friends! Scan QR code or copy the link.</p>
+
+            <!-- QR Code -->
+            <div class="flex justify-center mb-4">
+              <div id="qr-code" class="bg-white p-4 rounded-2xl shadow-inner"></div>
+            </div>
+
+            <!-- URL Display -->
+            <div class="bg-gray-100 dark:bg-gray-800 rounded-xl p-3 mb-4 text-center">
+              <span class="text-sm font-mono text-gray-600 dark:text-gray-400 break-all">gamelootradar.us.ci</span>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-3">
+              <button onclick="copyShareLink()" class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-blue-500 hover:bg-blue-600 text-white font-bold text-sm transition-all active:scale-95">
+                <i class="ph-fill ph-copy"></i>
+                <span id="ui-copy-link">Copy Link</span>
+              </button>
+              <button onclick="nativeShare()" id="native-share-btn" class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-purple-500 hover:bg-purple-600 text-white font-bold text-sm transition-all active:scale-95 hidden">
+                <i class="ph-fill ph-share-network"></i>
+                <span id="ui-share-btn">Share</span>
+              </button>
+            </div>
+
+            <!-- Copy Success Message -->
+            <div id="copy-success" class="hidden mt-3 text-center text-sm text-green-500 font-bold">
+              <i class="ph-fill ph-check-circle"></i> <span id="ui-copy-success">Link copied!</span>
+            </div>
+          </div>
+
+          <!-- Quick Settings Section (Future: Language, Theme can be moved here) -->
+          <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800">
+            <h3 class="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4 flex items-center gap-2">
+              <i class="ph-fill ph-sliders-horizontal text-purple-500"></i>
+              <span id="ui-quick-settings">Quick Settings</span>
+            </h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 italic" id="ui-coming-soon">Use the header buttons for language and theme. More settings coming soon!</p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
     <button id="scroll-to-top-btn" onclick="scrollToTop()" class="fixed bottom-8 right-6 z-[9999] p-3.5 rounded-full bg-blue-600 text-white dark:bg-neon-blue dark:text-black shadow-[0_4px_15px_rgba(37,99,235,0.4)] dark:shadow-[0_0_20px_rgba(0,243,255,0.4)] transition-all duration-300 ease-out opacity-0 translate-y-4 scale-90 pointer-events-none hover:scale-110 hover:bg-blue-700 dark:hover:bg-[#00d2dd] active:scale-95" title="Scroll to Top">
       <i class="ph-bold ph-caret-up text-xl md:text-2xl"></i>
     </button>
@@ -647,6 +716,10 @@
                 instIos1: "1. Tap the Share icon below", instIos2: "2. Select 'Add to Home Screen'", instGotIt: "Got it!",
                 sortNewest: "Date: Newest First", sortOldest: "Date: Oldest First", sortPriceHigh: "Price: High to Low", sortPriceLow: "Price: Low to High", sortName: "Name (A-Z)", sortNameZA: "Name (Z-A)",
                 viewGrid: "Grid View", viewList: "List View", getLink: "Get", collapse: "Collapse", expand: "Expand",
+                settingsTitle: "Settings", shareTitle: "Share App", shareDesc: "Share LootRadar with friends! Scan QR code or copy the link.",
+                copyLink: "Copy Link", shareBtn: "Share", copySuccess: "Link copied!", quickSettings: "Quick Settings",
+                comingSoon: "Use the header buttons for language and theme. More settings coming soon!",
+                shareAppTitle: "LootRadar - Free Game Tracker", shareAppText: "Track free games and save money with LootRadar!",
                 discTitle: "Notice & Disclaimer", 
                 disc1: "Games are fetched via third-party APIs and web scraping.", 
                 disc2: "Information may sometimes be displayed incorrectly or incompletely.", 
@@ -674,6 +747,10 @@
                 instIos1: "1. 点击浏览器底部的『分享』图标", instIos2: "2. 选择『添加到主屏幕』", instGotIt: "我知道了",
                 sortNewest: "入库时间: 最新的在前", sortOldest: "入库时间: 最旧的在前", sortPriceHigh: "节省金额: 从高到低", sortPriceLow: "节省金额: 从低到高", sortName: "名称 (A-Z)", sortNameZA: "名称 (Z-A)",
                 viewGrid: "网格视图", viewList: "列表视图", getLink: "获取", collapse: "收起", expand: "展开",
+                settingsTitle: "设置", shareTitle: "分享应用", shareDesc: "分享 LootRadar 给朋友！扫描二维码或复制链接。",
+                copyLink: "复制链接", shareBtn: "分享", copySuccess: "链接已复制！", quickSettings: "快速设置",
+                comingSoon: "使用顶部按钮切换语言和主题。更多设置即将推出！",
+                shareAppTitle: "LootRadar - 免费游戏追踪", shareAppText: "使用 LootRadar 追踪免费游戏，省钱！",
                 discTitle: "免责声明",
                 disc1: "游戏数据是通过 API 和社区爬虫自动抓取得到的。",
                 disc2: "部分游戏可能有错误显示，或者没有完整显示信息。",
@@ -701,6 +778,10 @@
                 instIos1: "1. 點擊瀏覽器底部的『分享』圖示", instIos2: "2. 選擇『加入到主畫面』", instGotIt: "我知道了",
                 sortNewest: "入庫時間: 最新的在前", sortOldest: "入庫時間: 最舊的在前", sortPriceHigh: "節省金額: 從高到低", sortPriceLow: "節省金額: 從低到高", sortName: "名稱 (A-Z)", sortNameZA: "名稱 (Z-A)",
                 viewGrid: "網格檢視", viewList: "清單檢視", getLink: "獲取", collapse: "收起", expand: "展開",
+                settingsTitle: "設定", shareTitle: "分享應用", shareDesc: "分享 LootRadar 給朋友！掃描二維碼或複製連結。",
+                copyLink: "複製連結", shareBtn: "分享", copySuccess: "連結已複製！", quickSettings: "快速設定",
+                comingSoon: "使用頂部按鈕切換語言和主題。更多設定即將推出！",
+                shareAppTitle: "LootRadar - 免費遊戲追蹤", shareAppText: "使用 LootRadar 追蹤免費遊戲，省錢！",
                 discTitle: "免責聲明",
                 disc1: "遊戲資料是透過 API 和社區爬蟲自動抓取得到的。",
                 disc2: "部分遊戲可能會有錯誤顯示，或者沒有完整顯示資訊。",
@@ -728,6 +809,10 @@
                 instIos1: "1. Toca el ícono de Compartir abajo", instIos2: "2. Selecciona 'Agregar a inicio'", instGotIt: "¡Entendido!",
                 sortNewest: "Fecha: Más recientes", sortOldest: "Fecha: Más antiguos", sortPriceHigh: "Precio: Mayor a Menor", sortPriceLow: "Precio: Menor a Mayor", sortName: "Nombre (A-Z)", sortNameZA: "Nombre (Z-A)",
                 viewGrid: "Vista cuadrícula", viewList: "Vista lista", getLink: "Obtener", collapse: "Colapsar", expand: "Expandir",
+                settingsTitle: "Ajustes", shareTitle: "Compartir App", shareDesc: "¡Comparte LootRadar con amigos! Escanea el QR o copia el enlace.",
+                copyLink: "Copiar Enlace", shareBtn: "Compartir", copySuccess: "¡Enlace copiado!", quickSettings: "Ajustes Rápidos",
+                comingSoon: "Usa los botones del header para idioma y tema. ¡Más ajustes pronto!",
+                shareAppTitle: "LootRadar - Rastreador de Juegos Gratis", shareAppText: "¡Rastrea juegos gratis y ahorra dinero con LootRadar!",
                 discTitle: "Aviso legal", 
                 disc1: "Los juegos se obtienen a través de API y web scraping.", 
                 disc2: "La información puede mostrarse de forma incorrecta o incompleta.", 
@@ -755,6 +840,10 @@
                 instIos1: "1. Touchez l'icône Partager ci-dessous", instIos2: "2. Sélectionnez 'Sur l'écran d'accueil'", instGotIt: "J'ai compris",
                 sortNewest: "Date: Plus récents", sortOldest: "Date: Plus anciens", sortPriceHigh: "Prix: Décroissant", sortPriceLow: "Prix: Croissant", sortName: "Nom (A-Z)", sortNameZA: "Nom (Z-A)",
                 viewGrid: "Vue grille", viewList: "Vue liste", getLink: "Obtenir", collapse: "Réduire", expand: "Développer",
+                settingsTitle: "Paramètres", shareTitle: "Partager l'App", shareDesc: "Partagez LootRadar avec vos amis ! Scannez le QR ou copiez le lien.",
+                copyLink: "Copier le Lien", shareBtn: "Partager", copySuccess: "Lien copié !", quickSettings: "Paramètres Rapides",
+                comingSoon: "Utilisez les boutons du header pour la langue et le thème. Plus de paramètres bientôt !",
+                shareAppTitle: "LootRadar - Suivi de Jeux Gratuits", shareAppText: "Suivez les jeux gratuits et économisez avec LootRadar !",
                 discTitle: "Avertissement", 
                 disc1: "Les jeux sont récupérés via des API et du scraping Web.", 
                 disc2: "Les informations peuvent parfois être incorrectes ou incomplètes.", 
@@ -782,6 +871,10 @@
                 instIos1: "1. Tippe unten auf das Teilen-Symbol", instIos2: "2. Wähle 'Zum Home-Bildschirm'", instGotIt: "Verstanden",
                 sortNewest: "Datum: Neueste zuerst", sortOldest: "Datum: Älteste zuerst", sortPriceHigh: "Preis: Absteigend", sortPriceLow: "Preis: Aufsteigend", sortName: "Name (A-Z)", sortNameZA: "Name (Z-A)",
                 viewGrid: "Rasteransicht", viewList: "Listenansicht", getLink: "Holen", collapse: "Einklappen", expand: "Erweitern",
+                settingsTitle: "Einstellungen", shareTitle: "App teilen", shareDesc: "Teile LootRadar mit Freunden! QR scannen oder Link kopieren.",
+                copyLink: "Link kopieren", shareBtn: "Teilen", copySuccess: "Link kopiert!", quickSettings: "Schnelleinstellungen",
+                comingSoon: "Nutze die Header-Buttons für Sprache und Thema. Weitere Einstellungen folgen!",
+                shareAppTitle: "LootRadar - Gratis-Spiele Tracker", shareAppText: "Verfolge Gratis-Spiele und spare Geld mit LootRadar!",
                 discTitle: "Haftungsausschluss", 
                 disc1: "Spiele werden über APIs und Web-Scraping bezogen.", 
                 disc2: "Informationen können manchmal falsch oder unvollständig angezeigt werden.", 
@@ -809,6 +902,10 @@
                 instIos1: "1. Нажмите иконку 'Поделиться' внизу", instIos2: "2. Выберите 'На экран «Домой»'", instGotIt: "Понятно",
                 sortNewest: "Сначала новые", sortOldest: "Сначала старые", sortPriceHigh: "Цена: по убыванию", sortPriceLow: "Цена: по возрастанию", sortName: "Название (А-Я)", sortNameZA: "Название (Я-А)",
                 viewGrid: "Сетка", viewList: "Список", getLink: "Получить", collapse: "Свернуть", expand: "Развернуть",
+                settingsTitle: "Настройки", shareTitle: "Поделиться", shareDesc: "Поделитесь LootRadar с друзьями! Сканируйте QR или скопируйте ссылку.",
+                copyLink: "Копировать", shareBtn: "Поделиться", copySuccess: "Ссылка скопирована!", quickSettings: "Быстрые настройки",
+                comingSoon: "Используйте кнопки в шапке для языка и темы. Больше настроек скоро!",
+                shareAppTitle: "LootRadar - Трекер бесплатных игр", shareAppText: "Отслеживайте бесплатные игры и экономьте с LootRadar!",
                 discTitle: "Отказ от ответственности", 
                 disc1: "Игры получены через API и парсинг веб-сайтов.", 
                 disc2: "Информация может отображаться некорректно или не полностью.", 
@@ -836,6 +933,10 @@
                 instIos1: "1. 下の「共有」アイコンをタップ", instIos2: "2. 「ホーム画面に追加」を選択", instGotIt: "了解",
                 sortNewest: "取得日: 新しい順", sortOldest: "取得日: 古い順", sortPriceHigh: "価格: 高い順", sortPriceLow: "価格: 低い順", sortName: "名前 (A-Z)", sortNameZA: "名前 (Z-A)",
                 viewGrid: "グリッド表示", viewList: "リスト表示", getLink: "入手", collapse: "折りたたむ", expand: "展開する",
+                settingsTitle: "設定", shareTitle: "アプリを共有", shareDesc: "LootRadarを友達と共有！QRコードをスキャンまたはリンクをコピー。",
+                copyLink: "リンクをコピー", shareBtn: "共有", copySuccess: "リンクをコピーしました！", quickSettings: "クイック設定",
+                comingSoon: "ヘッダーのボタンで言語とテーマを変更できます。その他の設定は近日公開！",
+                shareAppTitle: "LootRadar - 無料ゲームトラッカー", shareAppText: "LootRadarで無料ゲームを追跡してお金を節約！",
                 discTitle: "免責事項", 
                 disc1: "ゲームはAPIとWebスクレイピングを通じて取得されます。", 
                 disc2: "情報が誤って表示されたり、不完全な場合があります。", 
@@ -863,6 +964,10 @@
                 instIos1: "1. 하단의 '공유' 아이콘을 탭하세요", instIos2: "2. '홈 화면에 추가'를 선택하세요", instGotIt: "확인",
                 sortNewest: "획득일: 최신순", sortOldest: "획득일: 오래된순", sortPriceHigh: "가격: 높은순", sortPriceLow: "가격: 낮은순", sortName: "이름 (A-Z)", sortNameZA: "이름 (Z-A)",
                 viewGrid: "그리드 보기", viewList: "리스트 보기", getLink: "받기", collapse: "접기", expand: "펼치기",
+                settingsTitle: "설정", shareTitle: "앱 공유", shareDesc: "LootRadar를 친구와 공유! QR 코드를 스캔하거나 링크를 복사하세요.",
+                copyLink: "링크 복사", shareBtn: "공유", copySuccess: "링크가 복사되었습니다!", quickSettings: "빠른 설정",
+                comingSoon: "헤더 버튼으로 언어와 테마를 변경하세요. 더 많은 설정이 곧 제공됩니다!",
+                shareAppTitle: "LootRadar - 무료 게임 트래커", shareAppText: "LootRadar로 무료 게임을 추적하고 돈을 절약하세요!",
                 discTitle: "면책 조항", 
                 disc1: "게임은 API 및 웹 스크래핑을 통해 가져옵니다.", 
                 disc2: "정보가 잘못 표시되거나 불완전할 수 있습니다.", 
@@ -890,6 +995,10 @@
                 instIos1: "1. Toque no ícone Compartilhar abaixo", instIos2: "2. Selecione 'Adicionar à Tela de Início'", instGotIt: "Entendi!",
                 sortNewest: "Data: Mais Recentes", sortOldest: "Data: Mais Antigos", sortPriceHigh: "Preço: Maior a Menor", sortPriceLow: "Preço: Menor a Maior", sortName: "Nome (A-Z)", sortNameZA: "Nome (Z-A)",
                 viewGrid: "Visualização grade", viewList: "Visualização lista", getLink: "Obter", collapse: "Recolher", expand: "Expandir",
+                settingsTitle: "Configurações", shareTitle: "Compartilhar App", shareDesc: "Compartilhe o LootRadar com amigos! Escaneie o QR ou copie o link.",
+                copyLink: "Copiar Link", shareBtn: "Compartilhar", copySuccess: "Link copiado!", quickSettings: "Configurações Rápidas",
+                comingSoon: "Use os botões do header para idioma e tema. Mais configurações em breve!",
+                shareAppTitle: "LootRadar - Rastreador de Jogos Grátis", shareAppText: "Rastreie jogos grátis e economize com o LootRadar!",
                 discTitle: "Aviso Legal", 
                 disc1: "Os jogos são obtidos via APIs e web scraping.", 
                 disc2: "As informações podem ocasionalmente ser exibidas incorretamente ou incompletas.", 
@@ -1470,7 +1579,90 @@
             }, 300);
           }
         }
-        
+
+        // --- SETTINGS PANEL ---
+        function toggleSettings() {
+          const modal = document.getElementById('settings-modal');
+
+          if (modal.classList.contains('hidden')) {
+            // Open settings
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+
+            // Generate QR code
+            generateQRCode();
+
+            // Check if native share is available
+            if (navigator.share) {
+              document.getElementById('native-share-btn').classList.remove('hidden');
+            }
+
+            // Slide in
+            void modal.offsetWidth;
+            modal.classList.remove('translate-x-full');
+          } else {
+            // Close settings
+            modal.classList.add('translate-x-full');
+
+            setTimeout(() => {
+              modal.classList.add('hidden');
+              modal.classList.remove('flex');
+            }, 300);
+          }
+        }
+
+        function generateQRCode() {
+          const qrContainer = document.getElementById('qr-code');
+          if (!qrContainer) return;
+
+          // Clear existing QR
+          qrContainer.innerHTML = '';
+
+          // Generate new QR code
+          const appUrl = 'https://gamelootradar.us.ci';
+          new QRCode(qrContainer, {
+            text: appUrl,
+            width: 180,
+            height: 180,
+            colorDark: '#1f2937',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.H
+          });
+        }
+
+        function copyShareLink() {
+          const appUrl = 'https://gamelootradar.us.ci';
+          const t = i18n[state.lang];
+
+          navigator.clipboard.writeText(appUrl).then(() => {
+            // Show success message
+            const successMsg = document.getElementById('copy-success');
+            if (successMsg) {
+              successMsg.classList.remove('hidden');
+              setTimeout(() => {
+                successMsg.classList.add('hidden');
+              }, 2000);
+            }
+          }).catch(err => {
+            console.error('Failed to copy:', err);
+          });
+        }
+
+        function nativeShare() {
+          const appUrl = 'https://gamelootradar.us.ci';
+          const t = i18n[state.lang];
+
+          if (navigator.share) {
+            navigator.share({
+              title: t.shareTitle || 'LootRadar - Free Game Tracker',
+              text: t.shareText || 'Track free games and save money with LootRadar!',
+              url: appUrl
+            }).catch(err => {
+              console.error('Share failed:', err);
+            });
+          }
+        }
+
         function renderStats() {
             const container = document.getElementById('stats-container');
             const games = Object.values(state.claimedGames);
@@ -2630,6 +2822,16 @@
 
             safeSetOption('opt-view-grid', t.viewGrid);
             safeSetOption('opt-view-list', t.viewList);
+
+            // Update Settings panel text
+            safeSetText('ui-settings-title', t.settingsTitle);
+            safeSetText('ui-share-title', t.shareTitle);
+            safeSetText('ui-share-desc', t.shareDesc);
+            safeSetText('ui-copy-link', t.copyLink);
+            safeSetText('ui-share-btn', t.shareBtn);
+            safeSetText('ui-copy-success', t.copySuccess);
+            safeSetText('ui-quick-settings', t.quickSettings);
+            safeSetText('ui-coming-soon', t.comingSoon);
 
             document.documentElement.lang = state.lang;
 

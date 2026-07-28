@@ -1620,6 +1620,9 @@
               document.getElementById('native-share-btn').classList.remove('hidden');
             }
 
+            // Hide scroll-to-top button when settings open
+            window.updateScrollButtonState();
+
             // Slide in
             void modal.offsetWidth;
             modal.classList.remove('translate-x-full');
@@ -1627,9 +1630,18 @@
             // Close settings
             modal.classList.add('translate-x-full');
 
+            // Hide scroll-to-top button during transition
+            const scrollTopBtn = document.getElementById('scroll-to-top-btn');
+            if (scrollTopBtn) {
+              scrollTopBtn.classList.add('opacity-0', 'translate-y-4', 'scale-90', 'pointer-events-none');
+              scrollTopBtn.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
+            }
+
             setTimeout(() => {
               modal.classList.add('hidden');
               modal.classList.remove('flex');
+              // Update scroll button state after settings close
+              window.updateScrollButtonState();
             }, 300);
           }
         }
@@ -3042,21 +3054,25 @@
         // --- SCROLL TO TOP LOGIC ---
         window.updateScrollButtonState = function() {
           const libraryModal = document.getElementById('library-modal');
+          const settingsModal = document.getElementById('settings-modal');
           const scrollTopBtn = document.getElementById('scroll-to-top-btn');
           if (!scrollTopBtn) return;
-        
-          let currentScrollTop = 0;
-        
-          // 1. Detect which screen is currently visible and get ITS specific scroll position
-          if (libraryModal && !libraryModal.classList.contains('pointer-events-none')) {
-            const libScroll = document.querySelector('.library-scroll-area');
-            if (libScroll) currentScrollTop = libScroll.scrollTop;
-          } else {
-            const appContainer = document.getElementById('app-container');
-            if (appContainer) currentScrollTop = appContainer.scrollTop;
+
+          // Hide scroll-to-top button when Settings or Library modal is open
+          if ((settingsModal && !settingsModal.classList.contains('translate-x-full')) ||
+              (libraryModal && !libraryModal.classList.contains('pointer-events-none'))) {
+            scrollTopBtn.classList.add('opacity-0', 'translate-y-4', 'scale-90', 'pointer-events-none');
+            scrollTopBtn.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
+            return;
           }
-        
-          // 2. Show or hide based ONLY on the active screen's scroll position
+
+          let currentScrollTop = 0;
+
+          // Get scroll position of main app container
+          const appContainer = document.getElementById('app-container');
+          if (appContainer) currentScrollTop = appContainer.scrollTop;
+
+          // Show or hide based on scroll position
           if (currentScrollTop > 300) {
             scrollTopBtn.classList.remove('opacity-0', 'translate-y-4', 'scale-90', 'pointer-events-none');
             scrollTopBtn.classList.add('opacity-100', 'translate-y-0', 'scale-100');

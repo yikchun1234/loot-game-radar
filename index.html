@@ -2810,9 +2810,23 @@
         }
 
         function applyTheme() {
-            const html = document.documentElement, themeIcon = document.getElementById('theme-icon');
-            if (state.theme === 'dark') { html.classList.add('dark'); themeIcon.className = "ph-fill ph-sun text-lg md:text-xl text-yellow-400"; }
-            else { html.classList.remove('dark'); themeIcon.className = "ph-fill ph-moon text-lg md:text-xl text-gray-600"; }
+            const html = document.documentElement;
+            if (state.theme === 'dark') {
+                html.classList.add('dark');
+            } else {
+                html.classList.remove('dark');
+            }
+
+            // Update header theme icon if it exists (backward compatibility)
+            const themeIcon = document.getElementById('theme-icon');
+            if (themeIcon) {
+                if (state.theme === 'dark') {
+                    themeIcon.className = "ph-fill ph-sun text-lg md:text-xl text-yellow-400";
+                } else {
+                    themeIcon.className = "ph-fill ph-moon text-lg md:text-xl text-gray-600";
+                }
+            }
+
             updateThemeButtons();
         }
 

@@ -236,18 +236,6 @@
                         <span class="flex items-center justify-center text-xl md:text-2xl drop-shadow-md pb-0.5">🎮</span>
                     </button>
 
-                    <div class="relative">
-                        <button id="lang-dropdown-btn" onclick="toggleLangMenu(event)" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-transform active:scale-90 font-bold text-sm uppercase" title="Change Language">
-                            <span id="lang-btn">EN</span>
-                        </button>
-                        <div id="lang-menu" class="hidden absolute right-0 mt-2 w-32 bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden z-50 origin-top">
-                            </div>
-                    </div>
-
-                    <button onclick="toggleTheme()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-transform active:scale-90" title="Toggle Theme">
-                        <i id="theme-icon" class="ph-fill ph-moon text-lg md:text-xl text-yellow-500"></i>
-                    </button>
-
                     <button onclick="toggleSettings()" class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-transform active:scale-90" title="Settings">
                         <i class="ph-fill ph-gear text-lg md:text-xl text-gray-500 dark:text-gray-400 hover:text-purple-500 dark:hover:text-neon-purple transition-colors"></i>
                     </button>
@@ -638,7 +626,7 @@
               <span id="ui-settings-language">Language</span>
             </h3>
             <div class="relative">
-              <select id="settings-lang-select" onchange="setLanguage(this.value)" class="w-full appearance-none bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 py-3 pl-4 pr-10 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-neon-blue/50 transition-all font-bold text-sm cursor-pointer">
+              <select id="settings-lang-select" onchange="setLang(this.value)" class="w-full appearance-none bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 py-3 pl-4 pr-10 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-neon-blue/50 transition-all font-bold text-sm cursor-pointer">
               </select>
               <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                 <i class="ph-bold ph-caret-down text-gray-400"></i>
@@ -1455,7 +1443,6 @@
         
             function init() {
               applyTheme();
-              setupLangMenu();
               updateLanguageUI();
               updateWalletUI();
               setupPullToRefresh();
@@ -1463,34 +1450,9 @@
               checkAndShowIOSPrompt();
               setupScrollToTop();
               setupTabsScroll();
-              
+
               // 🚀 NEW: Pre-build the library in the background instantly!
               renderLibrary();
-            
-              document.addEventListener('click', (e) => {
-                const btn = document.getElementById('lang-dropdown-btn');
-                const menu = document.getElementById('lang-menu');
-                if(btn && menu && !btn.contains(e.target) && !menu.contains(e.target) && !menu.classList.contains('hidden')) {
-                    toggleLangMenu(null, true);
-                }
-            });
-        }
-
-        function toggleLangMenu(e, forceClose = false) {
-            if (e) e.stopPropagation();
-            const menu = document.getElementById('lang-menu');
-            
-            if (forceClose || !menu.classList.contains('hidden')) {
-                menu.classList.remove('animate-slideDown');
-                menu.classList.add('animate-popOut');
-                setTimeout(() => {
-                    menu.classList.add('hidden');
-                }, 200); 
-            } else {
-                menu.classList.remove('hidden');
-                menu.classList.remove('animate-popOut');
-                menu.classList.add('animate-slideDown');
-            }
         }
 
         function toggleLibrary() {
@@ -2610,23 +2572,20 @@
             animateOdometer('saved-amount', state.totalSaved, true);
         }
 
-        function setupLangMenu() {
-            const menu = document.getElementById('lang-menu');
-            menu.innerHTML = langs.map(l => `<button onclick="setLang('${l.code}')" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-800 ${state.lang === l.code ? 'font-bold text-blue-500' : 'text-gray-700 dark:text-gray-300'} transition-colors">${l.name}</button>`).join('');
-        }
-
         window.setLang = function(code) {
             state.lang = code;
             localStorage.setItem('lang', code);
-            toggleLangMenu(null, true);
-            setupLangMenu();
             updateLanguageUI();
-        
+
+            // Update settings language dropdown
+            const settingsLangSelect = document.getElementById('settings-lang-select');
+            if (settingsLangSelect) settingsLangSelect.value = code;
+
             if(state.games.length > 0) {
                 renderTabs();
                 renderGames();
             }
-            
+
             // 🚀 FIXED: ALWAYS update the library in the background so dropdown translations apply instantly!
             renderLibrary();
         }
@@ -2852,8 +2811,9 @@
 
         function applyTheme() {
             const html = document.documentElement, themeIcon = document.getElementById('theme-icon');
-            if (state.theme === 'dark') { html.classList.add('dark'); themeIcon.className = "ph-fill ph-sun text-lg md:text-xl text-yellow-400"; } 
+            if (state.theme === 'dark') { html.classList.add('dark'); themeIcon.className = "ph-fill ph-sun text-lg md:text-xl text-yellow-400"; }
             else { html.classList.remove('dark'); themeIcon.className = "ph-fill ph-moon text-lg md:text-xl text-gray-600"; }
+            updateThemeButtons();
         }
 
         function updateLanguageUI() {
@@ -2869,10 +2829,7 @@
             safeSetText('ui-loading', Array.isArray(t.loading) ? t.loading[0] : t.loading);
             safeSetText('ui-error', t.error);
             safeSetText('ui-empty', t.empty);
-            // Show short lang code for button
-            const langBtnText = state.lang === 'zh-CN' ? '简' : state.lang === 'zh-TW' ? '繁' : state.lang.toUpperCase();
-            safeSetText('lang-btn', langBtnText);
-            
+
             const walletContainer = document.getElementById('wallet-container');
             if (walletContainer) walletContainer.title = t.savedSince;
             
@@ -2941,6 +2898,14 @@
 
             // Update Settings panel text
             safeSetText('ui-settings-title', t.settingsTitle);
+            safeSetText('ui-settings-language', t.settingsLanguage);
+            safeSetText('ui-settings-theme', t.settingsTheme);
+            safeSetText('ui-theme-light', t.themeLight);
+            safeSetText('ui-theme-dark', t.themeDark);
+            safeSetText('ui-settings-sync', t.settingsSync);
+            safeSetText('ui-settings-sync-desc', t.settingsSyncDesc);
+            safeSetText('ui-settings-export', t.settingsExport);
+            safeSetText('ui-settings-import', t.settingsImport);
             safeSetText('ui-share-title', t.shareTitle);
             safeSetText('ui-share-desc', t.shareDesc);
             safeSetText('ui-copy-link', t.copyLink);

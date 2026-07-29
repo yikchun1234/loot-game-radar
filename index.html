@@ -62,7 +62,8 @@
                 extend: {
                     colors: {
                         neon: { blue: '#00f3ff', purple: '#bc13fe', pink: '#ff007f' },
-                        dark: { bg: '#0b0c10', card: '#1f2833', surface: '#151b22' }
+                        dark: { bg: '#0b0c10', card: '#1f2833', surface: '#151b22' },
+                        light: { bg: '#f0f4ff', card: '#ffffff', surface: '#e0e7ff', border: '#c7d2fe' }
                     },
                     fontFamily: {
                         sans: ['"Inter"', 'system-ui', 'sans-serif'],
@@ -114,24 +115,24 @@
         
         #app-container, .library-scroll-area {
             scrollbar-width: thin;
-            scrollbar-color: #3b82f6 #e2e8f0;
+            scrollbar-color: #3b82f6 #e0e7ff;
         }
         .dark #app-container, .dark .library-scroll-area {
             scrollbar-color: #00f3ff #0b0c10;
         }
 
         ::-webkit-scrollbar { width: 10px; }
-        ::-webkit-scrollbar-track { background: #e2e8f0; box-shadow: inset 0 0 6px rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar-track { background: #e0e7ff; box-shadow: inset 0 0 6px rgba(0,0,0,0.05); }
         .dark ::-webkit-scrollbar-track { background: #0b0c10; box-shadow: inset 0 0 6px rgba(0,0,0,0.6); }
-        ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 8px; border: 2px solid #e2e8f0; }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #3b82f6 0%, #8b5cf6 100%); border-radius: 8px; border: 2px solid #e0e7ff; }
         .dark ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #00f3ff 0%, #bc13fe 100%); border: 2px solid #0b0c10; }
         ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #2563eb 0%, #7c3aed 100%); }
         .dark ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #00d2dd 0%, #9a0fcf 100%); }
 
-        .glass-header { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid rgba(255,255,255,0.5); box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05); }
+        .glass-header { background: rgba(240, 244, 255, 0.85); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-bottom: 1px solid rgba(199, 210, 254, 0.5); box-shadow: 0 4px 30px rgba(37, 99, 235, 0.05); }
         .dark .glass-header { background: rgba(11, 12, 16, 0.75); border-bottom: 1px solid rgba(255,255,255,0.05); box-shadow: 0 4px 30px rgba(0, 243, 255, 0.05); }
 
-        .glass-panel { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,0.5); }
+        .glass-panel { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(199, 210, 254, 0.5); box-shadow: 0 4px 20px rgba(37, 99, 235, 0.05); }
         .dark .glass-panel { background: rgba(15, 20, 25, 0.85); border: 1px solid rgba(0,243,255,0.1); box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
 
         .text-clamp-fix {
@@ -139,13 +140,13 @@
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
             overflow: hidden;
-            padding-bottom: 6px !important; 
-            margin-bottom: -6px !important; 
+            padding-bottom: 6px !important;
+            margin-bottom: -6px !important;
             line-height: 1.4 !important;
         }
 
-        .game-card { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; border: 1px solid rgba(0, 0, 0, 0.05); box-shadow: 0 10px 20px rgba(0,0,0,0.05), 0 2px 5px rgba(0,0,0,0.05); display: flex; flex-direction: column; }
-        .game-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.2), 0 10px 20px rgba(0,0,0,0.1); border-color: rgba(59, 130, 246, 0.3); }
+        .game-card { transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; border: 1px solid rgba(199, 210, 254, 0.5); box-shadow: 0 4px 15px rgba(37, 99, 235, 0.08), 0 2px 5px rgba(0,0,0,0.04); display: flex; flex-direction: column; }
+        .game-card:hover { transform: translateY(-8px) scale(1.02); box-shadow: 0 20px 40px -10px rgba(37, 99, 235, 0.25), 0 10px 20px rgba(37, 99, 235, 0.1); border-color: rgba(37, 99, 235, 0.5); }
         .dark .game-card { background: linear-gradient(145deg, #1e2532 0%, #11161d 100%); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 10px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05); }
         .dark .game-card:hover { border-color: rgba(0, 243, 255, 0.6); box-shadow: 0 20px 40px -10px rgba(0, 243, 255, 0.25), 0 0 30px rgba(0, 243, 255, 0.1), inset 0 1px 0 rgba(255,255,255,0.1); }
 
@@ -196,7 +197,7 @@
         
     </style>
 </head>
-<body class="bg-slate-50 dark:bg-dark-bg text-gray-800 dark:text-gray-200 h-screen overflow-hidden transition-colors duration-300">
+<body class="bg-light-bg dark:bg-dark-bg text-gray-800 dark:text-gray-200 h-screen overflow-hidden transition-colors duration-300">
 
     <div class="ambient-bg"></div>
 
@@ -264,7 +265,7 @@
                 <div id="platform-tabs" class="flex gap-3 overflow-x-auto no-scrollbar py-3 px-2">
                     <!-- Tabs generated by JS -->
                 </div>
-                <div class="absolute top-0 right-0 w-8 h-full bg-gradient-to-l from-gray-50 dark:from-dark-bg to-transparent pointer-events-none"></div>
+                <div class="absolute top-0 right-0 w-8 h-full bg-gradient-to-l from-light-bg dark:from-dark-bg to-transparent pointer-events-none"></div>
             </div>
 
             <!-- States -->
@@ -316,14 +317,14 @@
             </div>
             
             <div class="space-y-3">
-                <div class="flex items-center gap-3 text-sm font-medium dark:text-gray-200 bg-gray-100 dark:bg-white/5 p-3 rounded-xl">
+                <div class="flex items-center gap-3 text-sm font-medium dark:text-gray-200 bg-light-surface dark:bg-white/5 p-3 rounded-xl">
                     <i class="ph-fill ph-gamepad text-purple-500 text-xl"></i> <span id="ui-install-b1">Track Claimed History</span>
                 </div>
-                <div class="flex items-center gap-3 text-sm font-medium dark:text-gray-200 bg-gray-100 dark:bg-white/5 p-3 rounded-xl">
+                <div class="flex items-center gap-3 text-sm font-medium dark:text-gray-200 bg-light-surface dark:bg-white/5 p-3 rounded-xl">
                     <i class="ph-fill ph-piggy-bank text-green-500 text-xl"></i> <span id="ui-install-b2">Calculate Total Savings</span>
                 </div>
 
-                <div id="ios-install-steps" class="hidden flex-col gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                <div id="ios-install-steps" class="hidden flex-col gap-2 mt-4 pt-4 border-t border-light-border dark:border-gray-700">
                     <div class="flex items-center gap-3 text-sm font-medium dark:text-gray-200 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-xl text-blue-600 dark:text-neon-blue border border-blue-100 dark:border-neon-blue/30">
                         <i class="ph-bold ph-export text-xl"></i> <span id="ui-inst-ios1">1. Tap the Share icon below</span>
                     </div>
@@ -420,28 +421,28 @@
             </div>
     
             <div class="space-y-2.5 mb-6">
-                <label class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 cursor-pointer hover:border-red-500/40 transition-colors">
+                <label class="flex items-center gap-3 p-3 rounded-xl bg-light-surface dark:bg-white/5 border border-light-border dark:border-gray-800 cursor-pointer hover:border-red-500/40 transition-colors">
                     <input type="radio" name="delete-reason" value="expired" checked class="accent-red-500 h-4 w-4">
                     <div class="text-left">
                         <p id="ui-del-r1" class="text-xs font-bold dark:text-gray-200">Offer Expired</p>
                         <p id="ui-del-r1d" class="text-[10px] text-gray-400">Missed the claim window time-limit.</p>
                     </div>
                 </label>
-                <label class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 cursor-pointer hover:border-red-500/40 transition-colors">
+                <label class="flex items-center gap-3 p-3 rounded-xl bg-light-surface dark:bg-white/5 border border-light-border dark:border-gray-800 cursor-pointer hover:border-red-500/40 transition-colors">
                     <input type="radio" name="delete-reason" value="failed" class="accent-red-500 h-4 w-4">
                     <div class="text-left">
                         <p id="ui-del-r2" class="text-xs font-bold dark:text-gray-200">Failed to Redeem</p>
                         <p id="ui-del-r2d" class="text-[10px] text-gray-400">Key ran out, error code, or region-locked.</p>
                     </div>
                 </label>
-                <label class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 cursor-pointer hover:border-red-500/40 transition-colors">
+                <label class="flex items-center gap-3 p-3 rounded-xl bg-light-surface dark:bg-white/5 border border-light-border dark:border-gray-800 cursor-pointer hover:border-red-500/40 transition-colors">
                     <input type="radio" name="delete-reason" value="paywall" class="accent-red-500 h-4 w-4">
                     <div class="text-left">
                         <p id="ui-del-r3" class="text-xs font-bold dark:text-gray-200">Requires Purchase</p>
                         <p id="ui-del-r3d" class="text-[10px] text-gray-400">Account limited (e.g., Steam $5 spend required).</p>
                     </div>
                 </label>
-                <label class="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 cursor-pointer hover:border-red-500/40 transition-colors">
+                <label class="flex items-center gap-3 p-3 rounded-xl bg-light-surface dark:bg-white/5 border border-light-border dark:border-gray-800 cursor-pointer hover:border-red-500/40 transition-colors">
                     <input type="radio" name="delete-reason" value="accidental" class="accent-red-500 h-4 w-4">
                     <div class="text-left">
                         <p id="ui-del-r4" class="text-xs font-bold dark:text-gray-200">Others / Accident</p>
@@ -451,7 +452,7 @@
             </div>
     
             <div class="flex gap-3">
-                <button onclick="closeDeleteModal()" class="flex-1 py-3 bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-bold active:scale-95 transition-transform">
+                <button onclick="closeDeleteModal()" class="flex-1 py-3 bg-light-surface dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded-xl text-xs font-bold active:scale-95 transition-transform">
                     <span id="ui-del-cancel">Cancel</span>
                 </button>
                 <button id="confirm-delete-btn" class="flex-1 py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold active:scale-95 transition-all shadow-md">
@@ -462,7 +463,7 @@
     </div>
         
     <!-- My Library Modal -->
-    <div id="library-modal" class="fixed inset-0 z-50 flex flex-col bg-slate-50 dark:bg-dark-bg transition-transform duration-300 transform translate-x-full pointer-events-none will-change-[transform]">
+    <div id="library-modal" class="fixed inset-0 z-50 flex flex-col bg-light-bg dark:bg-dark-bg transition-transform duration-300 transform translate-x-full pointer-events-none will-change-[transform]">
         <!-- Header -->
         <div class="glass-header px-4 py-4 flex items-center justify-between z-30">
           <h2 class="text-xl md:text-2xl font-display font-black dark:text-white flex items-center gap-2">
@@ -480,7 +481,7 @@
         </div>
         
         <!-- Controls Panel -->
-        <div class="bg-slate-50/95 dark:bg-dark-bg/95 backdrop-blur-xl z-20 border-b border-gray-200 dark:border-gray-800 pt-4 pb-5 px-4 sm:px-6 lg:px-8 shadow-sm">
+        <div class="bg-light-bg/95 dark:bg-dark-bg/95 backdrop-blur-xl z-20 border-b border-light-border dark:border-gray-800 pt-4 pb-5 px-4 sm:px-6 lg:px-8 shadow-sm">
             <div class="max-w-7xl mx-auto">
                 <div class="grid grid-cols-2 gap-3 mb-4">
                     
@@ -514,7 +515,7 @@
                                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                         <i class="ph-fill ph-funnel text-blue-500 dark:text-neon-blue text-lg group-hover:scale-110 transition-transform"></i>
                                     </div>
-                                    <select id="lib-filter-select" onchange="updateLibFilter(this.value)" class="w-full appearance-none bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 py-3.5 pl-12 pr-10 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-neon-blue/50 transition-all font-bold text-sm cursor-pointer shadow-sm hover:shadow-md">
+                                    <select id="lib-filter-select" onchange="updateLibFilter(this.value)" class="w-full appearance-none bg-white dark:bg-dark-card border border-light-border dark:border-gray-700 text-gray-700 dark:text-gray-200 py-3.5 pl-12 pr-10 rounded-2xl outline-none focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-neon-blue/50 transition-all font-bold text-sm cursor-pointer shadow-sm hover:shadow-md">
                                     </select>
                                     <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                                         <i class="ph-bold ph-caret-down text-gray-400 group-hover:text-blue-500 dark:group-hover:text-neon-blue transition-colors"></i>
@@ -526,7 +527,7 @@
                                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                         <i class="ph-fill ph-sort-ascending text-purple-500 dark:text-neon-purple text-lg group-hover:scale-110 transition-transform"></i>
                                     </div>
-                                    <select id="lib-sort-select" onchange="updateLibSort(this.value)" class="w-full appearance-none bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 py-3.5 pl-12 pr-10 rounded-2xl outline-none focus:ring-2 focus:ring-purple-500/50 dark:focus:ring-neon-purple/50 transition-all font-bold text-sm cursor-pointer shadow-sm hover:shadow-md">
+                                    <select id="lib-sort-select" onchange="updateLibSort(this.value)" class="w-full appearance-none bg-white dark:bg-dark-card border border-light-border dark:border-gray-700 text-gray-700 dark:text-gray-200 py-3.5 pl-12 pr-10 rounded-2xl outline-none focus:ring-2 focus:ring-purple-500/50 dark:focus:ring-neon-purple/50 transition-all font-bold text-sm cursor-pointer shadow-sm hover:shadow-md">
                                         <option value="date_desc" id="opt-sort-newest">&nbsp;&nbsp;&nbsp;Newest First</option>
                                         <option value="date_asc" id="opt-sort-oldest">&nbsp;&nbsp;&nbsp;Oldest First</option>
                                         <option value="price_desc" id="opt-sort-price-high">&nbsp;&nbsp;&nbsp;Price: High to Low</option>
@@ -544,7 +545,7 @@
                                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                                         <i id="lib-view-icon" class="ph-fill ph-squares-four text-green-500 dark:text-green-400 text-lg group-hover:scale-110 transition-transform"></i>
                                     </div>
-                                    <select id="lib-view-select" onchange="updateLibView(this.value)" class="w-full appearance-none bg-white dark:bg-dark-card border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 py-3.5 pl-12 pr-10 rounded-2xl outline-none focus:ring-2 focus:ring-green-500/50 dark:focus:ring-green-400/50 transition-all font-bold text-sm cursor-pointer shadow-sm hover:shadow-md">
+                                    <select id="lib-view-select" onchange="updateLibView(this.value)" class="w-full appearance-none bg-white dark:bg-dark-card border border-light-border dark:border-gray-700 text-gray-700 dark:text-gray-200 py-3.5 pl-12 pr-10 rounded-2xl outline-none focus:ring-2 focus:ring-green-500/50 dark:focus:ring-green-400/50 transition-all font-bold text-sm cursor-pointer shadow-sm hover:shadow-md">
                                         <option value="grid" id="opt-view-grid">&nbsp;&nbsp;&nbsp;Grid View</option>
                                         <option value="list" id="opt-view-list">&nbsp;&nbsp;&nbsp;List View</option>
                                     </select>
@@ -557,7 +558,7 @@
                     </div>
 
                     <!-- Mobile Toggle Button -->
-                    <button id="lib-dropdown-toggle" onclick="toggleLibDropdown()" class="sm:hidden mt-3 mx-auto flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-dark-card/80 backdrop-blur-md border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all active:scale-95 group">
+                    <button id="lib-dropdown-toggle" onclick="toggleLibDropdown()" class="sm:hidden mt-3 mx-auto flex items-center gap-2 px-4 py-2 rounded-full bg-white/80 dark:bg-dark-card/80 backdrop-blur-md border border-light-border dark:border-gray-700 shadow-sm hover:shadow-md transition-all active:scale-95 group">
                         <i id="lib-dropdown-arrow" class="ph-bold ph-caret-up text-gray-500 dark:text-gray-400 group-hover:text-purple-500 dark:group-hover:text-neon-purple transition-colors"></i>
                         <span id="lib-dropdown-text" class="text-xs font-bold text-gray-500 dark:text-gray-400 group-hover:text-purple-500 dark:group-hover:text-neon-purple transition-colors">Collapse</span>
                     </button>
@@ -568,7 +569,7 @@
         <!-- Library Scroll Area -->
         <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 relative z-0 library-scroll-area">
             <!-- Loading Spinner (shown briefly while setting up) -->
-            <div id="lib-loading-spinner" class="hidden absolute inset-0 flex items-center justify-center bg-slate-50/80 dark:bg-dark-bg/80 backdrop-blur-sm z-10 transition-opacity duration-200">
+            <div id="lib-loading-spinner" class="hidden absolute inset-0 flex items-center justify-center bg-light-bg/80 dark:bg-dark-bg/80 backdrop-blur-sm z-10 transition-opacity duration-200">
                 <div class="flex flex-col items-center gap-3">
                     <div class="w-10 h-10 border-4 border-purple-200 dark:border-neon-purple/20 border-t-purple-500 dark:border-t-neon-purple rounded-full animate-spin"></div>
                     <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Loading...</span>
@@ -587,7 +588,7 @@
         </div>
     </div>
 
-    <div id="stats-modal" class="hidden fixed inset-0 z-[60] flex-col bg-slate-50 dark:bg-dark-bg transition-transform duration-300 transform translate-x-full">
+    <div id="stats-modal" class="hidden fixed inset-0 z-[60] flex-col bg-light-bg dark:bg-dark-bg transition-transform duration-300 transform translate-x-full">
       <div class="glass-header px-4 py-4 flex items-center justify-between z-30">
         <button onclick="toggleStats()" class="p-2 -ml-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-neon-blue transition-colors rounded-full active:scale-90">
           <i class="ph-bold ph-arrow-left text-2xl"></i>
@@ -605,7 +606,7 @@
     </div>
 
     <!-- Settings Panel -->
-    <div id="settings-modal" class="hidden fixed inset-0 z-[55] flex-col bg-slate-50 dark:bg-dark-bg transition-transform duration-300 transform translate-x-full">
+    <div id="settings-modal" class="hidden fixed inset-0 z-[55] flex-col bg-light-bg dark:bg-dark-bg transition-transform duration-300 transform translate-x-full">
       <div class="glass-header px-4 py-4 flex items-center justify-between z-30">
         <h2 class="text-xl md:text-2xl font-display font-black dark:text-white flex items-center gap-2">
           <i class="ph-fill ph-gear text-purple-500 dark:text-neon-purple"></i>
@@ -620,13 +621,13 @@
         <div class="max-w-md mx-auto space-y-6">
 
           <!-- Language Section -->
-          <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800">
+          <div class="glass-panel p-6 rounded-3xl shadow-sm border border-light-border dark:border-gray-800">
             <h3 class="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4 flex items-center gap-2">
               <i class="ph-fill ph-globe text-blue-500"></i>
               <span id="ui-settings-language">Language</span>
             </h3>
             <div class="relative">
-              <select id="settings-lang-select" onchange="setLang(this.value)" class="w-full appearance-none bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-200 py-3 pl-4 pr-10 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-neon-blue/50 transition-all font-bold text-sm cursor-pointer">
+              <select id="settings-lang-select" onchange="setLang(this.value)" class="w-full appearance-none bg-light-surface dark:bg-gray-800 border border-light-border dark:border-gray-700 text-gray-700 dark:text-gray-200 py-3 pl-4 pr-10 rounded-xl outline-none focus:ring-2 focus:ring-blue-500/50 dark:focus:ring-neon-blue/50 transition-all font-bold text-sm cursor-pointer">
               </select>
               <div class="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
                 <i class="ph-bold ph-caret-down text-gray-400"></i>
@@ -635,17 +636,17 @@
           </div>
 
           <!-- Theme Section -->
-          <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800">
+          <div class="glass-panel p-6 rounded-3xl shadow-sm border border-light-border dark:border-gray-800">
             <h3 class="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4 flex items-center gap-2">
               <i class="ph-fill ph-paint-brush text-purple-500"></i>
               <span id="ui-settings-theme">Theme</span>
             </h3>
             <div class="flex gap-3">
-              <button onclick="setTheme('light')" id="theme-light-btn" class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-yellow-400 dark:hover:border-yellow-400 transition-all font-bold text-sm">
+              <button onclick="setTheme('light')" id="theme-light-btn" class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-light-border dark:border-gray-700 hover:border-yellow-400 dark:hover:border-yellow-400 transition-all font-bold text-sm">
                 <i class="ph-fill ph-sun text-yellow-500 text-lg"></i>
                 <span id="ui-theme-light">Light</span>
               </button>
-              <button onclick="setTheme('dark')" id="theme-dark-btn" class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-gray-200 dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-400 transition-all font-bold text-sm">
+              <button onclick="setTheme('dark')" id="theme-dark-btn" class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-light-border dark:border-gray-700 hover:border-blue-400 dark:hover:border-blue-400 transition-all font-bold text-sm">
                 <i class="ph-fill ph-moon text-blue-500 text-lg"></i>
                 <span id="ui-theme-dark">Dark</span>
               </button>
@@ -653,7 +654,7 @@
           </div>
 
           <!-- Device Sync Section -->
-          <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800">
+          <div class="glass-panel p-6 rounded-3xl shadow-sm border border-light-border dark:border-gray-800">
             <h3 class="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4 flex items-center gap-2">
               <i class="ph-fill ph-arrows-left-right text-teal-500"></i>
               <span id="ui-settings-sync">Device Sync</span>
@@ -664,7 +665,7 @@
                 <i class="ph-bold ph-upload-simple"></i>
                 <span id="ui-settings-export">Export</span>
               </button>
-              <button onclick="toggleSyncModal('import')" class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold text-sm transition-all active:scale-95 border border-gray-200 dark:border-gray-700">
+              <button onclick="toggleSyncModal('import')" class="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-light-surface dark:bg-gray-800 hover:bg-light-border dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold text-sm transition-all active:scale-95 border border-light-border dark:border-gray-700">
                 <i class="ph-bold ph-download-simple"></i>
                 <span id="ui-settings-import">Import</span>
               </button>
@@ -672,7 +673,7 @@
           </div>
 
           <!-- Share App Section -->
-          <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800">
+          <div class="glass-panel p-6 rounded-3xl shadow-sm border border-light-border dark:border-gray-800">
             <h3 class="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4 flex items-center gap-2">
               <i class="ph-fill ph-share-network text-green-500"></i>
               <span id="ui-share-title">Share App</span>
@@ -685,7 +686,7 @@
             </div>
 
             <!-- URL Display -->
-            <div class="bg-gray-100 dark:bg-gray-800 rounded-xl p-3 mb-4 text-center">
+            <div class="bg-light-surface dark:bg-gray-800 rounded-xl p-3 mb-4 text-center">
               <span class="text-sm font-mono text-gray-600 dark:text-gray-400 break-all">gamelootradar.us.ci</span>
             </div>
 
@@ -1296,7 +1297,7 @@
                 const now = Date.now();
         
                 if (lastPin && lastTime && lastPayload === jsonStr && (now - parseInt(lastTime)) < 840000) {
-                    statusEl.innerHTML = `<div class="bg-gray-100 dark:bg-dark-card border border-gray-200 dark:border-gray-800 rounded-2xl w-full py-6 shadow-inner"><p class="text-5xl font-black tracking-widest text-blue-600 dark:text-neon-blue">${lastPin}</p></div>`;
+                    statusEl.innerHTML = `<div class="bg-light-surface dark:bg-dark-card border border-light-border dark:border-gray-800 rounded-2xl w-full py-6 shadow-inner"><p class="text-5xl font-black tracking-widest text-blue-600 dark:text-neon-blue">${lastPin}</p></div>`;
                     return;
                 }
         
@@ -1315,7 +1316,7 @@
                 localStorage.setItem('sync_last_time', now.toString());
                 localStorage.setItem('sync_last_payload', jsonStr);
         
-                statusEl.innerHTML = `<div class="bg-gray-100 dark:bg-dark-card border border-gray-200 dark:border-gray-800 rounded-2xl w-full py-6 shadow-inner"><p class="text-5xl font-black tracking-widest text-blue-600 dark:text-neon-blue">${data.pin}</p></div>`;
+                statusEl.innerHTML = `<div class="bg-light-surface dark:bg-dark-card border border-light-border dark:border-gray-800 rounded-2xl w-full py-6 shadow-inner"><p class="text-5xl font-black tracking-widest text-blue-600 dark:text-neon-blue">${data.pin}</p></div>`;
             } catch (e) {
                 statusEl.innerHTML = `<p class="text-red-500 font-bold">Error: ${e.message}</p>`;
             }
@@ -1803,7 +1804,7 @@
                 pieHtml += `<circle class="pie-segment cursor-pointer hover:opacity-75" style="pointer-events: painted;" cx="21" cy="21" r="15.91549430918954" fill="none" stroke="${colors[i]}" stroke-width="6" stroke-dashoffset="${-currentOffset}" data-target-dash="${percentage} ${100 - percentage}" onclick="updatePieCenter(${p[1]}, '${p[0].replace(/'/g, "\\'")}')"></circle>`;
                 
                 legendHtml += `
-                    <div class="flex items-center justify-between w-full gap-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800/50 p-1.5 -mx-1.5 rounded-lg transition-colors" onclick="updatePieCenter(${p[1]}, '${p[0].replace(/'/g, "\\'")}')" onmouseenter="updatePieCenter(${p[1]}, '${p[0].replace(/'/g, "\\'")}')">
+                    <div class="flex items-center justify-between w-full gap-2 cursor-pointer hover:bg-light-surface dark:hover:bg-gray-800/50 p-1.5 -mx-1.5 rounded-lg transition-colors" onclick="updatePieCenter(${p[1]}, '${p[0].replace(/'/g, "\\'")}')" onmouseenter="updatePieCenter(${p[1]}, '${p[0].replace(/'/g, "\\'")}')">
                         <div class="flex items-center gap-2 min-w-0">
                             <div class="w-3 h-3 rounded-full shrink-0" style="background-color: ${colors[i]}"></div>
                             <span class="text-xs font-bold dark:text-gray-300 truncate max-w-[80px]" title="${p[0]}">${p[0]}</span>
@@ -1920,7 +1921,7 @@
                             </svg>
         
                             <div id="chart-scrubber" class="absolute top-0 bottom-0 w-px bg-green-500 opacity-0 transition-opacity duration-200 pointer-events-none z-20" style="left: 50%;">
-                                <div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 shadow-xl px-3 py-1.5 rounded-xl flex flex-col items-center pointer-events-none">
+                                <div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-white dark:bg-gray-900 border border-light-border dark:border-gray-700 shadow-xl px-3 py-1.5 rounded-xl flex flex-col items-center pointer-events-none">
                                     <span id="scrubber-val" class="text-sm font-black text-green-500 leading-none">$0.00</span>
                                     <span id="scrubber-date" class="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-1 whitespace-nowrap">${t.statsDate}</span>
                                 </div>
@@ -2457,7 +2458,7 @@
                 if (isListView) {
                     // List View - horizontal card
                     return `
-                    <a href="${gameLink}" target="_blank" rel="noopener noreferrer" class="flex bg-white dark:bg-dark-card rounded-xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-800 relative group animate-[fadeUp_0.3s_ease_forwards] hover:shadow-xl hover:border-blue-500/50 dark:hover:border-neon-blue/50 transition-all duration-300">
+                    <a href="${gameLink}" target="_blank" rel="noopener noreferrer" class="flex bg-white dark:bg-dark-card rounded-xl overflow-hidden shadow-md border border-light-border dark:border-gray-800 relative group animate-[fadeUp_0.3s_ease_forwards] hover:shadow-xl hover:border-blue-500/50 dark:hover:border-neon-blue/50 transition-all duration-300">
                         <div class="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 bg-gray-200 dark:bg-gray-800 relative">
                             <img src="${game.image}" class="w-full h-full object-cover" loading="lazy" onerror="this.src='https://placehold.co/200x200/1e293b/ffffff?text=Game'">
                             <div class="absolute top-1 right-1 bg-black/70 text-white text-[9px] font-semibold px-1 py-0.5 rounded flex items-center gap-0.5">
@@ -2643,7 +2644,7 @@
 
                 const isSelected = state.currentPlatform === plat.id;
                 const baseClasses = "relative flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-full font-medium transition-all duration-300 cursor-pointer text-sm border";
-                const activeClasses = isSelected ? "bg-blue-600 text-white border-blue-600 dark:bg-blue-600/20 dark:text-neon-blue dark:border-neon-blue shadow-[0_4px_15px_rgba(59,130,246,0.4)] dark:shadow-[0_0_15px_rgba(0,243,255,0.3)] transform -translate-y-[2px]" : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50 hover:-translate-y-[2px] hover:shadow-md dark:bg-dark-card dark:text-gray-400 dark:border-gray-800 dark:hover:border-gray-600 dark:hover:shadow-[0_4px_10px_rgba(0,0,0,0.5)]";
+                const activeClasses = isSelected ? "bg-blue-600 text-white border-blue-600 dark:bg-blue-600/20 dark:text-neon-blue dark:border-neon-blue shadow-[0_4px_15px_rgba(59,130,246,0.4)] dark:shadow-[0_0_15px_rgba(0,243,255,0.3)] transform -translate-y-[2px]" : "bg-white text-gray-600 border-light-border hover:bg-light-surface hover:-translate-y-[2px] hover:shadow-md dark:bg-dark-card dark:text-gray-400 dark:border-gray-800 dark:hover:border-gray-600 dark:hover:shadow-[0_4px_10px_rgba(0,0,0,0.5)]";
 
                 const labelMap = { 'Prime': t.prime, 'Ubisoft': t.ubisoft, 'EpicPhone': t.epicPhone };
                 const label = plat.id === 'All' ? t.platformAll : (labelMap[plat.id] || plat.id);

@@ -1603,6 +1603,7 @@
         // --- SETTINGS PANEL ---
         function toggleSettings() {
           const modal = document.getElementById('settings-modal');
+          const scrollTopBtn = document.getElementById('scroll-to-top-btn');
 
           if (modal.classList.contains('hidden')) {
             // Open settings
@@ -1620,18 +1621,20 @@
               document.getElementById('native-share-btn').classList.remove('hidden');
             }
 
-            // Hide scroll-to-top button when settings open
-            window.updateScrollButtonState();
-
             // Slide in
             void modal.offsetWidth;
             modal.classList.remove('translate-x-full');
+
+            // Force hide scroll-to-top button AFTER settings starts opening
+            if (scrollTopBtn) {
+              scrollTopBtn.classList.add('opacity-0', 'translate-y-4', 'scale-90', 'pointer-events-none');
+              scrollTopBtn.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
+            }
           } else {
             // Close settings
             modal.classList.add('translate-x-full');
 
-            // Hide scroll-to-top button during transition
-            const scrollTopBtn = document.getElementById('scroll-to-top-btn');
+            // Keep scroll-to-top button hidden during transition
             if (scrollTopBtn) {
               scrollTopBtn.classList.add('opacity-0', 'translate-y-4', 'scale-90', 'pointer-events-none');
               scrollTopBtn.classList.remove('opacity-100', 'translate-y-0', 'scale-100');

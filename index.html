@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
     <meta charset="UTF-8">
@@ -528,8 +528,10 @@
                                         <i class="ph-fill ph-sort-ascending text-purple-500 dark:text-neon-purple text-lg group-hover:scale-110 transition-transform"></i>
                                     </div>
                                     <select id="lib-sort-select" onchange="updateLibSort(this.value)" class="w-full appearance-none bg-white dark:bg-dark-card border border-light-border dark:border-gray-700 text-gray-700 dark:text-gray-200 py-3.5 pl-12 pr-10 rounded-2xl outline-none focus:ring-2 focus:ring-purple-500/50 dark:focus:ring-neon-purple/50 transition-all font-bold text-sm cursor-pointer shadow-sm hover:shadow-md">
-                                        <option value="date_desc" id="opt-sort-newest">&nbsp;&nbsp;&nbsp;Newest First</option>
-                                        <option value="date_asc" id="opt-sort-oldest">&nbsp;&nbsp;&nbsp;Oldest First</option>
+                                        <option value="claimed_date_desc" id="opt-sort-recent">&nbsp;&nbsp;&nbsp;Recently Claimed</option>
+                                        <option value="claimed_date_asc" id="opt-sort-oldest-claimed">&nbsp;&nbsp;&nbsp;Oldest Claimed</option>
+                                        <option value="date_desc" id="opt-sort-newest">&nbsp;&nbsp;&nbsp;Date: Newest Deal</option>
+                                        <option value="date_asc" id="opt-sort-oldest">&nbsp;&nbsp;&nbsp;Date: Oldest Deal</option>
                                         <option value="price_desc" id="opt-sort-price-high">&nbsp;&nbsp;&nbsp;Price: High to Low</option>
                                         <option value="price_asc" id="opt-sort-price-low">&nbsp;&nbsp;&nbsp;Price: Low to High</option>
                                         <option value="name_asc" id="opt-sort-name-az">&nbsp;&nbsp;&nbsp;Name (A-Z)</option>
@@ -731,7 +733,7 @@
                 savedSince: "Total saved since install", libTitle: "My Loot Library", libTotal: "Total Games", libSaved: "Total Saved", libEmpty: "Your library is empty. Start claiming free games!", libNoFilter: "No games match this platform.",
                 instTitle: "Install LootRadar", instDesc: "Install to access instantly! We will track your claimed games and calculate your total lifetime savings.", instB1: "Track Claimed History", instB2: "Calculate Total Savings", instBtn: "Install App", instDismiss: "Maybe Later",
                 instIos1: "1. Tap the Share icon below", instIos2: "2. Select 'Add to Home Screen'", instGotIt: "Got it!",
-                sortNewest: "Date: Newest First", sortOldest: "Date: Oldest First", sortPriceHigh: "Price: High to Low", sortPriceLow: "Price: Low to High", sortName: "Name (A-Z)", sortNameZA: "Name (Z-A)",
+                sortRecent: "Recently Claimed", sortOldestClaimed: "Oldest Claimed", sortNewest: "Date: Newest Deal", sortOldest: "Date: Oldest Deal", sortPriceHigh: "Price: High to Low", sortPriceLow: "Price: Low to High", sortName: "Name (A-Z)", sortNameZA: "Name (Z-A)",
                 viewGrid: "Grid View", viewList: "List View", getLink: "Get", collapse: "Collapse", expand: "Expand",
                 settingsTitle: "Settings", shareTitle: "Share App", shareDesc: "Share LootRadar with friends! Scan QR code or copy the link.",
                 copyLink: "Copy Link", shareBtn: "Share", copySuccess: "Link copied!", quickSettings: "Quick Settings",
@@ -833,7 +835,7 @@
                 savedSince: "Ahorrado desde la instalación", libTitle: "Mi Biblioteca", libTotal: "Juegos", libSaved: "Ahorrado", libEmpty: "¡Tu biblioteca está vacía!", libNoFilter: "Ningún juego coincide con este filtro.",
                 instTitle: "Instalar RadarLoot", instDesc: "¡Instálalo para acceso rápido! Rastrearemos tus juegos reclamados y el ahorro total.", instB1: "Historial de juegos", instB2: "Ahorro total", instBtn: "Instalar App", instDismiss: "Más tarde",
                 instIos1: "1. Toca el ícono de Compartir abajo", instIos2: "2. Selecciona 'Agregar a inicio'", instGotIt: "¡Entendido!",
-                sortNewest: "Fecha: Más recientes", sortOldest: "Fecha: Más antiguos", sortPriceHigh: "Precio: Mayor a Menor", sortPriceLow: "Precio: Menor a Mayor", sortName: "Nombre (A-Z)", sortNameZA: "Nombre (Z-A)",
+                sortRecent: "Recién reclamados", sortOldestClaimed: "Más antiguos reclamados", sortNewest: "Fecha: Oferta más reciente", sortOldest: "Fecha: Oferta más antigua", sortPriceHigh: "Precio: Mayor a Menor", sortPriceLow: "Precio: Menor a Mayor", sortName: "Nombre (A-Z)", sortNameZA: "Nombre (Z-A)",
                 viewGrid: "Vista cuadrícula", viewList: "Vista lista", getLink: "Obtener", collapse: "Colapsar", expand: "Expandir",
                 settingsTitle: "Ajustes", shareTitle: "Compartir App", shareDesc: "¡Comparte LootRadar con amigos! Escanea el QR o copia el enlace.",
                 copyLink: "Copiar Enlace", shareBtn: "Compartir", copySuccess: "¡Enlace copiado!", quickSettings: "Ajustes Rápidos",
@@ -867,7 +869,7 @@
                 savedSince: "Économisé depuis l'installation", libTitle: "Ma Bibliothèque", libTotal: "Total Jeux", libSaved: "Économisé", libEmpty: "Votre bibliothèque est vide !", libNoFilter: "Aucun jeu ne correspond à ce filtre.",
                 instTitle: "Installer RadarButin", instDesc: "Installez pour un accès instantané ! Nous suivrons vos jeux et vos économies.", instB1: "Historique des jeux", instB2: "Calcul des économies", instBtn: "Installer", instDismiss: "Plus tard",
                 instIos1: "1. Touchez l'icône Partager ci-dessous", instIos2: "2. Sélectionnez 'Sur l'écran d'accueil'", instGotIt: "J'ai compris",
-                sortNewest: "Date: Plus récents", sortOldest: "Date: Plus anciens", sortPriceHigh: "Prix: Décroissant", sortPriceLow: "Prix: Croissant", sortName: "Nom (A-Z)", sortNameZA: "Nom (Z-A)",
+                sortRecent: "Récemment obtenus", sortOldestClaimed: "Plus anciens obtenus", sortNewest: "Date: Offre la plus récente", sortOldest: "Date: Offre la plus ancienne", sortPriceHigh: "Prix: Décroissant", sortPriceLow: "Prix: Croissant", sortName: "Nom (A-Z)", sortNameZA: "Nom (Z-A)",
                 viewGrid: "Vue grille", viewList: "Vue liste", getLink: "Obtenir", collapse: "Réduire", expand: "Développer",
                 settingsTitle: "Paramètres", shareTitle: "Partager l'App", shareDesc: "Partagez LootRadar avec vos amis ! Scannez le QR ou copiez le lien.",
                 copyLink: "Copier le Lien", shareBtn: "Partager", copySuccess: "Lien copié !", quickSettings: "Paramètres Rapides",
@@ -901,7 +903,7 @@
                 savedSince: "Gespart seit der Installation", libTitle: "Meine Bibliothek", libTotal: "Spiele", libSaved: "Gespart", libEmpty: "Deine Bibliothek ist leer!", libNoFilter: "Keine Spiele für diesen Filter gefunden.",
                 instTitle: "Installiere LootRadar", instDesc: "Installiere für sofortigen Zugriff! Wir speichern deine Spiele und Ersparnisse.", instB1: "Spielverlauf speichern", instB2: "Ersparnisse berechnen", instBtn: "App installieren", instDismiss: "Später",
                 instIos1: "1. Tippe unten auf das Teilen-Symbol", instIos2: "2. Wähle 'Zum Home-Bildschirm'", instGotIt: "Verstanden",
-                sortNewest: "Datum: Neueste zuerst", sortOldest: "Datum: Älteste zuerst", sortPriceHigh: "Preis: Absteigend", sortPriceLow: "Preis: Aufsteigend", sortName: "Name (A-Z)", sortNameZA: "Name (Z-A)",
+                sortRecent: "Kürzlich beansprucht", sortOldestClaimed: "Älteste beanspruchte", sortNewest: "Datum: Neuestes Angebot", sortOldest: "Datum: Ältestes Angebot", sortPriceHigh: "Preis: Absteigend", sortPriceLow: "Preis: Aufsteigend", sortName: "Name (A-Z)", sortNameZA: "Name (Z-A)",
                 viewGrid: "Rasteransicht", viewList: "Listenansicht", getLink: "Holen", collapse: "Einklappen", expand: "Erweitern",
                 settingsTitle: "Einstellungen", shareTitle: "App teilen", shareDesc: "Teile LootRadar mit Freunden! QR scannen oder Link kopieren.",
                 copyLink: "Link kopieren", shareBtn: "Teilen", copySuccess: "Link kopiert!", quickSettings: "Schnelleinstellungen",
@@ -935,7 +937,7 @@
                 savedSince: "Сэкономлено после установки", libTitle: "Моя Библиотека", libTotal: "Всего игр", libSaved: "Сэкономлено", libEmpty: "Ваша библиотека пуста!", libNoFilter: "Нет игр, соответствующих фильтру.",
                 instTitle: "Установить Радар", instDesc: "Установите для быстрого доступа! Мы сохраним вашу историю и посчитаем экономию.", instB1: "История игр", instB2: "Сумма экономии", instBtn: "Установить", instDismiss: "Позже",
                 instIos1: "1. Нажмите иконку 'Поделиться' внизу", instIos2: "2. Выберите 'На экран «Домой»'", instGotIt: "Понятно",
-                sortNewest: "Сначала новые", sortOldest: "Сначала старые", sortPriceHigh: "Цена: по убыванию", sortPriceLow: "Цена: по возрастанию", sortName: "Название (А-Я)", sortNameZA: "Название (Я-А)",
+                sortRecent: "Недавно получены", sortOldestClaimed: "Ранние полученные", sortNewest: "Дата: Новейшая акция", sortOldest: "Дата: Старейшая акция", sortPriceHigh: "Цена: по убыванию", sortPriceLow: "Цена: по возрастанию", sortName: "Название (А-Я)", sortNameZA: "Название (Я-А)",
                 viewGrid: "Сетка", viewList: "Список", getLink: "Получить", collapse: "Свернуть", expand: "Развернуть",
                 settingsTitle: "Настройки", shareTitle: "Поделиться", shareDesc: "Поделитесь LootRadar с друзьями! Сканируйте QR или скопируйте ссылку.",
                 copyLink: "Копировать", shareBtn: "Поделиться", copySuccess: "Ссылка скопирована!", quickSettings: "Быстрые настройки",
@@ -1003,7 +1005,7 @@
                 savedSince: "설치 후 절약한 금액", libTitle: "내 라이브러리", libTotal: "총 게임", libSaved: "총 절약액", libEmpty: "라이브러리가 비어 있습니다!", libNoFilter: "이 필터와 일치하는 게임이 없습니다.",
                 instTitle: "앱 설치", instDesc: "홈 화면에 추가하세요! 획득 기록과 절약한 금액을 저장해 줍니다.", instB1: "획득 기록 저장", instB2: "절약액 계산", instBtn: "설치하기", instDismiss: "나중에",
                 instIos1: "1. 하단의 '공유' 아이콘을 탭하세요", instIos2: "2. '홈 화면에 추가'를 선택하세요", instGotIt: "확인",
-                sortNewest: "획득일: 최신순", sortOldest: "획득일: 오래된순", sortPriceHigh: "가격: 높은순", sortPriceLow: "가격: 낮은순", sortName: "이름 (A-Z)", sortNameZA: "이름 (Z-A)",
+                sortRecent: "최근 획득", sortOldestClaimed: "오래된 획득", sortNewest: "날짜: 최신 프로모", sortOldest: "날짜: 오래된 프로모", sortPriceHigh: "가격: 높은순", sortPriceLow: "가격: 낮은순", sortName: "이름 (A-Z)", sortNameZA: "이름 (Z-A)",
                 viewGrid: "그리드 보기", viewList: "리스트 보기", getLink: "받기", collapse: "접기", expand: "펼치기",
                 settingsTitle: "설정", shareTitle: "앱 공유", shareDesc: "LootRadar를 친구와 공유! QR 코드를 스캔하거나 링크를 복사하세요.",
                 copyLink: "링크 복사", shareBtn: "공유", copySuccess: "링크가 복사되었습니다!", quickSettings: "빠른 설정",
@@ -1037,7 +1039,7 @@
                 savedSince: "Economizado desde a instalação", libTitle: "Minha Biblioteca", libTotal: "Jogos", libSaved: "Economizou", libEmpty: "Sua biblioteca está vazia!", libNoFilter: "Nenhum jogo encontrado neste filtro.",
                 instTitle: "Instalar RadarLoot", instDesc: "Instale para acesso rápido! Salvaremos seu histórico e sua economia total.", instB1: "Histórico de jogos", instB2: "Economia total", instBtn: "Instalar", instDismiss: "Mais tarde",
                 instIos1: "1. Toque no ícone Compartilhar abaixo", instIos2: "2. Selecione 'Adicionar à Tela de Início'", instGotIt: "Entendi!",
-                sortNewest: "Data: Mais Recentes", sortOldest: "Data: Mais Antigos", sortPriceHigh: "Preço: Maior a Menor", sortPriceLow: "Preço: Menor a Maior", sortName: "Nome (A-Z)", sortNameZA: "Nome (Z-A)",
+                sortRecent: "Recém-resgatados", sortOldestClaimed: "Mais antigos resgatados", sortNewest: "Data: Oferta mais recente", sortOldest: "Data: Oferta mais antiga", sortPriceHigh: "Preço: Maior a Menor", sortPriceLow: "Preço: Menor a Maior", sortName: "Nome (A-Z)", sortNameZA: "Nome (Z-A)",
                 viewGrid: "Visualização grade", viewList: "Visualização lista", getLink: "Obter", collapse: "Recolher", expand: "Expandir",
                 settingsTitle: "Configurações", shareTitle: "Compartilhar App", shareDesc: "Compartilhe o LootRadar com amigos! Escaneie o QR ou copie o link.",
                 copyLink: "Copiar Link", shareBtn: "Compartilhar", copySuccess: "Link copiado!", quickSettings: "Configurações Rápidas",
@@ -1157,7 +1159,7 @@
           isLoading: false,
           claimedGames: loadSafeStorage('lootradar_claimed_v2') || loadSafeStorage('lootradar_claimed') || {},
           totalSaved: parseFloat(localStorage.getItem('lootradar_saved_money')) || 0,
-          libSort: 'date_desc',
+          libSort: localStorage.getItem('lootradar_lib_sort') || 'claimed_date_desc',
           libFilter: 'All',
           libView: localStorage.getItem('lootradar_lib_view') || 'grid',
           deletedHistory: loadSafeStorage('lootradar_deleted_history') || []
@@ -2267,7 +2269,8 @@
               platforms: game.platforms || 'PC',
               open_giveaway: game.open_giveaway,
               value: value,
-              date: new Date().toISOString()
+              date: game.published_date || new Date().toISOString(),
+              claimed_date: new Date().toISOString()
             };
         
             if (!alreadyClaimed) state.totalSaved += value;
@@ -2284,7 +2287,11 @@
     };
 
         window.updateLibFilter = function(val) { state.libFilter = val; renderLibrary(); };
-        window.updateLibSort = function(val) { state.libSort = val; renderLibrary(); };
+        window.updateLibSort = function(val) {
+            state.libSort = val;
+            localStorage.setItem('lootradar_lib_sort', val);
+            renderLibrary();
+        };
         window.updateLibView = function(val) {
             state.libView = val;
             localStorage.setItem('lootradar_lib_view', val);
@@ -2411,15 +2418,18 @@
                 return game.platforms.toLowerCase().includes(state.libFilter.toLowerCase());
             });
             
-            // 3. Sort games based on selection (Fixed sorting logic to use 'date' and 'value')
+            // 3. Sort games based on selection
             filteredGames.sort((a, b) => {
+                // Recently Claimed / Oldest Claimed (use claimed_date, fallback to date)
+                if (state.libSort === 'claimed_date_desc') return new Date(b.claimed_date || b.date || 0) - new Date(a.claimed_date || a.date || 0);
+                if (state.libSort === 'claimed_date_asc') return new Date(a.claimed_date || a.date || 0) - new Date(b.claimed_date || b.date || 0);
+                // Date: Newest Deal / Oldest Deal (game publish date)
                 if (state.libSort === 'date_desc') return new Date(b.date || 0) - new Date(a.date || 0);
                 if (state.libSort === 'date_asc') return new Date(a.date || 0) - new Date(b.date || 0);
                 if (state.libSort === 'price_desc') return (b.value || 0) - (a.value || 0);
                 if (state.libSort === 'price_asc') return (a.value || 0) - (b.value || 0);
                 if (state.libSort === 'name_asc') return (a.title || '').localeCompare(b.title || '');
                 if (state.libSort === 'name_desc') return (b.title || '').localeCompare(a.title || '');
-                if (state.libSort === 'alpha_asc') return (a.title || '').localeCompare(b.title || '');
                 return 0;
             });
             
@@ -2916,6 +2926,8 @@
                 const el = document.getElementById(id);
                 if (el && text) el.innerHTML = `&nbsp;&nbsp;&nbsp;${text}`;
             };
+            safeSetOption('opt-sort-recent', t.sortRecent);
+            safeSetOption('opt-sort-oldest-claimed', t.sortOldestClaimed);
             safeSetOption('opt-sort-newest', t.sortNewest);
             safeSetOption('opt-sort-oldest', t.sortOldest);
             safeSetOption('opt-sort-price-high', t.sortPriceHigh);

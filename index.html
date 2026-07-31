@@ -2254,14 +2254,15 @@
           const id = String(game.id);
           const alreadyClaimed = !!state.claimedGames[id];
           const isLegacySave = typeof state.claimedGames[id] === 'boolean';
-        
+
           if (!alreadyClaimed || isLegacySave) {
+            // First time claiming - save full game data
             let value = 0;
             if (game.worth && game.worth !== 'N/A') {
               const parsed = parseFloat(game.worth.replace(/[^0-9.]/g, ''));
               if (!isNaN(parsed)) value = parsed;
             }
-        
+
             state.claimedGames[id] = {
               title: game.title,
               image: game.image,
@@ -2272,19 +2273,25 @@
               date: game.published_date || new Date().toISOString(),
               claimed_date: new Date().toISOString()
             };
-        
+
             if (!alreadyClaimed) state.totalSaved += value;
             saveSafeStorage('lootradar_claimed_v2', state.claimedGames);
             localStorage.setItem('lootradar_saved_money', state.totalSaved.toString());
-            
-            // 🔄 UPDATE UI INSTANTLY
-            updateWalletUI();
-            renderGames(); 
 
-            // 🚀 NEW: ALWAYS update the library in the background so it's perfectly ready for when they open it!
+            //  UPDATE UI INSTANTLY
+            updateWalletUI();
+            renderGames();
+
+            //  NEW: ALWAYS update the library in the background so it's perfectly ready for when they open it!
             renderLibrary();
-        }
-    };
+          } else {
+            // Already claimed - update claimed_date to track last opened
+            if (state.claimedGames[id]) {
+              state.claimedGames[id].claimed_date = new Date().toISOString();
+              saveSafeStorage('lootradar_claimed_v2', state.claimedGames);
+            }
+          }
+        };
 
         window.updateLibFilter = function(val) { state.libFilter = val; renderLibrary(); };
         window.updateLibSort = function(val) {

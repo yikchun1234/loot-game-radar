@@ -184,11 +184,8 @@
 
         /* Custom Chart Animations */
         .chart-bar { transition: height 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        /* Bar count label: click-to-toggle on all devices (no hover to avoid touch sticking) */
-        .bar-count-label { opacity: 0; transition: opacity 0.2s ease; }
-        .bar-label-visible { opacity: 1 !important; }
-        /* Ensure tap works in scrollable containers on touch devices */
-        .bar-group { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        /* Bar label button */
+        .bar-label-btn { transition: opacity 0.2s ease; }
         .chart-path { 
             stroke-dasharray: 2000; 
             stroke-dashoffset: 2000; 
@@ -1597,8 +1594,11 @@
             // Reset bars instantly so they are ready for the next time it opens
             const bars = document.querySelectorAll('.chart-bar');
             bars.forEach(bar => bar.style.height = '0%');
-            // Reset all bar count labels
-            document.querySelectorAll('.bar-count-label').forEach(el => el.style.opacity = '0');
+            // Reset all bar label buttons
+            document.querySelectorAll('.bar-label-btn').forEach(btn => {
+                btn.style.opacity = '0.4';
+                btn.setAttribute('data-visible', 'false');
+            });
             
             const pies = document.querySelectorAll('.pie-segment');
             pies.forEach(pie => pie.style.strokeDasharray = '0 100');
@@ -1865,8 +1865,8 @@
             let barsHtml = activeMonths.map(m => {
                 const heightPct = (m.count / maxBarCount) * 100;
                 return `
-                    <div class="flex flex-col items-center gap-2 bar-group cursor-pointer" style="min-width: 52px;">
-                        <span class="bar-count-label text-xs font-bold text-gray-500 opacity-0">${m.count}</span>
+                    <div class="flex flex-col items-center gap-2" style="min-width: 52px;">
+                        <button class="bar-label-btn text-xs font-bold text-gray-500 bg-transparent border-none p-1 cursor-pointer" style="opacity: 0.4;" data-visible="false">${m.count}</button>
                         <div class="w-full max-w-[40px] bg-gray-200 dark:bg-gray-800 rounded-t-lg flex items-end h-32 relative overflow-hidden">
                             <div class="chart-bar w-full bg-gradient-to-t from-purple-600 to-neon-purple rounded-t-lg" style="height: 0%" data-target-height="${heightPct}%"></div>
                         </div>
@@ -2056,52 +2056,27 @@
             // Initial fade check
             setTimeout(() => window.updateBarChartFade(), 100);
 
-            // --- Bar label toggle logic ---
-            function toggleBarLabel(barGroup) {
-                const allLabels = scrollContainer.querySelectorAll('.bar-count-label');
-                // Hide all other labels first
-                allLabels.forEach(el => {
-                    if (!barGroup.contains(el)) el.style.opacity = '0';
+            // --- Simple bar label toggle ---
+            // Use event delegation: listen on container, handle clicks on buttons
+            scrollContainer.addEventListener('click', function(e) {
+                const btn = e.target.closest('.bar-label-btn');
+                if (!btn) return;
+
+                // Toggle this button's visibility
+                const isVisible = btn.getAttribute('data-visible') === 'true';
+
+                // Hide all other buttons first
+                scrollContainer.querySelectorAll('.bar-label-btn').forEach(b => {
+                    b.style.opacity = '0.4';
+                    b.setAttribute('data-visible', 'false');
                 });
-                // Toggle clicked label
-                const label = barGroup.querySelector('.bar-count-label');
-                if (label) {
-                    label.style.opacity = label.style.opacity === '1' ? '0' : '1';
+
+                // Show this button if it was hidden
+                if (!isVisible) {
+                    btn.style.opacity = '1';
+                    btn.setAttribute('data-visible', 'true');
                 }
-            }
-
-            function hideAllLabels() {
-                scrollContainer.querySelectorAll('.bar-count-label').forEach(el => el.style.opacity = '0');
-            }
-
-            // Desktop: click handler
-            scrollContainer.onclick = function(e) {
-                const barGroup = e.target.closest('.bar-group');
-                if (!barGroup) { hideAllLabels(); return; }
-                toggleBarLabel(barGroup);
-            };
-
-            // Mobile: touchend handler (more reliable in scrollable containers)
-            let touchStartX = 0, touchStartY = 0;
-            scrollContainer.addEventListener('touchstart', function(e) {
-                touchStartX = e.touches[0].clientX;
-                touchStartY = e.touches[0].clientY;
-            }, { passive: true });
-
-            scrollContainer.addEventListener('touchend', function(e) {
-                const touchEndX = e.changedTouches[0].clientX;
-                const touchEndY = e.changedTouches[0].clientY;
-                const dx = Math.abs(touchEndX - touchStartX);
-                const dy = Math.abs(touchEndY - touchStartY);
-
-                // Only treat as tap if finger didn't move much (not a scroll)
-                if (dx < 10 && dy < 10) {
-                    const target = document.elementFromPoint(touchEndX, touchEndY);
-                    const barGroup = target ? target.closest('.bar-group') : null;
-                    if (!barGroup) { hideAllLabels(); return; }
-                    toggleBarLabel(barGroup);
-                }
-            }, { passive: true });
+            });
         }
                 
         function toggleDisclaimer() {

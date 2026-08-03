@@ -1596,7 +1596,7 @@
             const bars = document.querySelectorAll('.chart-bar');
             bars.forEach(bar => bar.style.height = '0%');
             // Reset all bar count labels
-            document.querySelectorAll('.bar-label-visible').forEach(el => el.classList.remove('bar-label-visible'));
+            document.querySelectorAll('.bar-count-label').forEach(el => el.style.opacity = '0');
             
             const pies = document.querySelectorAll('.pie-segment');
             pies.forEach(pie => pie.style.strokeDasharray = '0 100');
@@ -2054,23 +2054,27 @@
             // Initial fade check
             setTimeout(() => window.updateBarChartFade(), 100);
 
-            // Click-to-toggle bar labels (for touch devices where hover sticks)
+            // Click-to-toggle bar labels using direct style manipulation
             scrollContainer.onclick = function(e) {
                 const barGroup = e.target.closest('.bar-group');
+                const allLabels = scrollContainer.querySelectorAll('.bar-count-label');
+
                 if (!barGroup) {
                     // Clicked outside any bar - hide all labels
-                    scrollContainer.querySelectorAll('.bar-label-visible').forEach(el => el.classList.remove('bar-label-visible'));
+                    allLabels.forEach(el => el.style.opacity = '0');
                     return;
                 }
 
                 // Hide all other labels first
-                scrollContainer.querySelectorAll('.bar-label-visible').forEach(el => {
-                    if (!barGroup.contains(el)) el.classList.remove('bar-label-visible');
+                allLabels.forEach(el => {
+                    if (!barGroup.contains(el)) el.style.opacity = '0';
                 });
 
                 // Toggle clicked label
                 const label = barGroup.querySelector('.bar-count-label');
-                if (label) label.classList.toggle('bar-label-visible');
+                if (label) {
+                    label.style.opacity = label.style.opacity === '1' ? '0' : '1';
+                }
             };
         }
                 

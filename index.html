@@ -184,11 +184,8 @@
 
         /* Custom Chart Animations */
         .chart-bar { transition: height 1s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        /* Bar count label: hover only on pointer devices, click-toggle on touch */
-        .bar-count-label { transition: opacity 0.2s ease; }
-        @media (hover: hover) and (pointer: fine) {
-            .bar-group:hover .bar-count-label { opacity: 1 !important; }
-        }
+        /* Bar count label: click-to-toggle on all devices (no hover to avoid touch sticking) */
+        .bar-count-label { opacity: 0; transition: opacity 0.2s ease; }
         .bar-label-visible { opacity: 1 !important; }
         .chart-path { 
             stroke-dasharray: 2000; 
@@ -2060,15 +2057,20 @@
             // Click-to-toggle bar labels (for touch devices where hover sticks)
             scrollContainer.onclick = function(e) {
                 const barGroup = e.target.closest('.bar-group');
+                if (!barGroup) {
+                    // Clicked outside any bar - hide all labels
+                    scrollContainer.querySelectorAll('.bar-label-visible').forEach(el => el.classList.remove('bar-label-visible'));
+                    return;
+                }
+
                 // Hide all other labels first
                 scrollContainer.querySelectorAll('.bar-label-visible').forEach(el => {
-                    if (!barGroup || !barGroup.contains(el)) el.classList.remove('bar-label-visible');
+                    if (!barGroup.contains(el)) el.classList.remove('bar-label-visible');
                 });
+
                 // Toggle clicked label
-                if (barGroup) {
-                    const label = barGroup.querySelector('.bar-count-label');
-                    if (label) label.classList.toggle('bar-label-visible');
-                }
+                const label = barGroup.querySelector('.bar-count-label');
+                if (label) label.classList.toggle('bar-label-visible');
             };
         }
                 

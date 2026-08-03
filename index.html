@@ -187,6 +187,8 @@
         /* Bar count label: click-to-toggle on all devices (no hover to avoid touch sticking) */
         .bar-count-label { opacity: 0; transition: opacity 0.2s ease; }
         .bar-label-visible { opacity: 1 !important; }
+        /* Ensure tap works in scrollable containers on touch devices */
+        .bar-group { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         .chart-path { 
             stroke-dasharray: 2000; 
             stroke-dashoffset: 2000; 
@@ -2054,28 +2056,52 @@
             // Initial fade check
             setTimeout(() => window.updateBarChartFade(), 100);
 
-            // Click-to-toggle bar labels using direct style manipulation
-            scrollContainer.onclick = function(e) {
-                const barGroup = e.target.closest('.bar-group');
+            // --- Bar label toggle logic ---
+            function toggleBarLabel(barGroup) {
                 const allLabels = scrollContainer.querySelectorAll('.bar-count-label');
-
-                if (!barGroup) {
-                    // Clicked outside any bar - hide all labels
-                    allLabels.forEach(el => el.style.opacity = '0');
-                    return;
-                }
-
                 // Hide all other labels first
                 allLabels.forEach(el => {
                     if (!barGroup.contains(el)) el.style.opacity = '0';
                 });
-
                 // Toggle clicked label
                 const label = barGroup.querySelector('.bar-count-label');
                 if (label) {
                     label.style.opacity = label.style.opacity === '1' ? '0' : '1';
                 }
+            }
+
+            function hideAllLabels() {
+                scrollContainer.querySelectorAll('.bar-count-label').forEach(el => el.style.opacity = '0');
+            }
+
+            // Desktop: click handler
+            scrollContainer.onclick = function(e) {
+                const barGroup = e.target.closest('.bar-group');
+                if (!barGroup) { hideAllLabels(); return; }
+                toggleBarLabel(barGroup);
             };
+
+            // Mobile: touchend handler (more reliable in scrollable containers)
+            let touchStartX = 0, touchStartY = 0;
+            scrollContainer.addEventListener('touchstart', function(e) {
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+            }, { passive: true });
+
+            scrollContainer.addEventListener('touchend', function(e) {
+                const touchEndX = e.changedTouches[0].clientX;
+                const touchEndY = e.changedTouches[0].clientY;
+                const dx = Math.abs(touchEndX - touchStartX);
+                const dy = Math.abs(touchEndY - touchStartY);
+
+                // Only treat as tap if finger didn't move much (not a scroll)
+                if (dx < 10 && dy < 10) {
+                    const target = document.elementFromPoint(touchEndX, touchEndY);
+                    const barGroup = target ? target.closest('.bar-group') : null;
+                    if (!barGroup) { hideAllLabels(); return; }
+                    toggleBarLabel(barGroup);
+                }
+            }, { passive: true });
         }
                 
         function toggleDisclaimer() {

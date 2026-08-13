@@ -3549,16 +3549,17 @@
                 let allGames = [...workerGames, ...validGpData];
 
                 // Normalize all URLs first (Worker already does this, but ensure consistency)
+                // Keep original URL in open_giveaway, add normalizedId for deduplication
                 allGames.forEach(g => {
                     if (g.open_giveaway) {
-                        g.open_giveaway = normalizeUrl(g.open_giveaway);
+                        g.normalizedId = normalizeUrl(g.open_giveaway);
                     }
                 });
 
-                // Deduplicate by normalized URL (use open_giveaway as unique ID)
+                // Deduplicate by normalized URL (use normalizedId as unique ID)
                 const uniqueMap = new Map();
                 allGames.forEach(g => {
-                    const key = g.open_giveaway;
+                    const key = g.normalizedId || g.open_giveaway;
                     if (key && !uniqueMap.has(key)) uniqueMap.set(key, g);
                 });
 
@@ -3566,7 +3567,7 @@
 
                 // Process each game for publish date logic
                 allGames.forEach(game => {
-                    const id = game.open_giveaway;
+                    const id = game.normalizedId || game.open_giveaway;
                     if (!id) return;
 
                     const source = game.source || '';
@@ -3674,7 +3675,8 @@
               image: game.image,
               worth: game.worth,
               platforms: game.platforms || 'PC',
-              open_giveaway: id,
+              open_giveaway: game.open_giveaway, // Keep original URL for linking
+              normalizedId: id, // Store normalized ID for deduplication
               value: value,
               date: game.published_date || new Date().toISOString(),
               claimed_date: new Date().toISOString()

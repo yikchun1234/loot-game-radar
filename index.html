@@ -2149,8 +2149,8 @@
 
             // --- NEW: Calculate Stat Cards Data ---
             // Average Claim Value
-            const totalValue = games.reduce((sum, g) => sum + (g.value || 0), 0);
-            const avgClaimValue = games.length > 0 ? totalValue / games.length : 0;
+            const totalClaimValue = games.reduce((sum, g) => sum + (g.value || 0), 0);
+            const avgClaimValue = games.length > 0 ? totalClaimValue / games.length : 0;
             const avgClaimDisplay = formatCompact(avgClaimValue);
 
             // Claim Streak (consecutive days)

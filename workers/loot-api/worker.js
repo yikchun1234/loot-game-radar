@@ -347,11 +347,12 @@ async function fetchAllGames(params) {
   }
 
   // Deduplicate by normalized URL (app ID)
+  // Keep original URL in open_giveaway, add normalizedId for frontend dedup
   const uniqueMap = new Map();
   allGames.forEach((g) => {
     const key = normalizeUrl(g.open_giveaway);
     if (key && !uniqueMap.has(key)) {
-      uniqueMap.set(key, { ...g, open_giveaway: key });
+      uniqueMap.set(key, { ...g, normalizedId: key });
     }
   });
 

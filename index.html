@@ -1651,6 +1651,8 @@
                     // 4. Record the item details into your history JSON tracker array
                     const historyItem = {
                         id: activeDeleteId,
+                        originalUrl: game.open_giveaway || activeDeleteId,
+                        normalizedId: game.normalizedId || normalizeUrl(game.open_giveaway || activeDeleteId),
                         title: game.title,
                         worth: game.worth || 'Free',
                         platforms: game.platforms || 'PC',
@@ -4344,19 +4346,18 @@
                 if (!isClaimed && state.deletedHistory) {
                   for (let i = state.deletedHistory.length - 1; i >= 0; i--) {
                     const histItem = state.deletedHistory[i];
-                    // For "duplicate" reason: only match exact original URL, not normalizedId
-                    // (so other instances of the same app still show up)
-                    if (histItem.reason === 'duplicate') {
-                      if (histItem.id === String(game.id) || histItem.id === game.open_giveaway) {
-                        deletedReason = histItem.reason;
-                        break;
-                      }
-                    } else {
-                      // For other reasons: match by normalizedId or game.id
-                      if (histItem.id === gameNormalizedId || histItem.id === String(game.id)) {
-                        deletedReason = histItem.reason;
-                        break;
-                      }
+                    // Match by: id, normalizedId, or originalUrl
+                    const histId = histItem.id || '';
+                    const histNorm = histItem.normalizedId || histId;
+                    const histUrl = histItem.originalUrl || histId;
+
+                    if (histId === gameNormalizedId ||
+                        histId === String(game.id) ||
+                        histNorm === gameNormalizedId ||
+                        histUrl === game.open_giveaway ||
+                        histUrl === String(game.id)) {
+                      deletedReason = histItem.reason;
+                      break;
                     }
                   }
                 }

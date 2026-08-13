@@ -4343,9 +4343,20 @@
                 let deletedReason = null;
                 if (!isClaimed && state.deletedHistory) {
                   for (let i = state.deletedHistory.length - 1; i >= 0; i--) {
-                    if (state.deletedHistory[i].id === gameNormalizedId || state.deletedHistory[i].id === String(game.id)) {
-                      deletedReason = state.deletedHistory[i].reason;
-                      break;
+                    const histItem = state.deletedHistory[i];
+                    // For "duplicate" reason: only match exact original URL, not normalizedId
+                    // (so other instances of the same app still show up)
+                    if (histItem.reason === 'duplicate') {
+                      if (histItem.id === String(game.id) || histItem.id === game.open_giveaway) {
+                        deletedReason = histItem.reason;
+                        break;
+                      }
+                    } else {
+                      // For other reasons: match by normalizedId or game.id
+                      if (histItem.id === gameNormalizedId || histItem.id === String(game.id)) {
+                        deletedReason = histItem.reason;
+                        break;
+                      }
                     }
                   }
                 }

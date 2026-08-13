@@ -622,6 +622,24 @@
       <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 relative z-0 library-scroll-area">
         <div class="max-w-4xl mx-auto space-y-6 pb-12" id="stats-container">
            </div>
+        <!-- Developer Mode Panel (hidden by default) -->
+        <div id="dev-panel" class="hidden max-w-4xl mx-auto mt-8 pb-12">
+          <div class="border-t-2 border-dashed border-yellow-500/50 pt-6">
+            <h3 class="text-sm font-bold text-yellow-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+              <i class="ph-fill ph-bug"></i> Developer Mode
+            </h3>
+            <!-- Cache Size Section -->
+            <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800 mb-4">
+              <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">Cache / Storage Size</h4>
+              <div id="dev-cache-table" class="space-y-2"></div>
+            </div>
+            <!-- All Apps Section -->
+            <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
+              <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">All Tracked Apps (Publish Dates)</h4>
+              <div id="dev-apps-table" class="overflow-x-auto"></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -2105,7 +2123,143 @@
                 }, 200);
             }, 2000);
         };
-        
+
+        // --- DEVELOPER MODE (tap title 5 times) ---
+        let devTapCount = 0;
+        let devTapTimer = null;
+        let devModeActive = false;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const titleEl = document.getElementById('ui-stats-title');
+            if (!titleEl) return;
+            titleEl.style.cursor = 'pointer';
+            titleEl.addEventListener('click', function() {
+                devTapCount++;
+                clearTimeout(devTapTimer);
+                devTapTimer = setTimeout(() => { devTapCount = 0; }, 2000);
+                if (devTapCount >= 5 && !devModeActive) {
+                    devModeActive = true;
+                    devTapCount = 0;
+                    renderDevPanel();
+                    document.getElementById('dev-panel').classList.remove('hidden');
+                }
+            });
+        });
+
+        function renderDevPanel() {
+            // --- Cache Size Table ---
+            const cacheTable = document.getElementById('dev-cache-table');
+            const keys = [
+                'lootradar_claimed_v2',
+                'lootradar_publish_dates',
+                'lootradar_deleted_history',
+                'lootradar_lib_view',
+                'lootradar_lib_dropdown_collapsed',
+                'lootradar_total_saved',
+                'lootradar_theme',
+                'lootradar_lang'
+            ];
+
+            let totalSize = 0;
+            let rows = '';
+            keys.forEach(key => {
+                const raw = localStorage.getItem(key);
+                const size = raw ? new Blob([raw]).size : 0;
+                totalSize += size;
+                const sizeStr = size > 1024 ? (size / 1024).toFixed(1) + ' KB' : size + ' B';
+                const barWidth = Math.min(100, (size / 50000) * 100); // 50KB = full bar
+                const itemCount = getItemCount(key);
+                rows += `
+                    <div class="flex items-center gap-3 text-xs">
+                        <span class="font-mono font-bold text-gray-600 dark:text-gray-300 w-52 truncate" title="${key}">${key}</span>
+                        <div class="flex-1 h-3 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all" style="width: ${barWidth}%"></div>
+                        </div>
+                        <span class="font-bold text-gray-500 dark:text-gray-400 w-16 text-right">${sizeStr}</span>
+                        <span class="text-gray-400 w-12 text-right">${itemCount}</span>
+                    </div>`;
+            });
+
+            const totalStr = totalSize > 1024 ? (totalSize / 1024).toFixed(1) + ' KB' : totalSize + ' B';
+            rows += `
+                <div class="flex items-center gap-3 text-xs border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+                    <span class="font-bold text-yellow-500 w-52">TOTAL</span>
+                    <div class="flex-1"></div>
+                    <span class="font-bold text-yellow-500 w-16 text-right">${totalStr}</span>
+                    <span class="w-12"></span>
+                </div>`;
+            cacheTable.innerHTML = rows;
+
+            // --- All Tracked Apps Table ---
+            const appsTable = document.getElementById('dev-apps-table');
+            let publishDates = {};
+            try {
+                const raw = localStorage.getItem('lootradar_publish_dates');
+                if (raw) {
+                    const decompressed = LZString.decompressFromUTF16(raw);
+                    publishDates = decompressed ? JSON.parse(decompressed) : {};
+                }
+            } catch(e) {}
+
+            const claimedGames = state.claimedGames || {};
+            const allUrls = Object.keys(publishDates);
+            const appRows = allUrls.map(url => {
+                const info = publishDates[url] || {};
+                const isClaimed = !!claimedGames[url];
+                const date = info.date ? new Date(info.date).toLocaleDateString() : '-';
+                const source = info.source || '-';
+                const shortUrl = url.length > 50 ? url.substring(0, 50) + '...' : url;
+                const statusBadge = isClaimed
+                    ? '<span class="px-1.5 py-0.5 text-[10px] font-bold rounded bg-green-500/20 text-green-500">CLAIMED</span>'
+                    : '<span class="px-1.5 py-0.5 text-[10px] font-bold rounded bg-gray-500/20 text-gray-400">TRACKED</span>';
+                return `
+                    <tr class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                        <td class="py-1.5 pr-2">${statusBadge}</td>
+                        <td class="py-1.5 pr-2 font-mono text-[10px] text-gray-500 dark:text-gray-400 max-w-[200px] truncate" title="${url}">${shortUrl}</td>
+                        <td class="py-1.5 pr-2 text-[10px] text-gray-500">${date}</td>
+                        <td class="py-1.5 text-[10px] text-gray-400">${source}</td>
+                    </tr>`;
+            }).join('');
+
+            appsTable.innerHTML = `
+                <table class="w-full text-left">
+                    <thead>
+                        <tr class="border-b border-gray-200 dark:border-gray-700">
+                            <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Status</th>
+                            <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">URL</th>
+                            <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Date</th>
+                            <th class="py-1.5 text-[10px] font-bold text-gray-500 uppercase">Source</th>
+                        </tr>
+                    </thead>
+                    <tbody>${appRows || '<tr><td colspan="4" class="py-2 text-xs text-gray-400">No tracked apps found</td></tr>'}</tbody>
+                </table>
+                <p class="text-[10px] text-gray-400 mt-2">${allUrls.length} apps tracked, ${Object.keys(claimedGames).length} claimed</p>`;
+        }
+
+        function getItemCount(key) {
+            try {
+                if (key === 'lootradar_claimed_v2') {
+                    const raw = localStorage.getItem(key);
+                    if (!raw) return '0';
+                    const data = JSON.parse(LZString.decompressFromUTF16(raw));
+                    return Object.keys(data).length + ' items';
+                }
+                if (key === 'lootradar_publish_dates') {
+                    const raw = localStorage.getItem(key);
+                    if (!raw) return '0';
+                    const data = JSON.parse(LZString.decompressFromUTF16(raw));
+                    return Object.keys(data).length + ' items';
+                }
+                if (key === 'lootradar_deleted_history') {
+                    const raw = localStorage.getItem(key);
+                    if (!raw) return '0';
+                    const data = JSON.parse(LZString.decompressFromUTF16(raw));
+                    return (Array.isArray(data) ? data.length : 0) + ' items';
+                }
+                return '-';
+            } catch(e) { return 'error'; }
+        }
+
         // --- LINE CHART SCRUBBER LOGIC ---
         window.handleChartHover = function(e) {
             if (!window.lootChartData || window.lootChartData.length === 0) return;

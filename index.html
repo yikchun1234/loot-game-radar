@@ -4035,7 +4035,13 @@
         function renderLibrary() {
             const grid = document.getElementById('library-grid');
             if (!grid) return;
-            
+
+            // Sync sort dropdown with saved state
+            const sortSelect = document.getElementById('lib-sort-select');
+            if (sortSelect && sortSelect.value !== state.libSort) {
+                sortSelect.value = state.libSort;
+            }
+
             // 1. Convert the claimedGames dictionary directly into a clean array
             const libraryGames = Object.entries(state.claimedGames).map(([id, game]) => ({
                 id: id,

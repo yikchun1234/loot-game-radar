@@ -1642,13 +1642,24 @@
                     if (game.value && !isNaN(game.value)) {
                         state.totalSaved = Math.max(0, state.totalSaved - game.value);
                     }
-                    
-                    // 3. Robust initialization check
+
+                    // 3. For "duplicate" reason: just delete, don't record in history
+                    if (selectedReason === 'duplicate') {
+                        delete state.claimedGames[activeDeleteId];
+                        saveSafeStorage('lootradar_claimed_v2', state.claimedGames);
+                        localStorage.setItem('lootradar_saved_money', state.totalSaved.toString());
+                        updateWalletUI();
+                        renderLibrary();
+                        renderGames();
+                        closeDeleteModal();
+                        return;
+                    }
+
+                    // 4. For other reasons: record in deleted history
                     if (!state.deletedHistory || !Array.isArray(state.deletedHistory)) {
                         state.deletedHistory = JSON.parse(localStorage.getItem('lootradar_deleted_history')) || [];
                     }
-                    
-                    // 4. Record the item details into your history JSON tracker array
+
                     const historyItem = {
                         id: activeDeleteId,
                         originalUrl: game.open_giveaway || activeDeleteId,
@@ -1659,10 +1670,10 @@
                         deletedAt: new Date().toISOString(),
                         reason: selectedReason
                     };
-                    
+
                     state.deletedHistory.push(historyItem);
                     saveSafeStorage('lootradar_deleted_history', state.deletedHistory);
-                
+
                     // 5. COMPLETELY DELETE from claimedGames so it can be claimed again if it reappears!
                     delete state.claimedGames[activeDeleteId];
                     saveSafeStorage('lootradar_claimed_v2', state.claimedGames);
@@ -3846,6 +3857,15 @@
             if (deletedNeedsSave) {
                 saveSafeStorage('lootradar_deleted_history', deletedHistory);
                 console.log('Migrated deleted_history');
+            }
+
+            // Remove all "duplicate" entries from deleted_history (no longer needed)
+            const currentDeleted = loadSafeStorage('lootradar_deleted_history') || [];
+            const filteredDeleted = currentDeleted.filter(item => item.reason !== 'duplicate');
+            if (filteredDeleted.length < currentDeleted.length) {
+                saveSafeStorage('lootradar_deleted_history', filteredDeleted);
+                state.deletedHistory = filteredDeleted;
+                console.log(`Removed ${currentDeleted.length - filteredDeleted.length} duplicate entries from deleted_history`);
             }
         }
 

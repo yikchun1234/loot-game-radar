@@ -3791,18 +3791,10 @@
             let migratedCount = 0;
 
             Object.entries(claimedGames).forEach(([id, game]) => {
-                let fixedId = id;
+                // Don't change keys - only fix open_giveaway and add normalizedId
                 let fixedUrl = game.open_giveaway;
 
-                // Check if the KEY is a normalized ID
-                if (id.startsWith('gplay:') || id.startsWith('ios:id') || id.startsWith('steam:') || id.startsWith('epic:') || id.startsWith('gog:')) {
-                    // Convert key to full URL
-                    fixedId = denormalizeUrl(id);
-                    needsSave = true;
-                    migratedCount++;
-                }
-
-                // Check if open_giveaway is a normalized ID
+                // Check if open_giveaway is a normalized ID (broken link from old bug)
                 if (game.open_giveaway && (game.open_giveaway.startsWith('gplay:') || game.open_giveaway.startsWith('ios:id') || game.open_giveaway.startsWith('steam:') || game.open_giveaway.startsWith('epic:') || game.open_giveaway.startsWith('gog:'))) {
                     fixedUrl = denormalizeUrl(game.open_giveaway);
                     needsSave = true;
@@ -3812,21 +3804,18 @@
                 if (fixedUrl !== game.open_giveaway) {
                     game.open_giveaway = fixedUrl;
                     game.normalizedId = id; // Store the normalized ID
+                    needsSave = true;
+                    migratedCount++;
                 } else if (!game.normalizedId) {
                     game.normalizedId = normalizeUrl(fixedUrl); // Add normalized ID if missing
-                }
-
-                // If the key was normalized, we need to move it to a new key
-                if (fixedId !== id) {
-                    delete claimedGames[id];
-                    claimedGames[fixedId] = game;
+                    needsSave = true;
                 }
             });
 
             if (needsSave) {
                 state.claimedGames = claimedGames;
                 saveSafeStorage('lootradar_claimed_v2', claimedGames);
-                console.log(`Migrated ${migratedCount} normalized IDs to full URLs`);
+                console.log(`Migrated ${migratedCount} broken open_giveaway URLs`);
             }
 
             // Also migrate publish_dates
@@ -3868,6 +3857,34 @@
                 state.deletedHistory = filteredDeleted;
                 console.log(`Removed ${currentDeleted.length - filteredDeleted.length} duplicate entries from deleted_history`);
             }
+
+            // Deduplicate claimed_games: if same app exists under both full URL key and normalized ID key,
+            // keep only the normalized ID key (preferred format for lookups)
+            const cg = state.claimedGames || {};
+            const keysToRemove = [];
+            Object.keys(cg).forEach(key => {
+                const game = cg[key];
+                if (!game || typeof game === 'boolean') return;
+                const normId = game.normalizedId || normalizeUrl(game.open_giveaway || key);
+                const fullUrl = game.open_giveaway || '';
+                // If this key is a full URL AND there's also a normalized ID entry, remove the full URL one
+                if (key === fullUrl && fullUrl && normId && cg[normId] && normId !== key) {
+                    keysToRemove.push(key);
+                    console.log(`Migration: dedup claimed_games - removing duplicate key "${key}" (keeping "${normId}")`);
+                }
+                // If this key is a full URL but no normalized ID entry exists, convert key to normalized ID
+                else if (key === fullUrl && fullUrl && normId && !cg[normId] && normId !== key) {
+                    cg[normId] = game;
+                    keysToRemove.push(key);
+                    console.log(`Migration: converting key from URL to normalizedId: "${key}" → "${normId}"`);
+                }
+            });
+            if (keysToRemove.length > 0) {
+                keysToRemove.forEach(k => delete cg[k]);
+                state.claimedGames = cg;
+                saveSafeStorage('lootradar_claimed_v2', cg);
+                console.log(`Migration: deduplicated ${keysToRemove.length} claimed_games entries`);
+            }
         }
 
         window.handleClaim = function(gameObjStr) {
@@ -3876,9 +3893,14 @@
           const originalUrl = game.open_giveaway || game.id;
           const normalizedId = normalizeUrl(originalUrl);
 
-          // Use normalized ID as the key for deduplication
-          const alreadyClaimed = !!state.claimedGames[normalizedId];
-          const isLegacySave = typeof state.claimedGames[normalizedId] === 'boolean';
+          // Check BOTH key formats (migration may have stored as full URL)
+          const existingByKey = state.claimedGames[normalizedId];
+          const existingByUrl = state.claimedGames[originalUrl];
+          const alreadyClaimed = !!existingByKey || !!existingByUrl;
+          const isLegacySave = typeof (existingByKey || existingByUrl) === 'boolean';
+
+          // Determine the actual key used in storage
+          const storageKey = existingByUrl && !existingByKey ? originalUrl : normalizedId;
 
           if (!alreadyClaimed || isLegacySave) {
             // First time claiming - save full game data
@@ -3912,8 +3934,8 @@
             renderLibrary();
           } else {
             // Already claimed - update claimed_date to track last opened
-            if (state.claimedGames[id]) {
-              state.claimedGames[id].claimed_date = new Date().toISOString();
+            if (state.claimedGames[storageKey]) {
+              state.claimedGames[storageKey].claimed_date = new Date().toISOString();
               saveSafeStorage('lootradar_claimed_v2', state.claimedGames);
             }
           }
@@ -4358,9 +4380,10 @@
             filteredGames.forEach((game, index) => {
                 const isNew = (now - new Date(game.published_date).getTime()) < 172800000;
                 const pIcon = getPlatformIconHtml(game);
-                // Check if claimed using normalized ID (or original URL)
+                // Check if claimed - try BOTH normalized ID and full URL (migration may have changed keys)
                 const gameNormalizedId = game.normalizedId || normalizeUrl(game.open_giveaway || game.id);
-                const isClaimed = !!state.claimedGames[gameNormalizedId];
+                const gameFullUrl = game.open_giveaway || '';
+                const isClaimed = !!state.claimedGames[gameNormalizedId] || !!state.claimedGames[gameFullUrl];
 
                 // Check if the game was previously deleted by searching history backwards (gets the most recent reason)
                 let deletedReason = null;

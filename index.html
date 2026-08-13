@@ -2614,6 +2614,14 @@
                 const claimed = claimedGames[url];
                 const deleted = deletedMap[url];
 
+                // Get both original URL and normalized ID
+                let originalUrl = url;
+                let normalizedId = url;
+                if (claimed) {
+                    originalUrl = claimed.open_giveaway || url;
+                    normalizedId = claimed.normalizedId || url;
+                }
+
                 // Determine status
                 let statusBadge = '';
                 if (claimed) {
@@ -2633,16 +2641,18 @@
                 }
 
                 const title = claimed ? (claimed.title || '-') : (deleted ? (deleted.title || '-') : '-');
-                const shortTitle = title.length > 25 ? title.substring(0, 25) + '...' : title;
+                const shortTitle = title.length > 20 ? title.substring(0, 20) + '...' : title;
                 const date = info.date ? new Date(info.date).toLocaleDateString() : '-';
                 const source = info.source || '-';
-                const shortUrl = url.length > 40 ? url.substring(0, 40) + '...' : url;
+                const shortOriginalUrl = originalUrl.length > 30 ? originalUrl.substring(0, 30) + '...' : originalUrl;
+                const shortNormalizedId = normalizedId.length > 25 ? normalizedId.substring(0, 25) + '...' : normalizedId;
 
                 return `
                     <tr class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
                         <td class="py-1.5 pr-2">${statusBadge}</td>
-                        <td class="py-1.5 pr-2 text-[10px] font-bold dark:text-gray-200 max-w-[150px] truncate" title="${title}">${shortTitle}</td>
-                        <td class="py-1.5 pr-2 font-mono text-[10px] text-gray-500 dark:text-gray-400 max-w-[160px] truncate" title="${url}">${shortUrl}</td>
+                        <td class="py-1.5 pr-2 text-[10px] font-bold dark:text-gray-200 max-w-[120px] truncate" title="${title}">${shortTitle}</td>
+                        <td class="py-1.5 pr-2 font-mono text-[10px] text-gray-500 dark:text-gray-400 max-w-[120px] truncate" title="${originalUrl}">${shortOriginalUrl}</td>
+                        <td class="py-1.5 pr-2 font-mono text-[10px] text-blue-500 max-w-[100px] truncate" title="${normalizedId}">${shortNormalizedId}</td>
                         <td class="py-1.5 pr-2 text-[10px] text-gray-500">${date}</td>
                         <td class="py-1.5 text-[10px] text-gray-400">${source}</td>
                     </tr>`;
@@ -2658,12 +2668,13 @@
                         <tr class="border-b border-gray-200 dark:border-gray-700">
                             <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Status</th>
                             <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Title</th>
-                            <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">URL</th>
+                            <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Original URL</th>
+                            <th class="py-1.5 pr-2 text-[10px] font-bold text-blue-500 uppercase">Normalized ID</th>
                             <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Date</th>
                             <th class="py-1.5 text-[10px] font-bold text-gray-500 uppercase">Source</th>
                         </tr>
                     </thead>
-                    <tbody>${appRows || '<tr><td colspan="5" class="py-2 text-xs text-gray-400">No tracked apps found</td></tr>'}</tbody>
+                    <tbody>${appRows || '<tr><td colspan="6" class="py-2 text-xs text-gray-400">No tracked apps found</td></tr>'}</tbody>
                 </table>
                 <div class="flex gap-4 mt-3 text-[10px]">
                     <span class="text-green-500 font-bold">${claimedCount} claimed</span>

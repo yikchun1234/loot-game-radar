@@ -2535,8 +2535,9 @@
                             </div>
                             ${game.date ? `<p class="text-[10px] text-gray-400 mt-1"><i class="ph-bold ph-calendar"></i> ${new Date(game.date).toLocaleDateString()}</p>` : ''}
                         </div>
-                        <button onclick="event.preventDefault(); event.stopPropagation(); handleDeleteFromLibrary(event, '${game.id}')"
-                                class="absolute top-2 right-2 z-30 w-7 h-7 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center justify-center shadow-md transition-all active:scale-90 opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                        <button data-delete-id="${game.id}"
+                                class="delete-btn absolute top-2 right-2 z-30 w-7 h-7 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center justify-center shadow-md transition-all active:scale-90 opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                                style="touch-action: manipulation;"
                                 title="Remove from Library">
                             <i class="ph-bold ph-trash text-sm"></i>
                         </button>
@@ -2548,8 +2549,9 @@
                     <a href="${gameLink}" target="_blank" rel="noopener noreferrer" class="block bg-white dark:bg-dark-card rounded-xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-800 relative group animate-[fadeUp_0.3s_ease_forwards] hover:scale-105 hover:shadow-xl hover:border-blue-500/50 dark:hover:border-neon-blue/50 transition-all duration-300">
                         <div class="h-24 md:h-32 w-full bg-gray-200 dark:bg-gray-800 relative">
                             <img src="${game.image}" class="w-full h-full object-cover" loading="lazy" onerror="this.src='https://placehold.co/400x200/1e293b/ffffff?text=Game+Image+Unavailable'">
-                            <button onclick="event.preventDefault(); event.stopPropagation(); handleDeleteFromLibrary(event, '${game.id}')"
-                                    class="absolute top-2 left-2 z-30 w-7 h-7 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center justify-center shadow-md transition-all active:scale-90 opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                            <button data-delete-id="${game.id}"
+                                    class="delete-btn absolute top-2 left-2 z-30 w-7 h-7 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center justify-center shadow-md transition-all active:scale-90 opacity-100 md:opacity-0 md:group-hover:opacity-100"
+                                    style="touch-action: manipulation;"
                                     title="Remove from Library">
                                 <i class="ph-bold ph-trash text-sm"></i>
                             </button>
@@ -2568,7 +2570,37 @@
                     `;
                 }
             }).join('');
-            
+
+            // --- Event delegation for delete buttons (replaces inline onclick) ---
+            // Fixes: button inside <a> unreliable on touch devices
+            grid._deleteTouchStart = null; // cleanup previous listeners
+            grid.onclick = function(e) {
+                const btn = e.target.closest('.delete-btn');
+                if (!btn) return;
+                e.preventDefault();
+                e.stopPropagation();
+                handleDeleteFromLibrary(e, btn.getAttribute('data-delete-id'));
+            };
+            // Touch handler for mobile (more reliable in <a> elements)
+            let _delTouchX = 0, _delTouchY = 0;
+            grid.addEventListener('touchstart', function(e) {
+                if (e.target.closest('.delete-btn')) {
+                    _delTouchX = e.touches[0].clientX;
+                    _delTouchY = e.touches[0].clientY;
+                }
+            }, { passive: true });
+            grid.addEventListener('touchend', function(e) {
+                const btn = e.target.closest('.delete-btn');
+                if (!btn) return;
+                const dx = Math.abs(e.changedTouches[0].clientX - _delTouchX);
+                const dy = Math.abs(e.changedTouches[0].clientY - _delTouchY);
+                if (dx < 15 && dy < 15) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleDeleteFromLibrary(e, btn.getAttribute('data-delete-id'));
+                }
+            });
+
             // 🔄 If library filters changed, re-evaluate the scroll button
             setTimeout(() => window.updateScrollButtonState(), 50);
         }

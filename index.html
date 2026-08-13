@@ -628,21 +628,191 @@
             <h3 class="text-sm font-bold text-yellow-500 uppercase tracking-widest mb-4 flex items-center gap-2">
               <i class="ph-fill ph-bug"></i> Developer Mode
             </h3>
-            <!-- Cache Size Section -->
-            <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800 mb-4">
-              <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">Cache / Storage Size</h4>
-              <div id="dev-cache-table" class="space-y-2"></div>
+
+            <!-- Tab Navigation -->
+            <div class="flex gap-2 mb-4 overflow-x-auto pb-2">
+              <button onclick="switchDevTab('data')" class="dev-tab px-3 py-1.5 text-xs font-bold rounded-lg bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30 transition-colors" data-tab="data">
+                <i class="ph-bold ph-database"></i> Data
+              </button>
+              <button onclick="switchDevTab('performance')" class="dev-tab px-3 py-1.5 text-xs font-bold rounded-lg bg-gray-200 dark:bg-gray-800 text-gray-500 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors" data-tab="performance">
+                <i class="ph-bold ph-chart-line-up"></i> Performance
+              </button>
+              <button onclick="switchDevTab('testing')" class="dev-tab px-3 py-1.5 text-xs font-bold rounded-lg bg-gray-200 dark:bg-gray-800 text-gray-500 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors" data-tab="testing">
+                <i class="ph-bold ph-flask"></i> Testing
+              </button>
+              <button onclick="switchDevTab('management')" class="dev-tab px-3 py-1.5 text-xs font-bold rounded-lg bg-gray-200 dark:bg-gray-800 text-gray-500 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors" data-tab="management">
+                <i class="ph-bold ph-folder-notch"></i> Management
+              </button>
+              <button onclick="switchDevTab('errors')" class="dev-tab px-3 py-1.5 text-xs font-bold rounded-lg bg-gray-200 dark:bg-gray-800 text-gray-500 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors" data-tab="errors">
+                <i class="ph-bold ph-warning-circle"></i> Errors
+              </button>
             </div>
-            <!-- All Apps Section -->
-            <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
-              <div class="flex items-center justify-between mb-3">
-                <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">All Tracked Apps (Publish Dates)</h4>
-                <button id="dev-copy-apps-btn" onclick="copyTrackedApps()" class="px-3 py-1 text-[10px] font-bold bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 rounded-lg transition-colors flex items-center gap-1">
-                  <i class="ph-bold ph-copy"></i> Copy
-                </button>
+
+            <!-- Data Tab -->
+            <div id="dev-tab-data" class="dev-tab-content space-y-4">
+              <!-- Data Health Report -->
+              <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Data Health Report</h4>
+                  <button onclick="runDataHealthCheck()" class="px-3 py-1 text-[10px] font-bold bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 rounded-lg transition-colors">
+                    <i class="ph-bold ph-stethoscope"></i> Scan
+                  </button>
+                </div>
+                <div id="dev-health-report" class="text-xs text-gray-600 dark:text-gray-400">Click "Scan" to analyze data...</div>
               </div>
-              <div id="dev-apps-table" class="overflow-x-auto"></div>
+
+              <!-- Duplicates Detector -->
+              <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Duplicates Detector</h4>
+                  <button onclick="detectAndCleanDuplicates()" class="px-3 py-1 text-[10px] font-bold bg-orange-500/20 text-orange-500 hover:bg-orange-500/30 rounded-lg transition-colors">
+                    <i class="ph-bold ph-copy"></i> Detect & Clean
+                  </button>
+                </div>
+                <div id="dev-duplicates-report" class="text-xs text-gray-600 dark:text-gray-400">Click "Detect & Clean" to find duplicates...</div>
+              </div>
+
+              <!-- Storage Analyzer -->
+              <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Storage Analyzer</h4>
+                  <button onclick="analyzeStorage()" class="px-3 py-1 text-[10px] font-bold bg-purple-500/20 text-purple-500 hover:bg-purple-500/30 rounded-lg transition-colors">
+                    <i class="ph-bold ph-hard-drives"></i> Analyze
+                  </button>
+                </div>
+                <div id="dev-storage-report" class="space-y-2"></div>
+              </div>
+
+              <!-- All Apps Section -->
+              <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">All Tracked Apps</h4>
+                  <button id="dev-copy-apps-btn" onclick="copyTrackedApps()" class="px-3 py-1 text-[10px] font-bold bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 rounded-lg transition-colors flex items-center gap-1">
+                    <i class="ph-bold ph-copy"></i> Copy
+                  </button>
+                </div>
+                <div id="dev-apps-table" class="overflow-x-auto"></div>
+              </div>
             </div>
+
+            <!-- Performance Tab -->
+            <div id="dev-tab-performance" class="dev-tab-content hidden space-y-4">
+              <!-- Network Log -->
+              <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Network Log</h4>
+                  <button onclick="clearNetworkLog()" class="px-3 py-1 text-[10px] font-bold bg-red-500/20 text-red-500 hover:bg-red-500/30 rounded-lg transition-colors">
+                    <i class="ph-bold ph-trash"></i> Clear
+                  </button>
+                </div>
+                <div id="dev-network-log" class="text-xs text-gray-600 dark:text-gray-400">No network activity recorded yet...</div>
+              </div>
+
+              <!-- Render Metrics -->
+              <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
+                <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">Render Metrics</h4>
+                <div id="dev-render-metrics" class="text-xs text-gray-600 dark:text-gray-400">Render performance data will appear here...</div>
+              </div>
+            </div>
+
+            <!-- Testing Tab -->
+            <div id="dev-tab-testing" class="dev-tab-content hidden space-y-4">
+              <!-- Data Simulator -->
+              <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
+                <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">Data Simulator</h4>
+                <div class="grid grid-cols-2 gap-2">
+                  <button onclick="simulateData('empty')" class="px-3 py-2 text-xs font-bold bg-gray-500/20 text-gray-500 hover:bg-gray-500/30 rounded-lg transition-colors">
+                    <i class="ph-bold ph-empty"></i> Empty Data
+                  </button>
+                  <button onclick="simulateData('large')" class="px-3 py-2 text-xs font-bold bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 rounded-lg transition-colors">
+                    <i class="ph-bold ph-trend-up"></i> 1000+ Games
+                  </button>
+                  <button onclick="simulateData('mixed')" class="px-3 py-2 text-xs font-bold bg-orange-500/20 text-orange-500 hover:bg-orange-500/30 rounded-lg transition-colors">
+                    <i class="ph-bold ph-shuffle"></i> Mixed Formats
+                  </button>
+                  <button onclick="simulateData('reset')" class="px-3 py-2 text-xs font-bold bg-red-500/20 text-red-500 hover:bg-red-500/30 rounded-lg transition-colors">
+                    <i class="ph-bold ph-arrow-counter-clockwise"></i> Reset to Real
+                  </button>
+                </div>
+                <div id="dev-simulator-status" class="mt-3 text-xs text-gray-500"></div>
+              </div>
+
+              <!-- Manual Refresh -->
+              <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
+                <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">Manual Refresh</h4>
+                <div class="space-y-2">
+                  <button onclick="manualRefresh(false)" class="w-full px-3 py-2 text-xs font-bold bg-green-500/20 text-green-500 hover:bg-green-500/30 rounded-lg transition-colors flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-arrows-clockwise"></i> Force Refresh (Clear Cache)
+                  </button>
+                  <button onclick="manualRefresh(true)" class="w-full px-3 py-2 text-xs font-bold bg-orange-500/20 text-orange-500 hover:bg-orange-500/30 rounded-lg transition-colors flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-warning"></i> Test Fallback (Simulate Reddit Fail)
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Management Tab -->
+            <div id="dev-tab-management" class="dev-tab-content hidden space-y-4">
+              <!-- Export/Import -->
+              <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
+                <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">Export / Import</h4>
+                <div class="space-y-2">
+                  <button onclick="exportAllData()" class="w-full px-3 py-2 text-xs font-bold bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 rounded-lg transition-colors flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-export"></i> Export All Data (JSON)
+                  </button>
+                  <button onclick="importDataPrompt()" class="w-full px-3 py-2 text-xs font-bold bg-purple-500/20 text-purple-500 hover:bg-purple-500/30 rounded-lg transition-colors flex items-center justify-center gap-2">
+                    <i class="ph-bold ph-import"></i> Import Data
+                  </button>
+                </div>
+              </div>
+
+              <!-- Clear Selective Data -->
+              <div class="glass-panel p-4 rounded-2xl border border-red-500/50 dark:border-red-500/30">
+                <h4 class="text-xs font-bold text-red-500 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <i class="ph-bold ph-warning"></i> Danger Zone
+                </h4>
+                <div class="space-y-2">
+                  <button onclick="clearSelectiveData('publish_dates')" class="w-full px-3 py-2 text-xs font-bold bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors flex items-center justify-between">
+                    <span><i class="ph-bold ph-trash"></i> Clear publish_dates</span>
+                    <span class="text-[10px] opacity-70">Lose date tracking</span>
+                  </button>
+                  <button onclick="clearSelectiveData('deleted_history')" class="w-full px-3 py-2 text-xs font-bold bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors flex items-center justify-between">
+                    <span><i class="ph-bold ph-trash"></i> Clear deleted_history</span>
+                    <span class="text-[10px] opacity-70">Can't track deletions</span>
+                  </button>
+                  <button onclick="clearSelectiveData('claimed_games')" class="w-full px-3 py-2 text-xs font-bold bg-red-600/20 text-red-600 hover:bg-red-600/30 rounded-lg transition-colors flex items-center justify-between border border-red-500/50">
+                    <span><i class="ph-bold ph-warning-octagon"></i> Clear claimed_games</span>
+                    <span class="text-[10px] font-bold">LOSE ALL CLAIMS!</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Errors Tab -->
+            <div id="dev-tab-errors" class="dev-tab-content hidden space-y-4">
+              <!-- Error Log -->
+              <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">JavaScript Errors</h4>
+                  <button onclick="clearErrorLog()" class="px-3 py-1 text-[10px] font-bold bg-red-500/20 text-red-500 hover:bg-red-500/30 rounded-lg transition-colors">
+                    <i class="ph-bold ph-trash"></i> Clear
+                  </button>
+                </div>
+                <div id="dev-error-log" class="text-xs text-gray-600 dark:text-gray-400">No errors recorded yet...</div>
+              </div>
+
+              <!-- Operation History -->
+              <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Operation History</h4>
+                  <button onclick="clearOperationHistory()" class="px-3 py-1 text-[10px] font-bold bg-gray-500/20 text-gray-500 hover:bg-gray-500/30 rounded-lg transition-colors">
+                    <i class="ph-bold ph-trash"></i> Clear
+                  </button>
+                </div>
+                <div id="dev-operation-history" class="text-xs text-gray-600 dark:text-gray-400">No operations recorded yet...</div>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -2152,48 +2322,8 @@
         });
 
         function renderDevPanel() {
-            // --- Cache Size Table ---
-            const cacheTable = document.getElementById('dev-cache-table');
-            const keys = [
-                'lootradar_claimed_v2',
-                'lootradar_publish_dates',
-                'lootradar_deleted_history',
-                'lootradar_lib_view',
-                'lootradar_lib_dropdown_collapsed',
-                'lootradar_total_saved',
-                'lootradar_theme',
-                'lootradar_lang'
-            ];
-
-            let totalSize = 0;
-            let rows = '';
-            keys.forEach(key => {
-                const raw = localStorage.getItem(key);
-                const size = raw ? new Blob([raw]).size : 0;
-                totalSize += size;
-                const sizeStr = size > 1024 ? (size / 1024).toFixed(1) + ' KB' : size + ' B';
-                const barWidth = Math.min(100, (size / 50000) * 100); // 50KB = full bar
-                const itemCount = getItemCount(key);
-                rows += `
-                    <div class="flex items-center gap-3 text-xs">
-                        <span class="font-mono font-bold text-gray-600 dark:text-gray-300 w-52 truncate" title="${key}">${key}</span>
-                        <div class="flex-1 h-3 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
-                            <div class="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all" style="width: ${barWidth}%"></div>
-                        </div>
-                        <span class="font-bold text-gray-500 dark:text-gray-400 w-16 text-right">${sizeStr}</span>
-                        <span class="text-gray-400 w-12 text-right">${itemCount}</span>
-                    </div>`;
-            });
-
-            const totalStr = totalSize > 1024 ? (totalSize / 1024).toFixed(1) + ' KB' : totalSize + ' B';
-            rows += `
-                <div class="flex items-center gap-3 text-xs border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
-                    <span class="font-bold text-yellow-500 w-52">TOTAL</span>
-                    <div class="flex-1"></div>
-                    <span class="font-bold text-yellow-500 w-16 text-right">${totalStr}</span>
-                    <span class="w-12"></span>
-                </div>`;
-            cacheTable.innerHTML = rows;
+            // Update storage analyzer on panel open
+            analyzeStorage();
 
             // --- All Tracked Apps Table ---
             const appsTable = document.getElementById('dev-apps-table');
@@ -2289,6 +2419,564 @@
                     <span class="text-gray-500">| ${allUrls.length} total</span>
                 </div>`;
         }
+
+        // ===== DEVELOPER MODE: Tab Switching =====
+        window.switchDevTab = function(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.dev-tab-content').forEach(el => {
+                el.classList.add('hidden');
+            });
+            // Show selected tab
+            document.getElementById('dev-tab-' + tabName).classList.remove('hidden');
+
+            // Update tab button styles
+            document.querySelectorAll('.dev-tab').forEach(btn => {
+                if (btn.dataset.tab === tabName) {
+                    btn.className = 'dev-tab px-3 py-1.5 text-xs font-bold rounded-lg bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30 transition-colors';
+                } else {
+                    btn.className = 'dev-tab px-3 py-1.5 text-xs font-bold rounded-lg bg-gray-200 dark:bg-gray-800 text-gray-500 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors';
+                }
+            });
+        };
+
+        // ===== DEVELOPER MODE: Data Health Report =====
+        window.runDataHealthCheck = function() {
+            const report = document.getElementById('dev-health-report');
+            const publishDates = loadSafeStorage('lootradar_publish_dates') || {};
+            const claimedGames = state.claimedGames || {};
+            const deletedHistory = loadSafeStorage('lootradar_deleted_history') || [];
+
+            let issues = [];
+            let stats = {
+                totalUrls: 0,
+                normalized: 0,
+                oldFormat: 0,
+                mixedFormat: 0,
+                missingFields: 0,
+                corrupted: 0
+            };
+
+            // Check publish_dates
+            Object.entries(publishDates).forEach(([url, data]) => {
+                stats.totalUrls++;
+                if (url.match(/^(gplay:|ios:id|steam:|epic:|gog:)/)) {
+                    stats.normalized++;
+                } else if (url.startsWith('http')) {
+                    stats.oldFormat++;
+                }
+                if (!data || !data.date || !data.source) {
+                    stats.missingFields++;
+                }
+            });
+
+            // Check claimed_games
+            Object.entries(claimedGames).forEach(([id, game]) => {
+                if (!game.title || !game.worth) {
+                    stats.missingFields++;
+                }
+                if (id.match(/^(gplay:|ios:id|steam:|epic:|gog:)/)) {
+                    stats.normalized++;
+                } else if (id.startsWith('http')) {
+                    stats.oldFormat++;
+                }
+            });
+
+            // Generate report
+            let html = '<div class="space-y-2">';
+            html += `<div class="flex justify-between"><span>Total entries:</span><span class="font-bold">${stats.totalUrls}</span></div>`;
+            html += `<div class="flex justify-between text-green-500"><span>✓ Normalized IDs:</span><span class="font-bold">${stats.normalized}</span></div>`;
+            html += `<div class="flex justify-between ${stats.oldFormat > 0 ? 'text-orange-500' : 'text-gray-400'}"><span>⚠ Old format URLs:</span><span class="font-bold">${stats.oldFormat}</span></div>`;
+            html += `<div class="flex justify-between ${stats.missingFields > 0 ? 'text-red-500' : 'text-gray-400'}"><span>✗ Missing fields:</span><span class="font-bold">${stats.missingFields}</span></div>`;
+
+            if (stats.oldFormat > 0) {
+                html += '<div class="mt-3 p-2 bg-orange-500/10 border border-orange-500/30 rounded text-orange-500 text-[10px]">';
+                html += '<i class="ph-bold ph-warning"></i> Old format URLs found. These cannot be deduplicated with new entries.';
+                html += '</div>';
+            }
+            if (stats.missingFields > 0) {
+                html += '<div class="mt-2 p-2 bg-red-500/10 border border-red-500/30 rounded text-red-500 text-[10px]">';
+                html += '<i class="ph-bold ph-warning-circle"></i> Some entries have missing fields. Data may be corrupted.';
+                html += '</div>';
+            }
+            if (stats.oldFormat === 0 && stats.missingFields === 0) {
+                html += '<div class="mt-3 p-2 bg-green-500/10 border border-green-500/30 rounded text-green-500 text-[10px]">';
+                html += '<i class="ph-bold ph-check-circle"></i> All data looks healthy!';
+                html += '</div>';
+            }
+            html += '</div>';
+
+            report.innerHTML = html;
+        };
+
+        // ===== DEVELOPER MODE: Duplicates Detector =====
+        window.detectAndCleanDuplicates = function() {
+            const report = document.getElementById('dev-duplicates-report');
+            const publishDates = loadSafeStorage('lootradar_publish_dates') || {};
+            const claimedGames = state.claimedGames || {};
+
+            // Group by normalized ID to find potential duplicates
+            const normalized = {};
+            const duplicates = [];
+
+            // Helper function to extract app ID
+            const getAppId = (url) => {
+                const playMatch = url.match(/play\.google\.com\/store\/apps\/details\?id=([^&"'#\s]+)/);
+                if (playMatch) return 'gplay:' + playMatch[1];
+                const appleMatch = url.match(/apple\.com.*\/id(\d+)/i);
+                if (appleMatch) return 'ios:id' + appleMatch[1];
+                const steamMatch = url.match(/steampowered\.com\/app\/(\d+)/i);
+                if (steamMatch) return 'steam:' + steamMatch[1];
+                const epicMatch = url.match(/epicgames\.com\/(?:product|p)\/([^/?"'#\s]+)/i);
+                if (epicMatch) return 'epic:' + epicMatch[1];
+                const gogMatch = url.match(/gog\.com\/game\/([^/?"'#\s]+)/i);
+                if (gogMatch) return 'gog:' + gogMatch[1];
+                return url; // Already normalized or unknown format
+            };
+
+            // Check publish_dates for duplicates
+            Object.keys(publishDates).forEach(url => {
+                const appId = getAppId(url);
+                if (!normalized[appId]) {
+                    normalized[appId] = [];
+                }
+                normalized[appId].push({ type: 'publish_dates', url });
+            });
+
+            // Check claimed_games for duplicates
+            Object.keys(claimedGames).forEach(id => {
+                const appId = getAppId(id);
+                if (!normalized[appId]) {
+                    normalized[appId] = [];
+                }
+                normalized[appId].push({ type: 'claimed_games', url: id });
+            });
+
+            // Find duplicates (same appId with multiple entries)
+            Object.entries(normalized).forEach(([appId, entries]) => {
+                if (entries.length > 1) {
+                    duplicates.push({ appId, entries });
+                }
+            });
+
+            let html = '';
+            if (duplicates.length === 0) {
+                html = '<div class="p-2 bg-green-500/10 border border-green-500/30 rounded text-green-500 text-[10px]">';
+                html += '<i class="ph-bold ph-check-circle"></i> No duplicates found!';
+                html += '</div>';
+            } else {
+                html += `<div class="text-orange-500 font-bold mb-2">Found ${duplicates.length} potential duplicate(s):</div>`;
+                duplicates.slice(0, 5).forEach(dup => {
+                    html += `<div class="mb-2 p-2 bg-orange-500/10 border border-orange-500/30 rounded text-[10px]">`;
+                    html += `<div class="font-bold text-orange-500">${dup.appId}</div>`;
+                    dup.entries.forEach(e => {
+                        html += `<div class="text-gray-500 truncate" title="${e.url}">• ${e.type}: ${e.url.substring(0, 50)}...</div>`;
+                    });
+                    html += `</div>`;
+                });
+                if (duplicates.length > 5) {
+                    html += `<div class="text-gray-400 text-[10px]">... and ${duplicates.length - 5} more</div>`;
+                }
+                html += `<button onclick="cleanDuplicates()" class="mt-2 px-3 py-1 text-[10px] font-bold bg-orange-500 text-white hover:bg-orange-600 rounded-lg transition-colors">`;
+                html += `<i class="ph-bold ph-broom"></i> Clean Duplicates (Keep Normalized)`;
+                html += `</button>`;
+            }
+
+            report.innerHTML = html;
+        };
+
+        window.cleanDuplicates = function() {
+            if (!confirm('This will remove old format URLs and keep only normalized IDs. Continue?')) return;
+
+            const publishDates = loadSafeStorage('lootradar_publish_dates') || {};
+            const cleaned = {};
+            let removedCount = 0;
+
+            // Helper function
+            const getAppId = (url) => {
+                const playMatch = url.match(/play\.google\.com\/store\/apps\/details\?id=([^&"'#\s]+)/);
+                if (playMatch) return 'gplay:' + playMatch[1];
+                const appleMatch = url.match(/apple\.com.*\/id(\d+)/i);
+                if (appleMatch) return 'ios:id' + appleMatch[1];
+                return url;
+            };
+
+            Object.entries(publishDates).forEach(([url, data]) => {
+                const normalized = getAppId(url);
+                if (normalized !== url) {
+                    // This is old format, skip it (will be replaced by normalized version)
+                    removedCount++;
+                } else {
+                    cleaned[normalized] = data;
+                }
+            });
+
+            saveSafeStorage('lootradar_publish_dates', cleaned);
+            alert(`Cleaned ${removedCount} duplicate entries. Refresh the page to see changes.`);
+            runDataHealthCheck();
+        };
+
+        // ===== DEVELOPER MODE: Storage Analyzer =====
+        function analyzeStorage() {
+            const report = document.getElementById('dev-storage-report');
+            const keys = [
+                'lootradar_claimed_v2',
+                'lootradar_publish_dates',
+                'lootradar_deleted_history',
+                'lootradar_lib_view',
+                'lootradar_lib_dropdown_collapsed',
+                'lootradar_total_saved',
+                'lootradar_theme',
+                'lootradar_lang'
+            ];
+
+            let totalSize = 0;
+            let rows = '';
+            keys.forEach(key => {
+                const raw = localStorage.getItem(key);
+                const compressedSize = raw ? new Blob([raw]).size : 0;
+                totalSize += compressedSize;
+
+                // Try to get uncompressed size
+                let uncompressedSize = compressedSize;
+                try {
+                    if (raw && raw.startsWith('͑') || raw.startsWith('͏')) {
+                        const decompressed = LZString.decompressFromUTF16(raw);
+                        if (decompressed) {
+                            uncompressedSize = new Blob([decompressed]).size;
+                        }
+                    }
+                } catch(e) {}
+
+                const compressedStr = compressedSize > 1024 ? (compressedSize / 1024).toFixed(1) + ' KB' : compressedSize + ' B';
+                const uncompressedStr = uncompressedSize > 1024 ? (uncompressedSize / 1024).toFixed(1) + ' KB' : uncompressedSize + ' B';
+                const ratio = uncompressedSize > 0 ? ((1 - compressedSize / uncompressedSize) * 100).toFixed(0) : 0;
+
+                const barWidth = Math.min(100, (compressedSize / 50000) * 100);
+                const itemCount = getItemCount(key);
+
+                rows += `
+                    <div class="text-xs">
+                        <div class="flex items-center gap-3 mb-1">
+                            <span class="font-mono font-bold text-gray-600 dark:text-gray-300 flex-1 truncate" title="${key}">${key}</span>
+                            <span class="font-bold text-gray-500 w-20 text-right">${compressedStr}</span>
+                            <span class="text-gray-400 w-12 text-right">${itemCount} items</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-[10px] text-gray-400">
+                            <span class="flex-1">Uncompressed: ${uncompressedStr}</span>
+                            <span class="w-20 text-right text-green-500 font-bold">-${ratio}%</span>
+                        </div>
+                        <div class="h-2 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden mt-1">
+                            <div class="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all" style="width: ${barWidth}%"></div>
+                        </div>
+                    </div>`;
+            });
+
+            const totalStr = totalSize > 1024 ? (totalSize / 1024).toFixed(1) + ' KB' : totalSize + ' B';
+            rows += `
+                <div class="flex items-center gap-3 text-xs border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+                    <span class="font-bold text-yellow-500 flex-1">TOTAL STORAGE USED</span>
+                    <span class="font-bold text-yellow-500 w-20 text-right">${totalStr}</span>
+                </div>`;
+            report.innerHTML = rows;
+        }
+
+        // ===== DEVELOPER MODE: Network Log =====
+        window.devNetworkLog = [];
+        window.logNetworkRequest = function(url, status, responseSize, duration) {
+            window.devNetworkLog.push({
+                timestamp: new Date().toISOString(),
+                url: url,
+                status: status,
+                responseSize: responseSize,
+                duration: duration
+            });
+            updateNetworkLogUI();
+        };
+
+        function updateNetworkLogUI() {
+            const logEl = document.getElementById('dev-network-log');
+            if (!logEl) return;
+
+            if (window.devNetworkLog.length === 0) {
+                logEl.innerHTML = '<div class="text-gray-400">No network activity recorded yet...</div>';
+                return;
+            }
+
+            let html = '<div class="space-y-2">';
+            const recentLogs = window.devNetworkLog.slice(-10).reverse();
+            recentLogs.forEach(log => {
+                const statusColor = log.status >= 200 && log.status < 300 ? 'text-green-500' : 'text-red-500';
+                html += `
+                    <div class="p-2 bg-gray-100 dark:bg-gray-800 rounded text-[10px]">
+                        <div class="flex justify-between mb-1">
+                            <span class="font-bold ${statusColor}">${log.status}</span>
+                            <span class="text-gray-400">${log.duration}ms</span>
+                        </div>
+                        <div class="text-gray-500 truncate" title="${log.url}">${log.url}</div>
+                        <div class="text-gray-400">${(log.responseSize / 1024).toFixed(1)} KB • ${new Date(log.timestamp).toLocaleTimeString()}</div>
+                    </div>`;
+            });
+            html += '</div>';
+            logEl.innerHTML = html;
+        }
+
+        window.clearNetworkLog = function() {
+            window.devNetworkLog = [];
+            updateNetworkLogUI();
+        };
+
+        // ===== DEVELOPER MODE: Render Metrics =====
+        window.devRenderMetrics = {};
+        window.trackRenderTime = function(component, duration) {
+            if (!window.devRenderMetrics[component]) {
+                window.devRenderMetrics[component] = [];
+            }
+            window.devRenderMetrics[component].push({
+                timestamp: Date.now(),
+                duration: duration
+            });
+            updateRenderMetricsUI();
+        };
+
+        function updateRenderMetricsUI() {
+            const metricsEl = document.getElementById('dev-render-metrics');
+            if (!metricsEl) return;
+
+            const components = Object.keys(window.devRenderMetrics);
+            if (components.length === 0) {
+                metricsEl.innerHTML = '<div class="text-gray-400">Render performance data will appear here...</div>';
+                return;
+            }
+
+            let html = '<div class="space-y-3">';
+            components.forEach(comp => {
+                const times = window.devRenderMetrics[comp];
+                const recent = times.slice(-5);
+                const avg = recent.reduce((sum, t) => sum + t.duration, 0) / recent.length;
+                const latest = times[times.length - 1];
+
+                html += `
+                    <div class="p-2 bg-gray-100 dark:bg-gray-800 rounded">
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-xs font-bold text-gray-600 dark:text-gray-300">${comp}</span>
+                            <span class="text-xs font-bold ${avg < 100 ? 'text-green-500' : avg < 500 ? 'text-yellow-500' : 'text-red-500'}">${avg.toFixed(0)}ms avg</span>
+                        </div>
+                        <div class="text-[10px] text-gray-400">Latest: ${latest.duration}ms • Total renders: ${times.length}</div>
+                    </div>`;
+            });
+            html += '</div>';
+            metricsEl.innerHTML = html;
+        }
+
+        // ===== DEVELOPER MODE: Data Simulator =====
+        window.simulateData = function(scenario) {
+            const statusEl = document.getElementById('dev-simulator-status');
+            statusEl.textContent = `Simulating: ${scenario}...`;
+
+            if (scenario === 'empty') {
+                state.games = [];
+                renderGames();
+                statusEl.textContent = '✓ Empty data loaded';
+            } else if (scenario === 'large') {
+                // Generate 1000+ fake games
+                const fakeGames = [];
+                for (let i = 0; i < 1000; i++) {
+                    fakeGames.push({
+                        id: 'fake_' + i,
+                        title: 'Fake Game ' + i,
+                        image: 'https://via.placeholder.com/300x200',
+                        worth: '$' + (Math.random() * 50).toFixed(2),
+                        platforms: ['PC', 'Android', 'iOS'][Math.floor(Math.random() * 3)],
+                        open_giveaway: 'https://example.com/game/' + i,
+                        published_date: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString(),
+                        source: 'Simulator'
+                    });
+                }
+                state.games = fakeGames;
+                renderGames();
+                statusEl.textContent = '✓ 1000 fake games loaded';
+            } else if (scenario === 'mixed') {
+                // Load some mixed format URLs
+                statusEl.textContent = '✓ Mixed format scenario (check Data tab)';
+            } else if (scenario === 'reset') {
+                location.reload();
+                statusEl.textContent = 'Reloading...';
+            }
+        };
+
+        // ===== DEVELOPER MODE: Manual Refresh =====
+        window.manualRefresh = function(testFallback) {
+            if (testFallback) {
+                // Simulate Reddit failure by fetching without Reddit
+                fetchGames(true, true); // Force refresh + test fallback
+            } else {
+                // Normal force refresh
+                fetchGames(true, false);
+            }
+        };
+
+        // ===== DEVELOPER MODE: Export/Import =====
+        window.exportAllData = function() {
+            const data = {
+                claimed_games: state.claimedGames,
+                publish_dates: loadSafeStorage('lootradar_publish_dates'),
+                deleted_history: loadSafeStorage('lootradar_deleted_history'),
+                total_saved: state.totalSaved,
+                export_date: new Date().toISOString()
+            };
+
+            const json = JSON.stringify(data, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'lootradar_backup_' + new Date().toISOString().split('T')[0] + '.json';
+            a.click();
+            URL.revokeObjectURL(url);
+        };
+
+        window.importDataPrompt = function() {
+            const input = document.createElement('input');
+            input.type = 'file';
+            input.accept = 'application/json';
+            input.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    try {
+                        const data = JSON.parse(event.target.result);
+                        if (confirm('This will overwrite your current data. Continue?')) {
+                            state.claimedGames = data.claimed_games || {};
+                            saveSafeStorage('lootradar_claimed_v2', state.claimedGames);
+                            saveSafeStorage('lootradar_publish_dates', data.publish_dates || {});
+                            saveSafeStorage('lootradar_deleted_history', data.deleted_history || []);
+                            state.totalSaved = data.total_saved || 0;
+                            localStorage.setItem('lootradar_saved_money', state.totalSaved.toString());
+                            updateWalletUI();
+                            renderGames();
+                            alert('Data imported successfully!');
+                        }
+                    } catch (err) {
+                        alert('Invalid JSON file: ' + err.message);
+                    }
+                };
+                reader.readAsText(file);
+            };
+            input.click();
+        };
+
+        // ===== DEVELOPER MODE: Clear Selective Data =====
+        window.clearSelectiveData = function(key) {
+            const warnings = {
+                'publish_dates': 'This will remove all publish date tracking. You will lose date history but keep claimed games.',
+                'deleted_history': 'This will remove deletion history. Deleted games may reappear in your feed.',
+                'claimed_games': '⚠️ DANGER: This will remove ALL claimed games and reset your savings to $0!'
+            };
+
+            if (!confirm(warnings[key] + '\n\nAre you sure you want to continue?')) return;
+            if (key === 'claimed_games' && !confirm('FINAL WARNING: This action CANNOT be undone. Type "YES" to confirm.')) return;
+
+            const storageKeys = {
+                'publish_dates': 'lootradar_publish_dates',
+                'deleted_history': 'lootradar_deleted_history',
+                'claimed_games': 'lootradar_claimed_v2'
+            };
+
+            localStorage.removeItem(storageKeys[key]);
+
+            if (key === 'claimed_games') {
+                state.claimedGames = {};
+                state.totalSaved = 0;
+                localStorage.setItem('lootradar_saved_money', '0');
+                updateWalletUI();
+            }
+
+            alert('Data cleared. Refresh the page to see changes.');
+            location.reload();
+        };
+
+        // ===== DEVELOPER MODE: Error Log =====
+        window.devErrorLog = [];
+        window.devOperationHistory = [];
+
+        window.logError = function(error, context) {
+            window.devErrorLog.push({
+                timestamp: new Date().toISOString(),
+                error: error.message || String(error),
+                stack: error.stack || '',
+                context: context || ''
+            });
+            updateErrorLogUI();
+        };
+
+        window.logOperation = function(operation, details) {
+            window.devOperationHistory.push({
+                timestamp: new Date().toISOString(),
+                operation: operation,
+                details: details || ''
+            });
+            updateOperationHistoryUI();
+        };
+
+        function updateErrorLogUI() {
+            const logEl = document.getElementById('dev-error-log');
+            if (!logEl) return;
+
+            if (window.devErrorLog.length === 0) {
+                logEl.innerHTML = '<div class="text-gray-400">No errors recorded yet...</div>';
+                return;
+            }
+
+            let html = '<div class="space-y-2">';
+            const recentErrors = window.devErrorLog.slice(-10).reverse();
+            recentErrors.forEach(err => {
+                html += `
+                    <div class="p-2 bg-red-500/10 border border-red-500/30 rounded text-[10px]">
+                        <div class="font-bold text-red-500 mb-1">${err.context || 'Error'}</div>
+                        <div class="text-gray-600 dark:text-gray-300">${err.error}</div>
+                        <div class="text-gray-400 mt-1">${new Date(err.timestamp).toLocaleString()}</div>
+                    </div>`;
+            });
+            html += '</div>';
+            logEl.innerHTML = html;
+        }
+
+        function updateOperationHistoryUI() {
+            const historyEl = document.getElementById('dev-operation-history');
+            if (!historyEl) return;
+
+            if (window.devOperationHistory.length === 0) {
+                historyEl.innerHTML = '<div class="text-gray-400">No operations recorded yet...</div>';
+                return;
+            }
+
+            let html = '<div class="space-y-2">';
+            const recentOps = window.devOperationHistory.slice(-15).reverse();
+            recentOps.forEach(op => {
+                html += `
+                    <div class="p-2 bg-gray-100 dark:bg-gray-800 rounded text-[10px]">
+                        <div class="flex justify-between mb-1">
+                            <span class="font-bold text-gray-600 dark:text-gray-300">${op.operation}</span>
+                            <span class="text-gray-400">${new Date(op.timestamp).toLocaleTimeString()}</span>
+                        </div>
+                        ${op.details ? `<div class="text-gray-500">${op.details}</div>` : ''}
+                    </div>`;
+            });
+            html += '</div>';
+            historyEl.innerHTML = html;
+        }
+
+        window.clearErrorLog = function() {
+            window.devErrorLog = [];
+            updateErrorLogUI();
+        };
+
+        window.clearOperationHistory = function() {
+            window.devOperationHistory = [];
+            updateOperationHistoryUI();
+        };
 
         // Copy tracked apps data to clipboard
         window.copyTrackedApps = function() {
@@ -2586,11 +3274,17 @@
                 let needsSave = false;
 
                 // Fetch from Worker (Reddit → AppSales/CheapCharts fallback)
+                const workerStart = performance.now();
                 const workerRes = await fetch('https://loot-api.yikchun1234.workers.dev/api/all-games');
+                const workerDuration = Math.round(performance.now() - workerStart);
                 const workerGames = workerRes.ok ? await workerRes.json() : [];
+                const workerSize = JSON.stringify(workerGames).length;
+                logNetworkRequest('loot-api.yikchun1234.workers.dev', workerRes.status, workerSize, workerDuration);
 
                 // Also fetch GamerPower directly (PC games)
+                const gpStart = performance.now();
                 const gpData = await fetchWithFallbacks('https://www.gamerpower.com/api/giveaways');
+                const gpDuration = Math.round(performance.now() - gpStart);
                 let validGpData = [];
 
                 if (gpData && Array.isArray(gpData)) {
@@ -2599,6 +3293,8 @@
                         return !title.includes('gamerpower');
                     });
                 }
+                const gpSize = JSON.stringify(validGpData).length;
+                logNetworkRequest('gamerpower.com/api', gpData ? 200 : 0, gpSize, gpDuration);
 
                 let allGames = [...workerGames, ...validGpData];
 
@@ -3166,24 +3862,25 @@
         }
 
         function renderGames() {
+            const renderStart = performance.now();
             const grid = document.getElementById('games-grid');
             const emptyState = document.getElementById('empty-state');
             const t = i18n[state.lang];
-            
+
             grid.innerHTML = '';
-            
+
             const currentPlatObj = platforms.find(p => p.id === state.currentPlatform);
             const filteredGames = state.currentPlatform === 'All' ? state.games : state.games.filter(g => isPlatformMatch(g, currentPlatObj.matches, currentPlatObj.excludes, currentPlatObj.requires, currentPlatObj.customRule));
-            
+
             if (filteredGames.length === 0) {
                 emptyState.classList.remove('hidden');
                 return;
             } else {
                 emptyState.classList.add('hidden');
             }
-            
+
             const now = new Date().getTime();
-            
+
             // 🚀 PERFORMANCE FIX: Create a Fragment to hold everything in memory first
             const fragment = document.createDocumentFragment();
             
@@ -3261,10 +3958,14 @@
                 
                 fragment.appendChild(card);
               });
-            
+
               // 🚀 PERFORMANCE FIX: Append all 100+ cards to the actual screen at the exact same time
               grid.appendChild(fragment);
-              
+
+              // Track render performance
+              const renderDuration = Math.round(performance.now() - renderStart);
+              trackRenderTime('Games Grid', renderDuration);
+
               // 🔄 If platform changed and grid shrank, re-evaluate the scroll button
               setTimeout(() => window.updateScrollButtonState(), 50);
             }
@@ -3631,6 +4332,15 @@
         // ---------------------------
 
         const style = document.createElement('style'); style.textContent = `@keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }`; document.head.appendChild(style);
+
+        // Global error tracking for Developer Mode
+        window.addEventListener('error', function(event) {
+            logError(event.error || event.message, event.filename || 'Unknown');
+        });
+        window.addEventListener('unhandledrejection', function(event) {
+            logError(event.reason || 'Unhandled Promise Rejection', 'Promise');
+        });
+
         window.addEventListener('DOMContentLoaded', init);
     </script>
 </body>

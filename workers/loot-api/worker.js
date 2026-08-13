@@ -356,7 +356,7 @@ async function fetchAndroidFreeApps() {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
       },
-      cf: { cacheTtl: 14400, cacheEverything: true }, // Cache for 4 hours
+      cf: { cacheTtl: 7200, cacheEverything: true }, // Cache for 2 hours
     });
 
     if (!res.ok) return [];
@@ -420,7 +420,7 @@ async function fetchIOSFreeApps() {
       'https://buster.cheapcharts.de/v1/OfferList.php?store=itunes&listType=nowfree&country=us&itemType=apps&genreIds=0&quality=hd&sort=latestPricechange&offset=0&limit=50&releaseYear=1900-2026&offers=all&plattform=1&paid=1&priceRange=all',
       {
         headers: { 'User-Agent': 'LootRadar/1.0' },
-        cf: { cacheTtl: 14400, cacheEverything: true }, // Cache for 4 hours
+        cf: { cacheTtl: 7200, cacheEverything: true }, // Cache for 2 hours
       }
     );
 

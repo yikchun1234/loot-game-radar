@@ -3089,13 +3089,39 @@
 
         // ===== DEVELOPER MODE: Export/Import =====
         window.exportAllData = function() {
+            // Export ALL localStorage data to ensure complete backup
+            const allKeys = [
+                'lootradar_claimed_v2',
+                'lootradar_publish_dates',
+                'lootradar_deleted_history',
+                'lootradar_lib_view',
+                'lootradar_lib_sort',
+                'lootradar_lib_dropdown_collapsed',
+                'lootradar_total_saved',
+                'lootradar_saved_money',
+                'lootradar_theme',
+                'lootradar_lang'
+            ];
+
             const data = {
-                claimed_games: state.claimedGames,
-                publish_dates: loadSafeStorage('lootradar_publish_dates'),
-                deleted_history: loadSafeStorage('lootradar_deleted_history'),
-                total_saved: state.totalSaved,
-                export_date: new Date().toISOString()
+                version: '2.0',
+                export_date: new Date().toISOString(),
+                localStorage: {}
             };
+
+            // Export all localStorage keys
+            allKeys.forEach(key => {
+                const value = localStorage.getItem(key);
+                if (value !== null) {
+                    data.localStorage[key] = value;
+                }
+            });
+
+            // Also export decompressed data for readability
+            data.claimed_games = state.claimedGames;
+            data.publish_dates = loadSafeStorage('lootradar_publish_dates');
+            data.deleted_history = loadSafeStorage('lootradar_deleted_history');
+            data.total_saved = state.totalSaved;
 
             const json = JSON.stringify(data, null, 2);
             const blob = new Blob([json], { type: 'application/json' });
@@ -3119,19 +3145,62 @@
                 reader.onload = (event) => {
                     try {
                         const data = JSON.parse(event.target.result);
-                        if (confirm('This will overwrite your current data. Continue?')) {
-                            state.claimedGames = data.claimed_games || {};
-                            saveSafeStorage('lootradar_claimed_v2', state.claimedGames);
-                            saveSafeStorage('lootradar_publish_dates', data.publish_dates || {});
-                            saveSafeStorage('lootradar_deleted_history', data.deleted_history || []);
-                            state.totalSaved = data.total_saved || 0;
-                            localStorage.setItem('lootradar_saved_money', state.totalSaved.toString());
+
+                        // Validate data structure
+                        if (!data.claimed_games && !data.localStorage) {
+                            alert('Invalid backup file: missing data structure');
+                            return;
+                        }
+
+                        if (confirm('⚠️ This will OVERWRITE all your current data.\n\n' +
+                                    'Current: ' + Object.keys(state.claimedGames).length + ' claimed games\n' +
+                                    'Backup: ' + Object.keys(data.claimed_games || {}).length + ' claimed games\n\n' +
+                                    'Continue?')) {
+
+                            // Import localStorage data if available (new format)
+                            if (data.localStorage) {
+                                Object.entries(data.localStorage).forEach(([key, value]) => {
+                                    localStorage.setItem(key, value);
+                                });
+                            }
+
+                            // Import decompressed data (fallback for old format)
+                            if (data.claimed_games) {
+                                state.claimedGames = data.claimed_games;
+                                saveSafeStorage('lootradar_claimed_v2', state.claimedGames);
+                            }
+                            if (data.publish_dates) {
+                                saveSafeStorage('lootradar_publish_dates', data.publish_dates);
+                            }
+                            if (data.deleted_history) {
+                                saveSafeStorage('lootradar_deleted_history', data.deleted_history);
+                            }
+                            if (data.total_saved !== undefined) {
+                                state.totalSaved = data.total_saved;
+                                localStorage.setItem('lootradar_saved_money', state.totalSaved.toString());
+                            }
+
+                            // Reload state from localStorage
+                            state.claimedGames = loadSafeStorage('lootradar_claimed_v2') || {};
+                            state.deletedHistory = loadSafeStorage('lootradar_deleted_history') || [];
+                            state.totalSaved = parseFloat(localStorage.getItem('lootradar_saved_money')) || 0;
+
+                            // Run migration to fix any normalized IDs
+                            migrateNormalizedIds();
+
+                            // Refresh all UI
                             updateWalletUI();
                             renderGames();
-                            alert('Data imported successfully!');
+                            renderLibrary();
+                            if (document.getElementById('dev-panel') && !document.getElementById('dev-panel').classList.contains('hidden')) {
+                                renderDevPanel();
+                            }
+
+                            alert('✅ Data imported successfully!\n\n' +
+                                  Object.keys(state.claimedGames).length + ' games restored.');
                         }
                     } catch (err) {
-                        alert('Invalid JSON file: ' + err.message);
+                        alert('❌ Invalid JSON file: ' + err.message);
                     }
                 };
                 reader.readAsText(file);

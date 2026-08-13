@@ -1781,6 +1781,13 @@
           }
         }
 
+        // Compact number formatter: 1234 → $1.2k, 1234567 → $1.2m
+        window.formatCompact = function(val) {
+            if (val >= 1000000) return '$' + (val / 1000000).toFixed(1) + 'm';
+            if (val >= 1000) return '$' + (val / 1000).toFixed(1) + 'k';
+            return '$' + val.toFixed(2);
+        };
+
         function renderStats() {
             const container = document.getElementById('stats-container');
             const games = Object.values(state.claimedGames);
@@ -1866,7 +1873,7 @@
 
             topValPlats.forEach((p, i) => {
                 const percentage = (p[1] / totalValue) * 100;
-                const displayVal = '$' + p[1].toFixed(2);
+                const displayVal = formatCompact(p[1]);
 
                 pieHtml2 += `<circle class="pie-segment cursor-pointer hover:opacity-75" style="pointer-events: painted;" cx="21" cy="21" r="15.91549430918954" fill="none" stroke="${colors[i]}" stroke-width="6" stroke-dashoffset="${-currentOffset2}" data-target-dash="${percentage} ${100 - percentage}" onclick="updatePieCenter2('${displayVal}', '${p[0].replace(/'/g, "\\'")}')"></circle>`;
 
@@ -1881,7 +1888,7 @@
                 currentOffset2 += percentage;
             });
 
-            const totalValueDisplay = '$' + totalValue.toFixed(2);
+            const totalValueDisplay = formatCompact(totalValue);
         
             // 2. Savings Line Chart Data (Now formats dates correctly for current language!)
             window.lootChartData = []; 
@@ -1966,7 +1973,7 @@
                                     ${pieHtml2}
                                 </svg>
                                 <div id="pie2-center-content" class="absolute inset-0 flex flex-col items-center justify-center transition-all duration-200 ease-in-out pointer-events-none">
-                                    <span id="pie2-center-count" class="text-xl font-black text-green-500">${totalValueDisplay}</span>
+                                    <span id="pie2-center-count" class="text-lg font-black text-green-500 truncate max-w-[90px] px-1 text-center">${totalValueDisplay}</span>
                                     <span id="pie2-center-label" class="text-[9px] font-bold text-gray-500 uppercase truncate max-w-[80px] px-2 text-center">${t.statsSaved}</span>
                                 </div>
                             </div>
@@ -2091,7 +2098,7 @@
                 window.pie2RestoreTimeout = setTimeout(() => {
                     // Calculate total value
                     const totalVal = Object.values(state.claimedGames).reduce((sum, g) => sum + (g.value || 0), 0);
-                    countEl.innerText = '$' + totalVal.toFixed(2);
+                    countEl.innerText = formatCompact(totalVal);
                     labelEl.innerText = i18n[state.lang].statsSaved;
                     contentEl.style.opacity = '1';
                     contentEl.style.transform = 'scale(1)';

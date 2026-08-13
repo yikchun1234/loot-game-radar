@@ -4024,7 +4024,7 @@
                                     <span class="text-blue-500 dark:text-neon-blue"><i class="ph-bold ph-arrow-square-out"></i> ${t.getLink}</span>
                                 </p>
                             </div>
-                            ${game.date ? `<p class="text-[10px] text-gray-400 mt-1"><i class="ph-bold ph-calendar"></i> ${new Date(game.date).toLocaleDateString()}</p>` : ''}
+                            ${game.claimed_date ? `<p class="text-[10px] text-gray-400 mt-1"><i class="ph-bold ph-calendar-check"></i> Claimed: ${new Date(game.claimed_date).toLocaleString()}</p>` : (game.date ? `<p class="text-[10px] text-gray-400 mt-1"><i class="ph-bold ph-calendar"></i> Deal: ${new Date(game.date).toLocaleString()}</p>` : '')}
                         </div>
                         <button data-delete-id="${game.id}"
                                 class="delete-btn absolute top-2 right-2 z-30 w-7 h-7 bg-red-600 hover:bg-red-700 text-white rounded-lg flex items-center justify-center shadow-md transition-all active:scale-90 opacity-100 md:opacity-0 md:group-hover:opacity-100"
@@ -4056,6 +4056,7 @@
                         <div class="p-2">
                             <p class="text-xs font-bold truncate dark:text-gray-200" title="${game.title}">${game.title}</p>
                             <p class="text-[10px] text-blue-500 dark:text-neon-blue mt-0.5 flex items-center gap-0.5"><i class="ph-bold ph-arrow-square-out"></i> ${t.getLink}</p>
+                            ${game.claimed_date ? `<p class="text-[9px] text-gray-400 mt-0.5"><i class="ph-bold ph-calendar-check"></i> ${new Date(game.claimed_date).toLocaleString()}</p>` : (game.date ? `<p class="text-[9px] text-gray-400 mt-0.5"><i class="ph-bold ph-calendar"></i> ${new Date(game.date).toLocaleString()}</p>` : '')}
                         </div>
                     </a>
                     `;

@@ -16,6 +16,37 @@ const CORS_HEADERS = {
   'Access-Control-Allow-Headers': 'Content-Type',
 };
 
+/**
+ * Normalize URL to extract app ID for deduplication
+ * Converts full URLs to short normalized IDs
+ */
+function normalizeUrl(url) {
+  if (!url) return url;
+
+  // Google Play: extract ?id=com.xxx.yyy
+  const playMatch = url.match(/play\.google\.com\/store\/apps\/details\?id=([^&"'#\s]+)/);
+  if (playMatch) return 'gplay:' + playMatch[1];
+
+  // App Store: extract /id123456789
+  const appleMatch = url.match(/apple\.com.*\/id(\d+)/i);
+  if (appleMatch) return 'ios:id' + appleMatch[1];
+
+  // Steam: extract /app/12345
+  const steamMatch = url.match(/steampowered\.com\/app\/(\d+)/i);
+  if (steamMatch) return 'steam:' + steamMatch[1];
+
+  // Epic Games: extract /product/xxx or /p/xxx
+  const epicMatch = url.match(/epicgames\.com\/(?:product|p)\/([^/?"'#\s]+)/i);
+  if (epicMatch) return 'epic:' + epicMatch[1];
+
+  // GOG: extract /game/xxx
+  const gogMatch = url.match(/gog\.com\/game\/([^/?"'#\s]+)/i);
+  if (gogMatch) return 'gog:' + gogMatch[1];
+
+  // Return original URL if no pattern matches
+  return url;
+}
+
 // Handle OPTIONS preflight
 function handleOptions() {
   return new Response(null, { headers: CORS_HEADERS });
@@ -315,12 +346,12 @@ async function fetchAllGames(params) {
     }
   }
 
-  // Deduplicate by URL
+  // Deduplicate by normalized URL (app ID)
   const uniqueMap = new Map();
   allGames.forEach((g) => {
-    const key = g.open_giveaway;
+    const key = normalizeUrl(g.open_giveaway);
     if (key && !uniqueMap.has(key)) {
-      uniqueMap.set(key, g);
+      uniqueMap.set(key, { ...g, open_giveaway: key });
     }
   });
 

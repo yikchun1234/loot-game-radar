@@ -635,7 +635,12 @@
             </div>
             <!-- All Apps Section -->
             <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
-              <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">All Tracked Apps (Publish Dates)</h4>
+              <div class="flex items-center justify-between mb-3">
+                <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">All Tracked Apps (Publish Dates)</h4>
+                <button id="dev-copy-apps-btn" onclick="copyTrackedApps()" class="px-3 py-1 text-[10px] font-bold bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 rounded-lg transition-colors flex items-center gap-1">
+                  <i class="ph-bold ph-copy"></i> Copy
+                </button>
+              </div>
               <div id="dev-apps-table" class="overflow-x-auto"></div>
             </div>
           </div>
@@ -2285,6 +2290,79 @@
                 </div>`;
         }
 
+        // Copy tracked apps data to clipboard
+        window.copyTrackedApps = function() {
+            let publishDates = {};
+            let deletedHistory = [];
+            try {
+                const raw = localStorage.getItem('lootradar_publish_dates');
+                if (raw) {
+                    const decompressed = LZString.decompressFromUTF16(raw);
+                    publishDates = decompressed ? JSON.parse(decompressed) : {};
+                }
+            } catch(e) {}
+            try {
+                const rawDel = localStorage.getItem('lootradar_deleted_history');
+                if (rawDel) {
+                    const decompressed = LZString.decompressFromUTF16(rawDel);
+                    deletedHistory = decompressed ? JSON.parse(decompressed) : [];
+                }
+            } catch(e) {}
+
+            const claimedGames = state.claimedGames || {};
+            const deletedMap = {};
+            deletedHistory.forEach(d => { deletedMap[d.id] = d; });
+
+            // Collect all URLs
+            const allUrlsSet = new Set();
+            Object.keys(publishDates).forEach(u => allUrlsSet.add(u));
+            Object.keys(claimedGames).forEach(u => allUrlsSet.add(u));
+            deletedHistory.forEach(d => { if (d.id) allUrlsSet.add(d.id); });
+            const allUrls = Array.from(allUrlsSet);
+
+            // Build text output
+            let lines = [];
+            lines.push('STATUS | TITLE | URL | DATE | SOURCE');
+            lines.push('---|---|---|---|---');
+
+            allUrls.forEach(url => {
+                const info = publishDates[url] || {};
+                const claimed = claimedGames[url];
+                const deleted = deletedMap[url];
+
+                let status = 'TRACKED';
+                if (claimed) status = 'CLAIMED';
+                else if (deleted) status = 'DELETED:' + (deleted.reason || 'unknown');
+
+                const title = claimed ? (claimed.title || '-') : (deleted ? (deleted.title || '-') : '-');
+                const date = info.date ? new Date(info.date).toLocaleDateString() : '-';
+                const source = info.source || '-';
+
+                lines.push(`${status} | ${title} | ${url} | ${date} | ${source}`);
+            });
+
+            lines.push('');
+            lines.push(`Total: ${allUrls.length} | Claimed: ${Object.keys(claimedGames).length} | Deleted: ${deletedHistory.length} | Tracked: ${allUrls.length - Object.keys(claimedGames).length - deletedHistory.length}`);
+
+            const text = lines.join('\n');
+
+            // Copy to clipboard
+            navigator.clipboard.writeText(text).then(() => {
+                const btn = document.getElementById('dev-copy-apps-btn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="ph-bold ph-check"></i> Copied!';
+                btn.classList.remove('bg-blue-500/20', 'text-blue-500');
+                btn.classList.add('bg-green-500/20', 'text-green-500');
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.classList.remove('bg-green-500/20', 'text-green-500');
+                    btn.classList.add('bg-blue-500/20', 'text-blue-500');
+                }, 2000);
+            }).catch(err => {
+                alert('Copy failed: ' + err);
+            });
+        };
+
         function getItemCount(key) {
             try {
                 if (key === 'lootradar_claimed_v2') {
@@ -2601,9 +2679,32 @@
             }
         }
 
+        // Normalize URL to extract app ID for deduplication
+        function normalizeUrl(url) {
+            if (!url) return url;
+            // Google Play: extract ?id=com.xxx.yyy
+            const playMatch = url.match(/play\.google\.com\/store\/apps\/details\?id=([^&"'#\s]+)/);
+            if (playMatch) return 'gplay:' + playMatch[1];
+            // App Store: extract /id123456789
+            const appleMatch = url.match(/apple\.com.*\/id(\d+)/i);
+            if (appleMatch) return 'ios:id' + appleMatch[1];
+            // Steam: extract /app/12345
+            const steamMatch = url.match(/steampowered\.com\/app\/(\d+)/i);
+            if (steamMatch) return 'steam:' + steamMatch[1];
+            // Epic Games: extract /product/xxx or /p/xxx
+            const epicMatch = url.match(/epicgames\.com\/(?:product|p)\/([^/?"'#\s]+)/i);
+            if (epicMatch) return 'epic:' + epicMatch[1];
+            // GOG: extract /game/xxx
+            const gogMatch = url.match(/gog\.com\/game\/([^/?"'#\s]+)/i);
+            if (gogMatch) return 'gog:' + gogMatch[1];
+            // Return original URL if no pattern matches
+            return url;
+        }
+
         window.handleClaim = function(gameObjStr) {
           const game = JSON.parse(decodeURIComponent(gameObjStr));
-          const id = String(game.id);
+          // Normalize URL to prevent duplicates from redirect URLs
+          const id = normalizeUrl(game.open_giveaway || game.id);
           const alreadyClaimed = !!state.claimedGames[id];
           const isLegacySave = typeof state.claimedGames[id] === 'boolean';
 
@@ -2620,7 +2721,7 @@
               image: game.image,
               worth: game.worth,
               platforms: game.platforms || 'PC',
-              open_giveaway: game.open_giveaway,
+              open_giveaway: id,
               value: value,
               date: game.published_date || new Date().toISOString(),
               claimed_date: new Date().toISOString()

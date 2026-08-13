@@ -1668,6 +1668,9 @@
             }
         
             function init() {
+              // Migrate old normalized IDs to full URLs (fix broken links)
+              migrateNormalizedIds();
+
               applyTheme();
               updateLanguageUI();
               updateWalletUI();
@@ -3653,6 +3656,55 @@
             if (gogMatch) return 'gog:' + gogMatch[1];
             // Return original URL if no pattern matches
             return url;
+        }
+
+        // Convert normalized ID back to full URL (for migration)
+        function denormalizeUrl(normalizedId) {
+            if (!normalizedId) return normalizedId;
+            if (normalizedId.startsWith('gplay:')) {
+                return 'https://play.google.com/store/apps/details?id=' + normalizedId.substring(6);
+            }
+            if (normalizedId.startsWith('ios:id')) {
+                return 'https://apps.apple.com/app/id' + normalizedId.substring(6);
+            }
+            if (normalizedId.startsWith('steam:')) {
+                return 'https://store.steampowered.com/app/' + normalizedId.substring(6);
+            }
+            if (normalizedId.startsWith('epic:')) {
+                return 'https://store.epicgames.com/en-US/p/' + normalizedId.substring(5);
+            }
+            if (normalizedId.startsWith('gog:')) {
+                return 'https://www.gog.com/game/' + normalizedId.substring(4);
+            }
+            return normalizedId; // Already a full URL or unknown format
+        }
+
+        // Migrate old normalized IDs to full URLs
+        function migrateNormalizedIds() {
+            const claimedGames = state.claimedGames || {};
+            let needsSave = false;
+
+            Object.entries(claimedGames).forEach(([id, game]) => {
+                // Check if this is a normalized ID (not a full URL)
+                if (id.startsWith('gplay:') || id.startsWith('ios:id') || id.startsWith('steam:') || id.startsWith('epic:') || id.startsWith('gog:')) {
+                    // Convert to full URL
+                    const fullUrl = denormalizeUrl(id);
+                    if (fullUrl !== id) {
+                        // Update the game object
+                        game.open_giveaway = fullUrl;
+                        needsSave = true;
+                    }
+                } else if (game.open_giveaway && (game.open_giveaway.startsWith('gplay:') || game.open_giveaway.startsWith('ios:id') || game.open_giveaway.startsWith('steam:') || game.open_giveaway.startsWith('epic:') || game.open_giveaway.startsWith('gog:'))) {
+                    // The ID is fine but open_giveaway is normalized
+                    game.open_giveaway = denormalizeUrl(game.open_giveaway);
+                    needsSave = true;
+                }
+            });
+
+            if (needsSave) {
+                saveSafeStorage('lootradar_claimed_v2', claimedGames);
+                console.log('Migrated normalized IDs to full URLs');
+            }
         }
 
         window.handleClaim = function(gameObjStr) {

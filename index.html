@@ -1302,6 +1302,18 @@
         Object.assign(i18n.ja, { statsTitle: "ルート分析", statsEmpty: "ゲームを取得して分析データを生成しましょう！", statsPlatform: "プラットフォーム別", statsActivity: "取得アクティビティ（月別）", statsWealth: "生涯の節約総額", statsGames: "ゲーム", statsSaved: "節約額", statsDate: "日付" });
         Object.assign(i18n.ko, { statsTitle: "전리품 분석", statsEmpty: "분석을 생성하려면 게임을 획득하세요!", statsPlatform: "플랫폼별 전리품", statsActivity: "획득 활동 (월별)", statsWealth: "평생 창출된 부", statsGames: "게임", statsSaved: "절약", statsDate: "날짜" });
         Object.assign(i18n.pt, { statsTitle: "Análise de Loot", statsEmpty: "Resgate jogos para gerar suas análises!", statsPlatform: "Loot por Plataforma", statsActivity: "Atividade (Mensal)", statsWealth: "Riqueza Total Gerada", statsGames: "Jogos", statsSaved: "Economizado", statsDate: "Data" });
+
+        // New analytics i18n keys
+        Object.assign(i18n.en, { avgClaimValue: "Avg Claim Value", claimStreak: "Claim Streak", days: "days", maxStreak: "Max", claimHeatmap: "Claim Activity Heatmap", less: "Less", more: "More", top10Expensive: "Top 10 Most Valuable Claims", priceDistribution: "Price Distribution", trendComparison: "Trend Comparison", trendGrowth: "growth", thisMonth: "This Month", prevMonth: "Last Month" });
+        Object.assign(i18n['zh-CN'], { avgClaimValue: "平均领取价值", claimStreak: "连续领取", days: "天", maxStreak: "最长", claimHeatmap: "领取活动热力图", less: "少", more: "多", top10Expensive: "最有价值的 10 个领取", priceDistribution: "价格分布", trendComparison: "趋势对比", trendGrowth: "增长", thisMonth: "本月", prevMonth: "上月" });
+        Object.assign(i18n['zh-TW'], { avgClaimValue: "平均領取價值", claimStreak: "連續領取", days: "天", maxStreak: "最長", claimHeatmap: "領取活動熱力圖", less: "少", more: "多", top10Expensive: "最有價值的 10 個領取", priceDistribution: "價格分佈", trendComparison: "趨勢對比", trendGrowth: "增長", thisMonth: "本月", prevMonth: "上月" });
+        Object.assign(i18n.es, { avgClaimValue: "Valor Promedio", claimStreak: "Racha de Reclamos", days: "días", maxStreak: "Máx", claimHeatmap: "Mapa de Actividad", less: "Menos", more: "Más", top10Expensive: "Top 10 Más Valiosos", priceDistribution: "Distribución de Precios", trendComparison: "Comparación de Tendencias", trendGrowth: "crecimiento", thisMonth: "Este Mes", prevMonth: "Mes Pasado" });
+        Object.assign(i18n.fr, { avgClaimValue: "Valeur Moyenne", claimStreak: "Série de Réclamations", days: "jours", maxStreak: "Max", claimHeatmap: "Carte d'Activité", less: "Moins", more: "Plus", top10Expensive: "Top 10 Plus Valoureux", priceDistribution: "Distribution des Prix", trendComparison: "Comparaison des Tendances", trendGrowth: "croissance", thisMonth: "Ce Mois", prevMonth: "Mois Dernier" });
+        Object.assign(i18n.de, { avgClaimValue: "Durchschnittswert", claimStreak: "Claim-Serie", days: "Tage", maxStreak: "Max", claimHeatmap: "Aktivitäts-Heatmap", less: "Weniger", more: "Mehr", top10Expensive: "Top 10 Wertvollste", priceDistribution: "Preisverteilung", trendComparison: "Trendvergleich", trendGrowth: "Wachstum", thisMonth: "Dieser Monat", prevMonth: "Letzter Monat" });
+        Object.assign(i18n.ru, { avgClaimValue: "Средняя ценность", claimStreak: "Серия получений", days: "дней", maxStreak: "Макс", claimHeatmap: "Тепловая карта активности", less: "Меньше", more: "Больше", top10Expensive: "Топ-10 самых ценных", priceDistribution: "Распределение цен", trendComparison: "Сравнение трендов", trendGrowth: "рост", thisMonth: "Этот месяц", prevMonth: "Прошлый месяц" });
+        Object.assign(i18n.ja, { avgClaimValue: "平均取得価値", claimStreak: "連続取得", days: "日", maxStreak: "最長", claimHeatmap: "取得アクティビティヒートマップ", less: "少", more: "多", top10Expensive: "トップ10高価値", priceDistribution: "価格分布", trendComparison: "トレンド比較", trendGrowth: "成長", thisMonth: "今月", prevMonth: "先月" });
+        Object.assign(i18n.ko, { avgClaimValue: "평균 획득 가치", claimStreak: "연속 획득", days: "일", maxStreak: "최대", claimHeatmap: "획득 활동 히트맵", less: "적음", more: "많음", top10Expensive: "상위 10개 고가치", priceDistribution: "가격 분포", trendComparison: "트렌드 비교", trendGrowth: "성장", thisMonth: "이번 달", prevMonth: "지난달" });
+        Object.assign(i18n.pt, { avgClaimValue: "Valor Médio", claimStreak: "Sequência de Resgates", days: "dias", maxStreak: "Máx", claimHeatmap: "Mapa de Atividade", less: "Menos", more: "Mais", top10Expensive: "Top 10 Mais Valiosos", priceDistribution: "Distribuição de Preços", trendComparison: "Comparação de Tendências", trendGrowth: "crescimento", thisMonth: "Este Mês", prevMonth: "Mês Passado" });
         // ------------------------------------------
 
         // --- LOCAL STORAGE COMPRESSION HELPERS ---
@@ -2134,7 +2146,193 @@
                     </div>
                 `;
             }).join('');
-        
+
+            // --- NEW: Calculate Stat Cards Data ---
+            // Average Claim Value
+            const totalValue = games.reduce((sum, g) => sum + (g.value || 0), 0);
+            const avgClaimValue = games.length > 0 ? totalValue / games.length : 0;
+            const avgClaimDisplay = formatCompact(avgClaimValue);
+
+            // Claim Streak (consecutive days)
+            let currentStreak = 0;
+            let maxStreak = 0;
+            const claimDates = new Set();
+            games.forEach(g => {
+                const dateStr = new Date(g.claimed_date || g.date).toDateString();
+                claimDates.add(dateStr);
+            });
+
+            const sortedDates = Array.from(claimDates).map(d => new Date(d)).sort((a, b) => a - b);
+            let tempStreak = 1;
+            for (let i = 1; i < sortedDates.length; i++) {
+                const diffDays = Math.round((sortedDates[i] - sortedDates[i-1]) / (1000 * 60 * 60 * 24));
+                if (diffDays === 1) {
+                    tempStreak++;
+                } else if (diffDays > 1) {
+                    maxStreak = Math.max(maxStreak, tempStreak);
+                    tempStreak = 1;
+                }
+            }
+            maxStreak = Math.max(maxStreak, tempStreak);
+
+            // Check if today is in the streak
+            const today = new Date().toDateString();
+            const yesterday = new Date(Date.now() - 86400000).toDateString();
+            if (claimDates.has(today) || claimDates.has(yesterday)) {
+                currentStreak = tempStreak;
+            }
+
+            // --- NEW: Claim Heatmap Data ---
+            const heatmapData = {};
+            games.forEach(g => {
+                const d = new Date(g.claimed_date || g.date);
+                const day = d.getDay(); // 0-6 (Sun-Sat)
+                const hour = d.getHours(); // 0-23
+                const key = `${day}-${hour}`;
+                heatmapData[key] = (heatmapData[key] || 0) + 1;
+            });
+
+            const maxHeatmap = Math.max(...Object.values(heatmapData), 1);
+
+            // Build heatmap HTML (7 days x 24 hours)
+            let heatmapHtml = '<div class="grid grid-cols-25 gap-1" style="grid-template-columns: auto repeat(24, 1fr);">';
+            // Header row (hours)
+            heatmapHtml += '<div class="text-[8px] font-bold text-gray-400"></div>';
+            for (let h = 0; h < 24; h++) {
+                heatmapHtml += `<div class="text-[8px] font-bold text-gray-400 text-center">${h}</div>`;
+            }
+            // Data rows (days)
+            const dayLabels = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            for (let day = 0; day < 7; day++) {
+                heatmapHtml += `<div class="text-[9px] font-bold text-gray-500">${dayLabels[day]}</div>`;
+                for (let hour = 0; hour < 24; hour++) {
+                    const key = `${day}-${hour}`;
+                    const count = heatmapData[key] || 0;
+                    const intensity = count / maxHeatmap;
+                    let bgColor = 'bg-gray-200 dark:bg-gray-800';
+                    if (intensity > 0.75) bgColor = 'bg-green-600';
+                    else if (intensity > 0.5) bgColor = 'bg-green-500';
+                    else if (intensity > 0.25) bgColor = 'bg-green-400';
+                    else if (intensity > 0) bgColor = 'bg-green-300';
+                    heatmapHtml += `<div class="w-3 h-3 ${bgColor} rounded-sm" title="${count} claims"></div>`;
+                }
+            }
+            heatmapHtml += '</div>';
+
+            // --- NEW: Top 10 Most Expensive Games ---
+            const sortedByValue = [...games].sort((a, b) => (b.value || 0) - (a.value || 0)).slice(0, 10);
+            const maxGameValue = sortedByValue.length > 0 ? (sortedByValue[0].value || 0) : 1;
+
+            let top10Html = sortedByValue.map((g, i) => {
+                const value = g.value || 0;
+                const widthPct = (value / maxGameValue) * 100;
+                const title = g.title || 'Unknown';
+                const shortTitle = title.length > 30 ? title.substring(0, 30) + '...' : title;
+                const platform = g.platforms || 'PC';
+                return `
+                    <div class="flex items-center gap-3 text-xs">
+                        <span class="text-[10px] font-bold text-gray-400 w-4">${i + 1}</span>
+                        <span class="font-bold text-gray-700 dark:text-gray-300 flex-1 truncate" title="${title}">${shortTitle}</span>
+                        <span class="text-[10px] text-gray-500 w-16">${platform}</span>
+                        <span class="font-bold text-green-500 w-16 text-right">$${value.toFixed(2)}</span>
+                    </div>
+                    <div class="h-2 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden mb-2">
+                        <div class="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all" style="width: ${widthPct}%"></div>
+                    </div>`;
+            }).join('');
+
+            // --- NEW: Price Distribution Histogram ---
+            const priceRanges = { '$0-5': 0, '$5-10': 0, '$10-20': 0, '$20-50': 0, '$50+': 0 };
+            games.forEach(g => {
+                const value = g.value || 0;
+                if (value < 5) priceRanges['$0-5']++;
+                else if (value < 10) priceRanges['$5-10']++;
+                else if (value < 20) priceRanges['$10-20']++;
+                else if (value < 50) priceRanges['$20-50']++;
+                else priceRanges['$50+']++;
+            });
+
+            const maxPriceRange = Math.max(...Object.values(priceRanges), 1);
+            let histogramHtml = Object.entries(priceRanges).map(([range, count]) => {
+                const widthPct = (count / maxPriceRange) * 100;
+                return `
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs font-bold text-gray-500 w-16">${range}</span>
+                        <div class="flex-1 h-6 bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden">
+                            <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-end px-2 transition-all" style="width: ${widthPct}%">
+                                ${count > 0 ? `<span class="text-[10px] font-bold text-white">${count}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>`;
+            }).join('');
+
+            // --- NEW: Trend Comparison ---
+            const now = new Date();
+            const currentYear = now.getFullYear();
+            const lastYear = currentYear - 1;
+
+            // Check if we have data from last year
+            const hasLastYearData = games.some(g => new Date(g.date).getFullYear() === lastYear);
+            let trendComparisonHtml = '';
+
+            if (hasLastYearData) {
+                // Year-over-year comparison
+                const thisYearCount = games.filter(g => new Date(g.date).getFullYear() === currentYear).length;
+                const lastYearCount = games.filter(g => new Date(g.date).getFullYear() === lastYear).length;
+                const growth = lastYearCount > 0 ? ((thisYearCount - lastYearCount) / lastYearCount * 100).toFixed(0) : 0;
+
+                trendComparisonHtml = `
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-black text-gray-500">${lastYearCount}</div>
+                            <div class="text-[10px] font-bold text-gray-400 uppercase">${lastYear}</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-black text-green-500">${thisYearCount}</div>
+                            <div class="text-[10px] font-bold text-gray-400 uppercase">${currentYear}</div>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-center">
+                        <span class="text-xs font-bold ${growth >= 0 ? 'text-green-500' : 'text-red-500'}">
+                            ${growth >= 0 ? '↑' : '↓'} ${Math.abs(growth)}% ${t.trendGrowth || 'growth'}
+                        </span>
+                    </div>`;
+            } else {
+                // Month-over-month comparison (current vs previous month)
+                const currentMonth = now.getMonth();
+                const previousMonth = currentMonth === 0 ? 11 : currentMonth - 1;
+                const currentMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
+
+                const thisMonthCount = games.filter(g => {
+                    const d = new Date(g.date);
+                    return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
+                }).length;
+
+                const prevMonthCount = games.filter(g => {
+                    const d = new Date(g.date);
+                    return d.getMonth() === previousMonth && d.getFullYear() === currentMonthYear;
+                }).length;
+
+                const growth = prevMonthCount > 0 ? ((thisMonthCount - prevMonthCount) / prevMonthCount * 100).toFixed(0) : 0;
+
+                trendComparisonHtml = `
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-black text-gray-500">${prevMonthCount}</div>
+                            <div class="text-[10px] font-bold text-gray-400 uppercase">${t.prevMonth || 'Last Month'}</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-black text-green-500">${thisMonthCount}</div>
+                            <div class="text-[10px] font-bold text-gray-400 uppercase">${t.thisMonth || 'This Month'}</div>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-center">
+                        <span class="text-xs font-bold ${growth >= 0 ? 'text-green-500' : 'text-red-500'}">
+                            ${growth >= 0 ? '↑' : '↓'} ${Math.abs(growth)}% ${t.trendGrowth || 'growth'}
+                        </span>
+                    </div>`;
+            }
+
             // --- RENDER DOM ---
             container.innerHTML = `
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -2222,6 +2420,58 @@
                             <span>${midDate}</span>
                             <span>${endDate}</span>
                         </div>
+                    </div>
+
+                    <!-- NEW: Stat Cards Row -->
+                    <div class="grid grid-cols-2 gap-4 lg:col-span-2">
+                        <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800 text-center">
+                            <div class="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">${t.avgClaimValue || 'Avg Claim Value'}</div>
+                            <div class="text-2xl font-black text-blue-500">${avgClaimDisplay}</div>
+                        </div>
+                        <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800 text-center">
+                            <div class="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">${t.claimStreak || 'Claim Streak'}</div>
+                            <div class="text-2xl font-black text-purple-500">${currentStreak} <span class="text-sm text-gray-400">${t.days || 'days'}</span></div>
+                            <div class="text-[9px] text-gray-400 mt-1">${t.maxStreak || 'Max'}: ${maxStreak} ${t.days || 'days'}</div>
+                        </div>
+                    </div>
+
+                    <!-- NEW: Claim Heatmap -->
+                    <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 lg:col-span-2">
+                        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4">${t.claimHeatmap || 'Claim Activity Heatmap'}</h3>
+                        <div class="overflow-x-auto">
+                            ${heatmapHtml}
+                        </div>
+                        <div class="flex items-center justify-end gap-2 mt-3 text-[9px] text-gray-400">
+                            <span>${t.less || 'Less'}</span>
+                            <div class="w-3 h-3 bg-gray-200 dark:bg-gray-800 rounded-sm"></div>
+                            <div class="w-3 h-3 bg-green-300 rounded-sm"></div>
+                            <div class="w-3 h-3 bg-green-400 rounded-sm"></div>
+                            <div class="w-3 h-3 bg-green-500 rounded-sm"></div>
+                            <div class="w-3 h-3 bg-green-600 rounded-sm"></div>
+                            <span>${t.more || 'More'}</span>
+                        </div>
+                    </div>
+
+                    <!-- NEW: Top 10 Most Expensive Games -->
+                    <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 lg:col-span-2">
+                        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4">${t.top10Expensive || 'Top 10 Most Valuable Claims'}</h3>
+                        <div class="space-y-1">
+                            ${top10Html}
+                        </div>
+                    </div>
+
+                    <!-- NEW: Price Distribution Histogram -->
+                    <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800">
+                        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4">${t.priceDistribution || 'Price Distribution'}</h3>
+                        <div class="space-y-2">
+                            ${histogramHtml}
+                        </div>
+                    </div>
+
+                    <!-- NEW: Trend Comparison -->
+                    <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800">
+                        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4">${t.trendComparison || 'Trend Comparison'}</h3>
+                        ${trendComparisonHtml}
                     </div>
                 </div>
             `;

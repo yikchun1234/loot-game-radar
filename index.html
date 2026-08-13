@@ -3859,24 +3859,10 @@
                 console.log('Migrated deleted_history');
             }
 
-            // Remove "duplicate" entries from deleted_history only if the app is still claimed
-            // Safety check: don't resurrect items that were fully deleted from claimed_games
+            // Remove ALL "duplicate" entries from deleted_history (no longer needed)
+            // These entries cause items to show as "DUPLICATE" status which is confusing
             const currentDeleted = loadSafeStorage('lootradar_deleted_history') || [];
-            const filteredDeleted = currentDeleted.filter(item => {
-                if (item.reason !== 'duplicate') return true; // keep non-duplicate entries
-                // Check if this item exists in claimed_games
-                const claimed = state.claimedGames;
-                const byNormalizedId = item.normalizedId && claimed[item.normalizedId];
-                const byId = item.id && claimed[item.id];
-                const isClaimed = byNormalizedId || byId;
-                if (isClaimed) {
-                    console.log(`Migration: removing duplicate entry for claimed app: ${item.title || item.normalizedId || item.id}`);
-                    return false; // remove from deleted_history (item is already claimed)
-                } else {
-                    console.log(`Migration: keeping duplicate entry (not in claimed_games): ${item.title || item.normalizedId || item.id}`);
-                    return true; // keep in deleted_history (item was fully deleted, don't resurrect)
-                }
-            });
+            const filteredDeleted = currentDeleted.filter(item => item.reason !== 'duplicate');
             if (filteredDeleted.length < currentDeleted.length) {
                 saveSafeStorage('lootradar_deleted_history', filteredDeleted);
                 state.deletedHistory = filteredDeleted;

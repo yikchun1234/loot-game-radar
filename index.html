@@ -4263,13 +4263,15 @@
             filteredGames.forEach((game, index) => {
                 const isNew = (now - new Date(game.published_date).getTime()) < 172800000;
                 const pIcon = getPlatformIconHtml(game);
-                const isClaimed = !!state.claimedGames[String(game.id)];
-    
+                // Check if claimed using normalized ID (or original URL)
+                const gameNormalizedId = game.normalizedId || normalizeUrl(game.open_giveaway || game.id);
+                const isClaimed = !!state.claimedGames[gameNormalizedId];
+
                 // Check if the game was previously deleted by searching history backwards (gets the most recent reason)
                 let deletedReason = null;
                 if (!isClaimed && state.deletedHistory) {
                   for (let i = state.deletedHistory.length - 1; i >= 0; i--) {
-                    if (state.deletedHistory[i].id === String(game.id)) {
+                    if (state.deletedHistory[i].id === gameNormalizedId || state.deletedHistory[i].id === String(game.id)) {
                       deletedReason = state.deletedHistory[i].reason;
                       break;
                     }

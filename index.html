@@ -2231,23 +2231,17 @@
 
             // --- NEW: Top 10 Most Expensive Games ---
             const sortedByValue = [...games].sort((a, b) => (b.value || 0) - (a.value || 0)).slice(0, 10);
-            const maxGameValue = sortedByValue.length > 0 ? (sortedByValue[0].value || 0) : 1;
 
             let top10Html = sortedByValue.map((g, i) => {
                 const value = g.value || 0;
-                const widthPct = (value / maxGameValue) * 100;
                 const title = g.title || 'Unknown';
-                const shortTitle = title.length > 30 ? title.substring(0, 30) + '...' : title;
                 const platform = g.platforms || 'PC';
                 return `
-                    <div class="flex items-center gap-3 text-xs">
+                    <div class="flex items-center gap-3 text-xs py-1.5 ${i < sortedByValue.length - 1 ? 'border-b border-gray-100 dark:border-gray-800' : ''}">
                         <span class="text-[10px] font-bold text-gray-400 w-4">${i + 1}</span>
-                        <span class="font-bold text-gray-700 dark:text-gray-300 flex-1 truncate" title="${title}">${shortTitle}</span>
-                        <span class="text-[10px] text-gray-500 w-16">${platform}</span>
+                        <span class="font-bold text-gray-700 dark:text-gray-300 flex-1 truncate" title="${title}">${title}</span>
+                        <span class="text-[10px] font-bold text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">${platform}</span>
                         <span class="font-bold text-green-500 w-16 text-right">$${value.toFixed(2)}</span>
-                    </div>
-                    <div class="h-2 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden mb-2">
-                        <div class="h-full bg-gradient-to-r from-green-500 to-emerald-500 rounded-full transition-all" style="width: ${widthPct}%"></div>
                     </div>`;
             }).join('');
 

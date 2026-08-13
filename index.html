@@ -2602,7 +2602,14 @@
 
                 let allGames = [...workerGames, ...validGpData];
 
-                // Deduplicate by URL (use open_giveaway as unique ID)
+                // Normalize all URLs first (Worker already does this, but ensure consistency)
+                allGames.forEach(g => {
+                    if (g.open_giveaway) {
+                        g.open_giveaway = normalizeUrl(g.open_giveaway);
+                    }
+                });
+
+                // Deduplicate by normalized URL (use open_giveaway as unique ID)
                 const uniqueMap = new Map();
                 allGames.forEach(g => {
                     const key = g.open_giveaway;

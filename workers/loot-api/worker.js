@@ -43,7 +43,7 @@ async function fetchRedditDeals() {
         headers: {
           'User-Agent': 'LootRadar/1.0 (Personal Project)',
         },
-        cf: { cacheTtl: 300, cacheEverything: true }, // Cache at edge for 5 min
+        cf: { cacheTtl: 86400, cacheEverything: true }, // Cache for 24 hours (Reddit rate limits aggressively)
       });
 
       if (!res.ok) continue;
@@ -112,7 +112,7 @@ async function fetchRedditRSS() {
         headers: {
           'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         },
-        cf: { cacheTtl: 300, cacheEverything: true }, // Cache for 5 min
+        cf: { cacheTtl: 86400, cacheEverything: true }, // Cache for 24 hours (Reddit rate limits aggressively)
       });
 
       if (!res.ok) continue;

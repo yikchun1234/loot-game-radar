@@ -3682,17 +3682,19 @@
                         game.published_date = game.published_date; // Keep Reddit's date
                         needsSave = true;
                     } else if (existingData) {
-                        // AppSales/AppStore with existing record: use stored date
+                        // AppSales/AppStore/GamerPower with existing record: use stored date
                         game.published_date = existingData.date;
                     } else {
-                        // New app (no existing record): use today's date
+                        // New app (no existing record): use API's published_date, fallback to today
+                        const apiDate = game.published_date;
                         const today = new Date().toISOString();
+                        const finalDate = (apiDate && new Date(apiDate).getTime() > 0) ? apiDate : today;
                         publishDates[id] = {
-                            date: today,
+                            date: finalDate,
                             source: game.source || 'unknown',
                             createdAt: today
                         };
-                        game.published_date = today;
+                        game.published_date = finalDate;
                         needsSave = true;
                     }
                 });
@@ -3702,7 +3704,7 @@
                     savePublishDates(publishDates);
                 }
 
-                // Frontend sorting: Date (newest first) → Price (highest first for same date)
+                // Frontend sorting: Date (newest first) → Price (highest first) → Title (A-Z)
                 allGames.sort((a, b) => {
                     const dateA = new Date(a.published_date || 0);
                     const dateB = new Date(b.published_date || 0);
@@ -3713,7 +3715,9 @@
                     // Same date: sort by price (highest first)
                     const priceA = parseFloat((a.worth || '0').replace(/[^0-9.]/g, '')) || 0;
                     const priceB = parseFloat((b.worth || '0').replace(/[^0-9.]/g, '')) || 0;
-                    return priceB - priceA;
+                    if (priceB !== priceA) return priceB - priceA;
+                    // Same date & price: sort by title (A-Z) for stable ordering
+                    return (a.title || '').localeCompare(b.title || '');
                 });
 
                 state.games = allGames;

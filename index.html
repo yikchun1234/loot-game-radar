@@ -4056,6 +4056,9 @@
             // GOG: extract /game/xxx
             const gogMatch = url.match(/gog\.com\/game\/([^/?"'#\s]+)/i);
             if (gogMatch) return 'gog:' + gogMatch[1];
+            // GamerPower: extract /open/xxx
+            const gpMatch = url.match(/gamerpower\.com\/open\/([^/?"'#\s]+)/i);
+            if (gpMatch) return 'gp:' + gpMatch[1];
             // Return original URL if no pattern matches
             return url;
         }
@@ -4077,6 +4080,9 @@
             }
             if (normalizedId.startsWith('gog:')) {
                 return 'https://www.gog.com/game/' + normalizedId.substring(4);
+            }
+            if (normalizedId.startsWith('gp:')) {
+                return 'https://www.gamerpower.com/open/' + normalizedId.substring(3);
             }
             return normalizedId; // Already a full URL or unknown format
         }

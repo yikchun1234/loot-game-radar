@@ -43,6 +43,10 @@ function normalizeUrl(url) {
   const gogMatch = url.match(/gog\.com\/game\/([^/?"'#\s]+)/i);
   if (gogMatch) return 'gog:' + gogMatch[1];
 
+  // GamerPower: extract /open/xxx
+  const gpMatch = url.match(/gamerpower\.com\/open\/([^/?"'#\s]+)/i);
+  if (gpMatch) return 'gp:' + gpMatch[1];
+
   // Return original URL if no pattern matches
   return url;
 }

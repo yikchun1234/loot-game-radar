@@ -2862,21 +2862,28 @@
 
             // Also check: keys that are full URLs (not normalized) — these might be orphans
             const orphanEntries = [];
+            const unfixableUrlKeys = [];
             Object.entries(claimedGames).forEach(([key, game]) => {
                 if (!game || typeof game === 'boolean') return;
                 if (key.startsWith('http://') || key.startsWith('https://')) {
                     const normId = game.normalizedId || normalizeUrl(game.open_giveaway || key);
-                    // Check if there's already a normalized entry for this
-                    const hasNormEntry = claimedGames[normId] && normId !== key;
-                    orphanEntries.push({ key, game, normId, hasNormEntry });
+                    if (normId && normId !== key) {
+                        // Can be converted — show in orphan section
+                        const hasNormEntry = !!claimedGames[normId];
+                        orphanEntries.push({ key, game, normId, hasNormEntry });
+                    } else {
+                        // normId === key: normalizeUrl couldn't parse this URL
+                        unfixableUrlKeys.push({ key, game });
+                    }
                 }
             });
 
             let html = '';
             const totalDups = dupGroups.reduce((sum, [, e]) => sum + e.length - 1, 0);
             const totalOrphans = orphanEntries.length;
+            const totalUnfixable = unfixableUrlKeys.length;
 
-            if (dupGroups.length === 0 && totalOrphans === 0) {
+            if (dupGroups.length === 0 && totalOrphans === 0 && totalUnfixable === 0) {
                 html = '<div class="p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-green-500 text-[11px] font-bold">';
                 html += '<i class="ph-bold ph-check-circle mr-1"></i> No duplicates found! All ' + Object.keys(claimedGames).length + ' items are unique.';
                 html += '</div>';
@@ -2886,12 +2893,15 @@
             }
 
             // Summary
-            html += '<div class="flex gap-3 mb-3">';
+            html += '<div class="flex gap-3 mb-3 flex-wrap">';
             if (dupGroups.length > 0) {
                 html += `<span class="px-2 py-1 bg-orange-500/10 text-orange-500 rounded text-[10px] font-bold">${dupGroups.length} groups (${totalDups} extra entries)</span>`;
             }
             if (totalOrphans > 0) {
-                html += `<span class="px-2 py-1 bg-purple-500/10 text-purple-500 rounded text-[10px] font-bold">${totalOrphans} URL-key entries</span>`;
+                html += `<span class="px-2 py-1 bg-purple-500/10 text-purple-500 rounded text-[10px] font-bold">${totalOrphans} URL-key entries (convertible)</span>`;
+            }
+            if (totalUnfixable > 0) {
+                html += `<span class="px-2 py-1 bg-gray-500/10 text-gray-400 rounded text-[10px] font-bold">${totalUnfixable} URL-key entries (unrecognized pattern)</span>`;
             }
             html += '</div>';
 
@@ -3017,6 +3027,34 @@
                 });
             }
 
+            // Unfixable URL-key entries (normalizeUrl couldn't parse the pattern)
+            if (unfixableUrlKeys.length > 0) {
+                html += '<div class="mt-3 mb-2">';
+                html += '<div class="text-[11px] font-bold text-gray-400"><i class="ph-bold ph-question mr-1"></i>Unrecognized URL Patterns (cannot auto-convert, safe to delete)</div>';
+                html += '<div class="text-[10px] text-gray-500 mb-2">These URLs don\'t match any known store pattern. Deleting them is safe — just re-claim from the feed if needed.</div>';
+
+                unfixableUrlKeys.forEach(entry => {
+                    const g = entry.game;
+                    const claimedDate = g.claimed_date || g.date || 'unknown';
+                    const dateStr = claimedDate !== 'unknown' ? new Date(claimedDate).toLocaleString() : 'unknown';
+
+                    html += `<div class="flex items-start gap-2 p-1.5 bg-gray-500/5 border border-gray-500/10 rounded mb-1">`;
+                    html += `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-500/10 text-gray-400 flex-shrink-0 mt-0.5">?</span>`;
+                    html += `<div class="flex-1 min-w-0">`;
+                    html += `<div class="flex items-center gap-2">`;
+                    html += `<span class="text-[10px] font-bold dark:text-gray-200">${g.title || 'Unknown'}</span>`;
+                    html += `<span class="text-[10px] text-gray-400">${g.worth || 'Free'}</span>`;
+                    html += `<span class="text-[10px] text-gray-500">${dateStr}</span>`;
+                    html += `</div>`;
+                    html += `<div class="text-[10px] text-gray-500 font-mono break-all">${entry.key}</div>`;
+                    html += `</div></div>`;
+                });
+                html += '</div>';
+
+                // Also log to console for debugging
+                console.log('[Duplicates Detector] Unfixable URL-key entries:', unfixableUrlKeys.map(e => ({ key: e.key, title: e.game.title, normalizedId: e.game.normalizedId, open_giveaway: e.game.open_giveaway })));
+            }
+
             // Show delete button only if there are duplicate group checkboxes (not orphan checkboxes)
             const deleteBtn = document.getElementById('dev-dup-delete-btn');
             const dupCheckboxes = document.querySelectorAll('.dup-checkbox');
@@ -3035,6 +3073,7 @@
             let convertedCount = 0;
             let mergedCount = 0;
             const keysToProcess = [];
+            const unfixableEntries = [];
 
             Object.entries(claimedGames).forEach(([key, game]) => {
                 if (!game || typeof game === 'boolean') return;
@@ -3042,12 +3081,20 @@
                     const normId = game.normalizedId || normalizeUrl(game.open_giveaway || key);
                     if (normId && normId !== key) {
                         keysToProcess.push({ oldKey: key, newKey: normId, game });
+                    } else {
+                        // normId === key: normalizeUrl couldn't parse this URL pattern
+                        unfixableEntries.push({ key, game });
                     }
                 }
             });
 
             if (keysToProcess.length === 0) {
-                alert('No URL-key entries to convert.');
+                if (unfixableEntries.length > 0) {
+                    const titles = unfixableEntries.map(e => e.game.title || e.key.substring(0, 40)).join('\n  ');
+                    alert(`These ${unfixableEntries.length} URL-key entries can't be auto-converted (unknown URL pattern):\n\n  ${titles}\n\nThey will be deleted safely by the Delete button instead.`);
+                } else {
+                    alert('No URL-key entries to convert.');
+                }
                 return;
             }
 

@@ -3708,6 +3708,7 @@
                 allGames = Array.from(uniqueMap.values());
 
                 // Process each game for publish date logic
+                let dateLog = [];
                 allGames.forEach(game => {
                     const id = game.normalizedId || game.open_giveaway;
                     if (!id) return;
@@ -3740,8 +3741,13 @@
                         };
                         game.published_date = finalDate;
                         needsSave = true;
+                        dateLog.push({id: id.substring(0, 30), source, apiDate: apiDate ? apiDate.substring(0, 10) : 'null', finalDate: finalDate.substring(0, 10)});
                     }
                 });
+                if (dateLog.length > 0) {
+                    console.log('📅 New publish dates assigned:', dateLog);
+                }
+                console.log(`📅 Publish dates: ${Object.keys(publishDates).length} total, needsSave=${needsSave}`);
 
                 // Save publish dates if changed
                 if (needsSave) {
@@ -3866,20 +3872,30 @@
                 console.log(`Migrated ${migratedCount} broken open_giveaway URLs`);
             }
 
-            // Also migrate publish_dates
+            // Migrate publish_dates: convert full URL keys back to normalized IDs
+            // (previous migration wrongly converted normalized IDs to full URLs, breaking lookups)
             const publishDates = loadSafeStorage('lootradar_publish_dates') || {};
             let publishNeedsSave = false;
+            const keysToFix = [];
             Object.keys(publishDates).forEach(id => {
-                if (id.startsWith('gplay:') || id.startsWith('ios:id') || id.startsWith('steam:') || id.startsWith('epic:') || id.startsWith('gog:')) {
-                    const fullUrl = denormalizeUrl(id);
-                    publishDates[fullUrl] = publishDates[id];
-                    delete publishDates[id];
-                    publishNeedsSave = true;
+                // If key is a full URL, convert back to normalized ID
+                if (id.startsWith('http://') || id.startsWith('https://')) {
+                    const normalizedId = normalizeUrl(id);
+                    if (normalizedId && normalizedId !== id && !publishDates[normalizedId]) {
+                        publishDates[normalizedId] = publishDates[id];
+                        keysToFix.push(id);
+                        publishNeedsSave = true;
+                    } else if (normalizedId && normalizedId !== id && publishDates[normalizedId]) {
+                        // Normalized ID entry already exists, just remove the full URL duplicate
+                        keysToFix.push(id);
+                        publishNeedsSave = true;
+                    }
                 }
             });
+            keysToFix.forEach(k => delete publishDates[k]);
             if (publishNeedsSave) {
                 saveSafeStorage('lootradar_publish_dates', publishDates);
-                console.log('Migrated publish_dates');
+                console.log(`Migrated ${keysToFix.length} publish_dates keys from URLs to normalized IDs`);
             }
 
             // Also migrate deleted_history

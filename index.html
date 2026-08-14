@@ -856,8 +856,8 @@
                 <div class="dev-section-body"><div>
                   <div class="space-y-2">
                     <button onclick="clearSelectiveData('publish_dates')" class="w-full px-3 py-2 text-xs font-bold bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors flex items-center justify-between">
-                      <span><i class="ph-bold ph-trash"></i> Clear publish_dates</span>
-                      <span class="text-[10px] opacity-70">Lose date tracking</span>
+                      <span><i class="ph-bold ph-trash"></i> Clear App Feed History</span>
+                      <span class="text-[10px] opacity-70">Remove all past app records</span>
                     </button>
                     <button onclick="clearSelectiveData('deleted_history')" class="w-full px-3 py-2 text-xs font-bold bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors flex items-center justify-between">
                       <span><i class="ph-bold ph-trash"></i> Clear deleted_history</span>
@@ -3606,8 +3606,8 @@
         // ===== DEVELOPER MODE: Clear Selective Data =====
         window.clearSelectiveData = function(key) {
             const warnings = {
-                'publish_dates': 'This will remove all publish date tracking. You will lose date history but keep claimed games.',
-                'deleted_history': 'This will remove deletion history. Deleted games may reappear in your feed.',
+                'publish_dates': 'This will remove ALL app feed history — every app that has ever appeared in your feed (including expired offers). Your claimed games are safe, but date sorting will reset.',
+                'deleted_history': 'This will remove deletion history. Deleted games may reappear in your feed as unclaimed.',
                 'claimed_games': '⚠️ DANGER: This will remove ALL claimed games and reset your savings to $0!'
             };
 

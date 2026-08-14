@@ -2891,57 +2891,86 @@
             // Duplicate groups (same normalizedId, multiple keys)
             let checkboxIdx = 0;
             if (dupGroups.length > 0) {
-                html += '<div class="text-[11px] font-bold text-orange-500 mb-2"><i class="ph-bold ph-warning mr-1"></i>Duplicate Groups (same app, multiple entries)</div>';
+                html += '<div class="text-[11px] font-bold text-orange-500 mb-2"><i class="ph-bold ph-warning mr-1"></i>Duplicate Groups — compare NOW vs BEFORE</div>';
                 dupGroups.forEach(([normId, entries]) => {
                     const title = entries[0].game.title || 'Unknown';
                     const worth = entries[0].game.worth || 'Free';
                     const platforms = entries[0].game.platforms || '?';
-                    html += `<div class="mb-3 p-2 bg-orange-500/5 border border-orange-500/20 rounded-lg">`;
-                    html += `<div class="flex items-center gap-2 mb-1.5">`;
-                    html += `<span class="font-bold text-[11px] dark:text-gray-200">${title}</span>`;
-                    html += `<span class="text-[10px] px-1.5 py-0.5 bg-green-500/10 text-green-500 rounded font-bold">${worth}</span>`;
-                    html += `<span class="text-[10px] text-gray-400">${platforms}</span>`;
-                    html += `</div>`;
-                    html += `<div class="text-[10px] text-blue-500 mb-1.5 font-mono">${normId}</div>`;
 
-                    // Sort by claimed_date descending — newest first = KEEP, rest = DELETE
+                    // Sort by claimed_date descending — newest first
                     const sorted = [...entries].sort((a, b) => {
                         const dateA = new Date(a.game.claimed_date || a.game.date || 0).getTime();
                         const dateB = new Date(b.game.claimed_date || b.game.date || 0).getTime();
-                        return dateB - dateA; // newest first
+                        return dateB - dateA;
                     });
-                    const newestDate = new Date(sorted[0].game.claimed_date || sorted[0].game.date || 0).getTime();
 
-                    sorted.forEach((entry, idx) => {
-                        const g = entry.game;
-                        const claimedTs = new Date(g.claimed_date || g.date || 0).getTime();
-                        const dateStr = claimedTs > 0 ? new Date(claimedTs).toLocaleString() : 'unknown';
-                        const source = g.source || '-';
-                        const isUrlKey = entry.key.startsWith('http');
-                        const isNewest = claimedTs === newestDate && idx === 0;
-                        const shouldDelete = !isNewest; // Keep only the newest, delete the rest
-                        const keyType = isUrlKey ? '🔗 URL' : '🏷️ Normalized';
-                        const ageLabel = isNewest ? '🆕 NEW' : '📦 OLD';
-                        const bgColor = isNewest ? 'bg-green-500/5 border-green-500/20' : 'bg-red-500/5 border-red-500/20';
-                        const badgeHtml = isNewest
-                            ? '<span class="text-[9px] font-bold px-1 py-0.5 bg-green-500/20 text-green-500 rounded ml-auto">KEEP</span>'
-                            : '<span class="text-[9px] font-bold px-1 py-0.5 bg-red-500/20 text-red-500 rounded ml-auto">DELETE</span>';
+                    const keepEntry = sorted[0]; // newest = keep
+                    const deleteEntries = sorted.slice(1); // older = delete candidates
 
-                        html += `<label class="flex items-start gap-2 p-1.5 ${bgColor} border rounded mb-1 cursor-pointer hover:bg-opacity-20 transition-colors">`;
-                        html += `<input type="checkbox" class="dup-checkbox mt-0.5" data-storage-key="${entry.key}" data-norm-id="${entry.normId}" ${shouldDelete ? 'checked' : ''}>`;
-                        html += `<div class="flex-1 min-w-0">`;
-                        html += `<div class="flex items-center gap-2">`;
-                        html += `<span class="text-[10px] font-bold ${isNewest ? 'text-green-500' : 'text-red-500'}">${ageLabel}</span>`;
-                        html += `<span class="text-[10px] text-gray-500">${keyType}</span>`;
-                        html += `<span class="text-[10px] text-gray-400">${source}</span>`;
-                        html += `<span class="text-[10px] text-gray-500">${dateStr}</span>`;
-                        html += badgeHtml;
-                        html += `</div>`;
-                        html += `<div class="text-[10px] text-gray-500 font-mono truncate" title="${entry.key}">${entry.key}</div>`;
-                        html += `</div></label>`;
+                    html += `<div class="mb-4 p-3 bg-orange-500/5 border border-orange-500/20 rounded-lg">`;
+                    html += `<div class="flex items-center gap-2 mb-2">`;
+                    html += `<span class="font-bold text-[12px] dark:text-gray-200">${title}</span>`;
+                    html += `<span class="text-[10px] px-1.5 py-0.5 bg-green-500/10 text-green-500 rounded font-bold">${worth}</span>`;
+                    html += `<span class="text-[10px] text-gray-400">${platforms}</span>`;
+                    html += `</div>`;
+                    html += `<div class="text-[10px] text-blue-500 mb-3 font-mono">ID: ${normId}</div>`;
+
+                    // NOW — the entry to KEEP (no checkbox, not deletable)
+                    const kg = keepEntry.game;
+                    const kDate = new Date(kg.claimed_date || kg.date || 0);
+                    const kDateStr = kDate.getTime() > 0 ? kDate.toLocaleString() : 'unknown';
+                    const kSource = kg.source || '-';
+                    const kKey = keepEntry.key;
+                    const kImg = kg.image ? `<img src="${kg.image}" class="w-8 h-8 rounded object-cover flex-shrink-0" onerror="this.style.display='none'">` : '';
+
+                    html += `<div class="flex gap-3 mb-2">`;
+
+                    // Left: NOW
+                    html += `<div class="flex-1 p-2 bg-green-500/10 border border-green-500/30 rounded-lg">`;
+                    html += `<div class="text-[10px] font-bold text-green-500 mb-1.5 flex items-center gap-1"><i class="ph-bold ph-check-circle"></i> NOW (Keep)</div>`;
+                    html += `<div class="flex items-start gap-2">`;
+                    html += kImg;
+                    html += `<div class="min-w-0 flex-1">`;
+                    html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Source:</span> ${kSource}</div>`;
+                    html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Claimed:</span> ${kDateStr}</div>`;
+                    html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Key:</span> <span class="font-mono">${kKey.length > 35 ? kKey.substring(0, 35) + '...' : kKey}</span></div>`;
+                    if (kg.open_giveaway && kg.open_giveaway !== kKey) {
+                        html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">URL:</span> <span class="font-mono">${kg.open_giveaway.length > 35 ? kg.open_giveaway.substring(0, 35) + '...' : kg.open_giveaway}</span></div>`;
+                    }
+                    html += `</div></div></div>`;
+
+                    // Right: BEFORE (all older entries, each with checkbox)
+                    html += `<div class="flex-1 space-y-1.5">`;
+                    deleteEntries.forEach((entry, di) => {
+                        const dg = entry.game;
+                        const dDate = new Date(dg.claimed_date || dg.date || 0);
+                        const dDateStr = dDate.getTime() > 0 ? dDate.toLocaleString() : 'unknown';
+                        const dSource = dg.source || '-';
+                        const dKey = entry.key;
+                        const dImg = dg.image ? `<img src="${dg.image}" class="w-8 h-8 rounded object-cover flex-shrink-0" onerror="this.style.display='none'">` : '';
+
+                        html += `<div class="p-2 bg-red-500/10 border border-red-500/30 rounded-lg">`;
+                        html += `<div class="flex items-center justify-between mb-1">`;
+                        html += `<div class="text-[10px] font-bold text-red-500 flex items-center gap-1"><i class="ph-bold ph-clock-countdown"></i> BEFORE #${di + 1}</div>`;
+                        html += `<label class="flex items-center gap-1 cursor-pointer">`;
+                        html += `<span class="text-[9px] text-red-500 font-bold">Delete</span>`;
+                        html += `<input type="checkbox" class="dup-checkbox" data-storage-key="${dKey}" data-norm-id="${entry.normId}" checked>`;
+                        html += `</label></div>`;
+                        html += `<div class="flex items-start gap-2">`;
+                        html += dImg;
+                        html += `<div class="min-w-0 flex-1">`;
+                        html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Source:</span> ${dSource}</div>`;
+                        html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Claimed:</span> ${dDateStr}</div>`;
+                        html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Key:</span> <span class="font-mono">${dKey.length > 30 ? dKey.substring(0, 30) + '...' : dKey}</span></div>`;
+                        if (dg.open_giveaway && dg.open_giveaway !== dKey) {
+                            html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">URL:</span> <span class="font-mono">${dg.open_giveaway.length > 30 ? dg.open_giveaway.substring(0, 30) + '...' : dg.open_giveaway}</span></div>`;
+                        }
+                        html += `</div></div></div>`;
                         checkboxIdx++;
                     });
-                    html += `</div>`;
+                    html += `</div>`; // close BEFORE column
+                    html += `</div>`; // close flex row
+                    html += `</div>`; // close group
                 });
             }
 

@@ -672,11 +672,16 @@
               <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
                 <div class="flex items-center justify-between mb-3">
                   <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Duplicates Detector</h4>
-                  <button onclick="detectAndCleanDuplicates()" class="px-3 py-1 text-[10px] font-bold bg-orange-500/20 text-orange-500 hover:bg-orange-500/30 rounded-lg transition-colors">
-                    <i class="ph-bold ph-copy"></i> Detect & Clean
-                  </button>
+                  <div class="flex gap-2">
+                    <button onclick="detectDuplicates()" class="px-3 py-1 text-[10px] font-bold bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 rounded-lg transition-colors">
+                      <i class="ph-bold ph-magnifying-glass"></i> Detect
+                    </button>
+                    <button onclick="deleteSelectedDuplicates()" id="dev-dup-delete-btn" class="px-3 py-1 text-[10px] font-bold bg-red-500/20 text-red-500 hover:bg-red-500/30 rounded-lg transition-colors hidden">
+                      <i class="ph-bold ph-trash"></i> Delete Selected
+                    </button>
+                  </div>
                 </div>
-                <div id="dev-duplicates-report" class="text-xs text-gray-600 dark:text-gray-400">Click "Detect & Clean" to find duplicates...</div>
+                <div id="dev-duplicates-report" class="text-xs text-gray-600 dark:text-gray-400">Click "Detect" to find duplicate items...</div>
               </div>
 
               <!-- Storage Analyzer -->
@@ -2832,110 +2837,167 @@
         };
 
         // ===== DEVELOPER MODE: Duplicates Detector =====
-        window.detectAndCleanDuplicates = function() {
+        window.detectDuplicates = function() {
             const report = document.getElementById('dev-duplicates-report');
-            const publishDates = loadSafeStorage('lootradar_publish_dates') || {};
             const claimedGames = state.claimedGames || {};
 
-            // Group by normalized ID to find potential duplicates
-            const normalized = {};
-            const duplicates = [];
-
-            // Helper function to extract app ID
-            const getAppId = (url) => {
-                const playMatch = url.match(/play\.google\.com\/store\/apps\/details\?id=([^&"'#\s]+)/);
-                if (playMatch) return 'gplay:' + playMatch[1];
-                const appleMatch = url.match(/apple\.com.*\/id(\d+)/i);
-                if (appleMatch) return 'ios:id' + appleMatch[1];
-                const steamMatch = url.match(/steampowered\.com\/app\/(\d+)/i);
-                if (steamMatch) return 'steam:' + steamMatch[1];
-                const epicMatch = url.match(/epicgames\.com\/(?:product|p)\/([^/?"'#\s]+)/i);
-                if (epicMatch) return 'epic:' + epicMatch[1];
-                const gogMatch = url.match(/gog\.com\/game\/([^/?"'#\s]+)/i);
-                if (gogMatch) return 'gog:' + gogMatch[1];
-                return url; // Already normalized or unknown format
-            };
-
-            // Check publish_dates for duplicates
-            Object.keys(publishDates).forEach(url => {
-                const appId = getAppId(url);
-                if (!normalized[appId]) {
-                    normalized[appId] = [];
-                }
-                normalized[appId].push({ type: 'publish_dates', url });
+            // Group claimed_games by normalizedId to find entries for the same app
+            const groups = {};
+            Object.entries(claimedGames).forEach(([key, game]) => {
+                if (!game || typeof game === 'boolean') return;
+                const normId = game.normalizedId || normalizeUrl(game.open_giveaway || key);
+                if (!groups[normId]) groups[normId] = [];
+                groups[normId].push({ key, game, normId });
             });
 
-            // Check claimed_games for duplicates
-            Object.keys(claimedGames).forEach(id => {
-                const appId = getAppId(id);
-                if (!normalized[appId]) {
-                    normalized[appId] = [];
-                }
-                normalized[appId].push({ type: 'claimed_games', url: id });
-            });
+            // Find groups with more than one entry (duplicates)
+            const dupGroups = Object.entries(groups).filter(([, entries]) => entries.length > 1);
 
-            // Find duplicates (same appId with multiple entries)
-            Object.entries(normalized).forEach(([appId, entries]) => {
-                if (entries.length > 1) {
-                    duplicates.push({ appId, entries });
+            // Also check: keys that are full URLs (not normalized) — these might be orphans
+            const orphanEntries = [];
+            Object.entries(claimedGames).forEach(([key, game]) => {
+                if (!game || typeof game === 'boolean') return;
+                if (key.startsWith('http://') || key.startsWith('https://')) {
+                    const normId = game.normalizedId || normalizeUrl(game.open_giveaway || key);
+                    // Check if there's already a normalized entry for this
+                    const hasNormEntry = claimedGames[normId] && normId !== key;
+                    orphanEntries.push({ key, game, normId, hasNormEntry });
                 }
             });
 
             let html = '';
-            if (duplicates.length === 0) {
-                html = '<div class="p-2 bg-green-500/10 border border-green-500/30 rounded text-green-500 text-[10px]">';
-                html += '<i class="ph-bold ph-check-circle"></i> No duplicates found!';
+            const totalDups = dupGroups.reduce((sum, [, e]) => sum + e.length - 1, 0);
+            const totalOrphans = orphanEntries.length;
+
+            if (dupGroups.length === 0 && totalOrphans === 0) {
+                html = '<div class="p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-green-500 text-[11px] font-bold">';
+                html += '<i class="ph-bold ph-check-circle mr-1"></i> No duplicates found! All ' + Object.keys(claimedGames).length + ' items are unique.';
                 html += '</div>';
-            } else {
-                html += `<div class="text-orange-500 font-bold mb-2">Found ${duplicates.length} potential duplicate(s):</div>`;
-                duplicates.slice(0, 5).forEach(dup => {
-                    html += `<div class="mb-2 p-2 bg-orange-500/10 border border-orange-500/30 rounded text-[10px]">`;
-                    html += `<div class="font-bold text-orange-500">${dup.appId}</div>`;
-                    dup.entries.forEach(e => {
-                        html += `<div class="text-gray-500 truncate" title="${e.url}">• ${e.type}: ${e.url.substring(0, 50)}...</div>`;
+                document.getElementById('dev-dup-delete-btn').classList.add('hidden');
+                report.innerHTML = html;
+                return;
+            }
+
+            // Summary
+            html += '<div class="flex gap-3 mb-3">';
+            if (dupGroups.length > 0) {
+                html += `<span class="px-2 py-1 bg-orange-500/10 text-orange-500 rounded text-[10px] font-bold">${dupGroups.length} groups (${totalDups} extra entries)</span>`;
+            }
+            if (totalOrphans > 0) {
+                html += `<span class="px-2 py-1 bg-purple-500/10 text-purple-500 rounded text-[10px] font-bold">${totalOrphans} URL-key entries</span>`;
+            }
+            html += '</div>';
+
+            // Duplicate groups (same normalizedId, multiple keys)
+            let checkboxIdx = 0;
+            if (dupGroups.length > 0) {
+                html += '<div class="text-[11px] font-bold text-orange-500 mb-2"><i class="ph-bold ph-warning mr-1"></i>Duplicate Groups (same app, multiple entries)</div>';
+                dupGroups.forEach(([normId, entries]) => {
+                    const title = entries[0].game.title || 'Unknown';
+                    const worth = entries[0].game.worth || 'Free';
+                    const platforms = entries[0].game.platforms || '?';
+                    html += `<div class="mb-3 p-2 bg-orange-500/5 border border-orange-500/20 rounded-lg">`;
+                    html += `<div class="flex items-center gap-2 mb-1.5">`;
+                    html += `<span class="font-bold text-[11px] dark:text-gray-200">${title}</span>`;
+                    html += `<span class="text-[10px] px-1.5 py-0.5 bg-green-500/10 text-green-500 rounded font-bold">${worth}</span>`;
+                    html += `<span class="text-[10px] text-gray-400">${platforms}</span>`;
+                    html += `</div>`;
+                    html += `<div class="text-[10px] text-blue-500 mb-1.5 font-mono">${normId}</div>`;
+
+                    entries.forEach((entry, idx) => {
+                        const g = entry.game;
+                        const claimedDate = g.claimed_date || g.date || 'unknown';
+                        const dateStr = claimedDate !== 'unknown' ? new Date(claimedDate).toLocaleString() : 'unknown';
+                        const source = g.source || '-';
+                        const isUrlKey = entry.key.startsWith('http');
+                        const keyLabel = isUrlKey ? '🔗 URL key' : '🏷️ Normalized key';
+                        const bgColor = isUrlKey ? 'bg-yellow-500/5 border-yellow-500/20' : 'bg-green-500/5 border-green-500/20';
+
+                        html += `<label class="flex items-start gap-2 p-1.5 ${bgColor} border rounded mb-1 cursor-pointer hover:bg-opacity-20 transition-colors">`;
+                        html += `<input type="checkbox" class="dup-checkbox mt-0.5" data-storage-key="${entry.key}" data-norm-id="${entry.normId}">`;
+                        html += `<div class="flex-1 min-w-0">`;
+                        html += `<div class="flex items-center gap-2">`;
+                        html += `<span class="text-[10px] font-bold ${isUrlKey ? 'text-yellow-500' : 'text-green-500'}">${keyLabel}</span>`;
+                        html += `<span class="text-[10px] text-gray-400">${source}</span>`;
+                        html += `<span class="text-[10px] text-gray-500">${dateStr}</span>`;
+                        html += `</div>`;
+                        html += `<div class="text-[10px] text-gray-500 font-mono truncate" title="${entry.key}">${entry.key}</div>`;
+                        html += `</div></label>`;
+                        checkboxIdx++;
                     });
                     html += `</div>`;
                 });
-                if (duplicates.length > 5) {
-                    html += `<div class="text-gray-400 text-[10px]">... and ${duplicates.length - 5} more</div>`;
-                }
-                html += `<button onclick="cleanDuplicates()" class="mt-2 px-3 py-1 text-[10px] font-bold bg-orange-500 text-white hover:bg-orange-600 rounded-lg transition-colors">`;
-                html += `<i class="ph-bold ph-broom"></i> Clean Duplicates (Keep Normalized)`;
-                html += `</button>`;
+            }
+
+            // Orphan URL-key entries (full URL keys that might have a normalized counterpart)
+            if (orphanEntries.length > 0) {
+                html += '<div class="text-[11px] font-bold text-purple-500 mb-2 mt-3"><i class="ph-bold ph-link mr-1"></i>URL-Key Entries (full URL as key)</div>';
+                orphanEntries.forEach(entry => {
+                    const g = entry.game;
+                    const claimedDate = g.claimed_date || g.date || 'unknown';
+                    const dateStr = claimedDate !== 'unknown' ? new Date(claimedDate).toLocaleString() : 'unknown';
+                    const hasDup = entry.hasNormEntry;
+                    const badgeColor = hasDup ? 'bg-red-500/10 text-red-500' : 'bg-gray-500/10 text-gray-400';
+                    const badgeText = hasDup ? 'HAS DUP' : 'ONLY';
+
+                    html += `<label class="flex items-start gap-2 p-1.5 ${hasDup ? 'bg-red-500/5 border border-red-500/20' : 'bg-gray-500/5 border border-gray-500/20'} rounded mb-1 cursor-pointer hover:bg-opacity-20 transition-colors">`;
+                    html += `<input type="checkbox" class="dup-checkbox mt-0.5" data-storage-key="${entry.key}" data-norm-id="${entry.normId}">`;
+                    html += `<div class="flex-1 min-w-0">`;
+                    html += `<div class="flex items-center gap-2">`;
+                    html += `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded ${badgeColor}">${badgeText}</span>`;
+                    html += `<span class="text-[10px] font-bold dark:text-gray-200">${g.title || 'Unknown'}</span>`;
+                    html += `<span class="text-[10px] text-gray-400">${g.worth || 'Free'}</span>`;
+                    html += `<span class="text-[10px] text-gray-500">${dateStr}</span>`;
+                    html += `</div>`;
+                    html += `<div class="text-[10px] text-gray-500 font-mono truncate" title="${entry.key}">${entry.key}</div>`;
+                    html += `</div></label>`;
+                    checkboxIdx++;
+                });
+            }
+
+            // Show delete button if there are checkboxes
+            const deleteBtn = document.getElementById('dev-dup-delete-btn');
+            if (checkboxIdx > 0) {
+                deleteBtn.classList.remove('hidden');
+            } else {
+                deleteBtn.classList.add('hidden');
             }
 
             report.innerHTML = html;
         };
 
-        window.cleanDuplicates = function() {
-            if (!confirm('This will remove old format URLs and keep only normalized IDs. Continue?')) return;
+        window.deleteSelectedDuplicates = function() {
+            const checkboxes = document.querySelectorAll('.dup-checkbox:checked');
+            if (checkboxes.length === 0) {
+                alert('No items selected. Tick the checkboxes for entries you want to DELETE.');
+                return;
+            }
 
-            const publishDates = loadSafeStorage('lootradar_publish_dates') || {};
-            const cleaned = {};
-            let removedCount = 0;
+            const keysToDelete = Array.from(checkboxes).map(cb => cb.dataset.storageKey);
+            const confirmMsg = `Delete ${keysToDelete.length} selected duplicate(s)?\n\nThis will remove them from claimed_games. The item will remain claimable if it reappears in the feed.`;
+            if (!confirm(confirmMsg)) return;
 
-            // Helper function
-            const getAppId = (url) => {
-                const playMatch = url.match(/play\.google\.com\/store\/apps\/details\?id=([^&"'#\s]+)/);
-                if (playMatch) return 'gplay:' + playMatch[1];
-                const appleMatch = url.match(/apple\.com.*\/id(\d+)/i);
-                if (appleMatch) return 'ios:id' + appleMatch[1];
-                return url;
-            };
-
-            Object.entries(publishDates).forEach(([url, data]) => {
-                const normalized = getAppId(url);
-                if (normalized !== url) {
-                    // This is old format, skip it (will be replaced by normalized version)
-                    removedCount++;
-                } else {
-                    cleaned[normalized] = data;
+            let deletedCount = 0;
+            keysToDelete.forEach(key => {
+                if (state.claimedGames[key]) {
+                    // Deduct value from total savings
+                    const game = state.claimedGames[key];
+                    if (game.value && !isNaN(game.value)) {
+                        state.totalSaved = Math.max(0, state.totalSaved - game.value);
+                    }
+                    delete state.claimedGames[key];
+                    deletedCount++;
                 }
             });
 
-            saveSafeStorage('lootradar_publish_dates', cleaned);
-            alert(`Cleaned ${removedCount} duplicate entries. Refresh the page to see changes.`);
-            runDataHealthCheck();
+            saveSafeStorage('lootradar_claimed_v2', state.claimedGames);
+            localStorage.setItem('lootradar_saved_money', state.totalSaved.toString());
+            updateWalletUI();
+            renderLibrary();
+            renderGames();
+
+            alert(`Deleted ${deletedCount} duplicate(s). Total savings updated.`);
+            detectDuplicates(); // Re-run detection
         };
 
         // ===== DEVELOPER MODE: Storage Analyzer =====

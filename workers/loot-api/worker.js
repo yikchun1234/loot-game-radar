@@ -336,6 +336,7 @@ async function fetchAllGames(params) {
     Promise.resolve(iosData),
     includeEpic ? fetchEpicFreeGames() : Promise.resolve([]),
     includeGamerPower ? fetchGamerPowerGames() : Promise.resolve([]),
+    includeIOS ? fetchNewMobileLife() : Promise.resolve([]),
   ]);
 
   const allGames = [];
@@ -476,6 +477,98 @@ async function fetchIOSFreeApps() {
   }
 }
 
+/**
+ * Fetch free iOS apps from NewMobileLife (流動日報) RSS feed
+ * Only includes items categorized as "iPhone Apps"
+ * GET /api/newmobilelife
+ */
+async function fetchNewMobileLife() {
+  try {
+    const res = await fetch(
+      'https://www.newmobilelife.com/category/apps-%e6%83%85%e5%a0%b1/%e9%99%90%e6%99%82%e5%85%8d%e8%b2%bb%e6%83%85%e5%a0%b1/feed/',
+      {
+        headers: { 'User-Agent': 'LootRadar/1.0 (Personal Project)' },
+        cf: { cacheTtl: 7200, cacheEverything: true }, // Cache for 2 hours
+      }
+    );
+
+    if (!res.ok) return [];
+
+    const xml = await res.text();
+
+    // Parse each <item> block
+    const itemRegex = /<item>([\s\S]*?)<\/item>/g;
+    const apps = [];
+    let match;
+
+    while ((match = itemRegex.exec(xml)) !== null) {
+      const item = match[1];
+
+      // Only include items with "iPhone Apps" category
+      if (!item.includes('<category><![CDATA[iPhone Apps]]></category>')) continue;
+
+      // Extract title (headline from RSS)
+      const titleMatch = item.match(/<title>(.*?)<\/title>/);
+      const title = titleMatch ? titleMatch[1].trim() : '';
+
+      // Extract pubDate
+      const pubDateMatch = item.match(/<pubDate>(.*?)<\/pubDate>/);
+      const pubDate = pubDateMatch ? pubDateMatch[1] : new Date().toISOString();
+
+      // Get content:encoded (full article content)
+      const contentMatch = item.match(/<content:encoded><!\[CDATA\[([\s\S]*?)\]\]><\/content:encoded>/);
+      const content = contentMatch ? contentMatch[1] : '';
+
+      // If no content:encoded, fall back to description
+      const descMatch = item.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/);
+      const description = descMatch ? descMatch[1] : '';
+      const fullContent = content || description;
+
+      // Extract App Store link
+      const storeLinkMatch = fullContent.match(/href="(https?:\/\/[^"]*apps\.apple\.com[^"]*)"/);
+      const storeLink = storeLinkMatch ? storeLinkMatch[1] : '';
+
+      // Skip if no valid App Store link
+      if (!storeLink) continue;
+
+      // Extract app name from "應用名稱：" or "应用名称："
+      const appNameMatch = fullContent.match(/應?用名?稱[：:]\s*([^<\n]+)/);
+      const appName = appNameMatch ? appNameMatch[1].trim() : '';
+
+      // Use app name as title if available, otherwise extract from RSS title
+      // RSS title format: "描述 原價 US $XX.XX《AppName》限時免費"
+      let finalTitle = appName || title;
+      const titleAppNameMatch = title.match(/《(.*?)》/);
+      if (!appName && titleAppNameMatch) {
+        finalTitle = titleAppNameMatch[1];
+      }
+
+      // Extract image (first <img src="..."> in content)
+      const imgMatch = fullContent.match(/<img[^>]+src="([^"]+)"/);
+      const image = imgMatch ? imgMatch[1] : '';
+
+      // Extract original price from description/title
+      // Format: "原價 US $19.99" or "原價 US$19.99"
+      const priceMatch = (description + ' ' + title).match(/原價\s*(?:US\s*)?\$?\s*([0-9.]+)/);
+      const worth = 'Free'; // All items here are free (price set to 0.00)
+
+      apps.push({
+        title: finalTitle,
+        image: image || 'https://images.unsplash.com/photo-1591337676887-a21bfc42dd5b?w=400&h=200&fit=crop',
+        worth,
+        platforms: 'iOS',
+        open_giveaway: storeLink,
+        published_date: pubDate,
+        source: 'NewMobileLife',
+      });
+    }
+
+    return apps;
+  } catch (err) {
+    return [];
+  }
+}
+
 // Main request handler
 export default {
   async fetch(request) {
@@ -547,6 +640,18 @@ export default {
       }
     }
 
+    // Route: GET /api/newmobilelife (iOS free apps from 流動日報)
+    if (pathname === '/api/newmobilelife') {
+      try {
+        const apps = await fetchNewMobileLife();
+        return new Response(JSON.stringify(apps), {
+          headers: { ...CORS_HEADERS, 'Content-Type': 'application/json' },
+        });
+      } catch (err) {
+        return errorResponse('Failed to fetch NewMobileLife apps: ' + err.message);
+      }
+    }
+
     // Route: GET /api/all-games
     if (pathname === '/api/all-games') {
       try {
@@ -569,7 +674,8 @@ export default {
             'GET /api/reddit-deals': 'Fetch free game deals from Reddit',
             'GET /api/epic-free': 'Fetch Epic Games free titles',
             'GET /api/android-free': 'Scrape free Android apps from AppSales',
-            'GET /api/all-games': 'Aggregate all sources (gamerpower + reddit + epic + android)',
+            'GET /api/newmobilelife': 'Fetch free iOS apps from NewMobileLife (流動日報)',
+            'GET /api/all-games': 'Aggregate all sources (gamerpower + reddit + epic + android + newmobilelife)',
           },
           params: {
             reddit: 'true|false (default: true)',

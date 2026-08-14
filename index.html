@@ -1830,18 +1830,7 @@
                 animateOdometer('lib-total-count', totalGames, false);
                 animateOdometer('lib-total-saved', state.totalSaved, true);
 
-                // Smart z-index fix
-                let libScrollTop = 0;
-                const libScroll = document.querySelector('.library-scroll-area');
-                if (libScroll) libScrollTop = libScroll.scrollTop;
-
-                if (scrollTopBtn) {
-                  if (libScrollTop <= 300) {
-                    scrollTopBtn.style.zIndex = '40';
-                  } else {
-                    scrollTopBtn.style.zIndex = '';
-                  }
-                }
+                // updateScrollButtonState handles both visibility and z-index
                 window.updateScrollButtonState();
 
                 // Hide spinner with fade out
@@ -5229,6 +5218,10 @@
           if (currentScrollTop > 300) {
             scrollTopBtn.classList.remove('opacity-0', 'translate-y-4', 'scale-90', 'pointer-events-none');
             scrollTopBtn.classList.add('opacity-100', 'translate-y-0', 'scale-100');
+            // Ensure z-index is high enough to appear above library modal (z-50)
+            if (scrollTopBtn.style.zIndex === '40') {
+              scrollTopBtn.style.zIndex = '';
+            }
           } else {
             scrollTopBtn.classList.add('opacity-0', 'translate-y-4', 'scale-90', 'pointer-events-none');
             scrollTopBtn.classList.remove('opacity-100', 'translate-y-0', 'scale-100');

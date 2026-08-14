@@ -292,55 +292,23 @@ async function fetchEpicFreeGames() {
  * 4. GamerPower (PC)
  */
 async function fetchAllGames(params) {
-  const includeReddit = params.get('reddit') !== 'false';
+  // Reddit RSS disabled as of 2026-08-14 — using direct sources instead
+  // const includeReddit = params.get('reddit') !== 'false';
   const includeEpic = params.get('epic') !== 'false';
   const includeGamerPower = params.get('gamerpower') !== 'false';
   const includeAndroid = params.get('android') !== 'false';
   const includeIOS = params.get('ios') !== 'false';
 
-  // Step 1: Try Reddit RSS
-  let redditData = [];
-  let redditSuccess = false;
-
-  if (includeReddit) {
-    try {
-      redditData = await fetchRedditRSS();
-      if (redditData.length > 0) {
-        redditSuccess = true;
-      }
-    } catch (err) {
-      // Reddit failed
-    }
-  }
-
-  // Step 2: If Reddit failed, use fallbacks
-  let androidData = [];
-  let iosData = [];
-
-  if (!redditSuccess) {
-    // Android: try AppSales
-    if (includeAndroid) {
-      try {
-        androidData = await fetchAndroidFreeApps();
-      } catch (err) {}
-    }
-
-    // iOS: try CheapCharts
-    if (includeIOS) {
-      try {
-        iosData = await fetchIOSFreeApps();
-      } catch (err) {}
-    }
-  }
-
-  // Step 3: Fetch other sources in parallel
+  // Fetch all sources in parallel (Reddit disabled)
   const results = await Promise.allSettled([
-    Promise.resolve(redditData),
-    Promise.resolve(androidData),
-    Promise.resolve(iosData),
+    // Android: AppSales
+    includeAndroid ? fetchAndroidFreeApps() : Promise.resolve([]),
+    // iOS: CheapCharts
+    includeIOS ? fetchIOSFreeApps() : Promise.resolve([]),
+    // iOS: NewMobileLife RSS
+    includeIOS ? fetchNewMobileLife() : Promise.resolve([]),
     includeEpic ? fetchEpicFreeGames() : Promise.resolve([]),
     includeGamerPower ? fetchGamerPowerGames() : Promise.resolve([]),
-    includeIOS ? fetchNewMobileLife() : Promise.resolve([]),
   ]);
 
   const allGames = [];

@@ -135,6 +135,14 @@
         .glass-panel { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid rgba(199, 210, 254, 0.5); box-shadow: 0 4px 20px rgba(37, 99, 235, 0.05); }
         .dark .glass-panel { background: rgba(15, 20, 25, 0.85); border: 1px solid rgba(0,243,255,0.1); box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
 
+        /* Dev mode collapsible sections */
+        .dev-section-body { display: grid; grid-template-rows: 1fr; transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .dev-section-body > div { overflow: hidden; }
+        .dev-section[data-collapsed="true"] .dev-section-body { grid-template-rows: 0fr; }
+        .dev-section[data-collapsed="true"] .dev-section-body > div { min-height: 0; }
+        .dev-section-toggle { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .dev-section[data-collapsed="true"] .dev-section-toggle { transform: rotate(-90deg); }
+
         .text-clamp-fix {
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -658,179 +666,243 @@
             <!-- Data Tab -->
             <div id="dev-tab-data" class="dev-tab-content space-y-4">
               <!-- Data Health Report -->
-              <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
-                <div class="flex items-center justify-between mb-3">
+              <div class="dev-section glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800" data-collapsed="false">
+                <div class="flex items-center justify-between mb-3 cursor-pointer" onclick="toggleDevSection(this)">
                   <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Data Health Report</h4>
-                  <button onclick="runDataHealthCheck()" class="px-3 py-1 text-[10px] font-bold bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 rounded-lg transition-colors">
-                    <i class="ph-bold ph-stethoscope"></i> Scan
-                  </button>
+                  <div class="flex items-center gap-2">
+                    <button onclick="event.stopPropagation(); runDataHealthCheck()" class="px-3 py-1 text-[10px] font-bold bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 rounded-lg transition-colors">
+                      <i class="ph-bold ph-stethoscope"></i> Scan
+                    </button>
+                    <i class="ph-bold ph-caret-down dev-section-toggle text-gray-400"></i>
+                  </div>
                 </div>
-                <div id="dev-health-report" class="text-xs text-gray-600 dark:text-gray-400">Click "Scan" to analyze data...</div>
+                <div class="dev-section-body"><div>
+                  <div id="dev-health-report" class="text-xs text-gray-600 dark:text-gray-400">Click "Scan" to analyze data...</div>
+                </div></div>
               </div>
 
               <!-- Duplicates Detector -->
-              <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
-                <div class="flex items-center justify-between mb-3">
+              <div class="dev-section glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800" data-collapsed="false">
+                <div class="flex items-center justify-between mb-3 cursor-pointer" onclick="toggleDevSection(this)">
                   <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Duplicates Detector</h4>
-                  <div class="flex gap-2">
-                    <button onclick="detectDuplicates()" class="px-3 py-1 text-[10px] font-bold bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 rounded-lg transition-colors">
-                      <i class="ph-bold ph-magnifying-glass"></i> Detect
-                    </button>
-                    <button onclick="deleteSelectedDuplicates()" id="dev-dup-delete-btn" class="px-3 py-1 text-[10px] font-bold bg-red-500/20 text-red-500 hover:bg-red-500/30 rounded-lg transition-colors hidden">
-                      <i class="ph-bold ph-trash"></i> Delete Selected
-                    </button>
+                  <div class="flex items-center gap-2">
+                    <div class="flex gap-2" onclick="event.stopPropagation()">
+                      <button onclick="detectDuplicates()" class="px-3 py-1 text-[10px] font-bold bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 rounded-lg transition-colors">
+                        <i class="ph-bold ph-magnifying-glass"></i> Detect
+                      </button>
+                      <button onclick="deleteSelectedDuplicates()" id="dev-dup-delete-btn" class="px-3 py-1 text-[10px] font-bold bg-red-500/20 text-red-500 hover:bg-red-500/30 rounded-lg transition-colors hidden">
+                        <i class="ph-bold ph-trash"></i> Delete Selected
+                      </button>
+                    </div>
+                    <i class="ph-bold ph-caret-down dev-section-toggle text-gray-400"></i>
                   </div>
                 </div>
-                <div id="dev-duplicates-report" class="text-xs text-gray-600 dark:text-gray-400">Click "Detect" to find duplicate items...</div>
+                <div class="dev-section-body"><div>
+                  <div id="dev-duplicates-report" class="text-xs text-gray-600 dark:text-gray-400">Click "Detect" to find duplicate items...</div>
+                </div></div>
               </div>
 
               <!-- Storage Analyzer -->
-              <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
-                <div class="flex items-center justify-between mb-3">
+              <div class="dev-section glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800" data-collapsed="false">
+                <div class="flex items-center justify-between mb-3 cursor-pointer" onclick="toggleDevSection(this)">
                   <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Storage Analyzer</h4>
-                  <button onclick="analyzeStorage()" class="px-3 py-1 text-[10px] font-bold bg-purple-500/20 text-purple-500 hover:bg-purple-500/30 rounded-lg transition-colors">
-                    <i class="ph-bold ph-hard-drives"></i> Analyze
-                  </button>
+                  <div class="flex items-center gap-2">
+                    <button onclick="event.stopPropagation(); analyzeStorage()" class="px-3 py-1 text-[10px] font-bold bg-purple-500/20 text-purple-500 hover:bg-purple-500/30 rounded-lg transition-colors">
+                      <i class="ph-bold ph-hard-drives"></i> Analyze
+                    </button>
+                    <i class="ph-bold ph-caret-down dev-section-toggle text-gray-400"></i>
+                  </div>
                 </div>
-                <div id="dev-storage-report" class="space-y-2"></div>
+                <div class="dev-section-body"><div>
+                  <div id="dev-storage-report" class="space-y-2"></div>
+                </div></div>
               </div>
 
               <!-- Current Feed Order Section (debug sort) -->
-              <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
-                <div class="flex items-center justify-between mb-3">
+              <div class="dev-section glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800" data-collapsed="false">
+                <div class="flex items-center justify-between mb-3 cursor-pointer" onclick="toggleDevSection(this)">
                   <h4 class="text-xs font-bold text-purple-500 dark:text-neon-purple uppercase tracking-widest">📋 Current Feed Order</h4>
-                  <span class="text-[10px] text-gray-400">Shows exact render order + published_date</span>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] text-gray-400">Shows exact render order + published_date</span>
+                    <i class="ph-bold ph-caret-down dev-section-toggle text-gray-400"></i>
+                  </div>
                 </div>
-                <div id="dev-feed-debug" class="overflow-x-auto"></div>
+                <div class="dev-section-body"><div>
+                  <div id="dev-feed-debug" class="overflow-x-auto"></div>
+                </div></div>
               </div>
 
               <!-- All Apps Section -->
-              <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
-                <div class="flex items-center justify-between mb-3">
+              <div class="dev-section glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800" data-collapsed="false">
+                <div class="flex items-center justify-between mb-3 cursor-pointer" onclick="toggleDevSection(this)">
                   <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">All Tracked Apps</h4>
-                  <button id="dev-copy-apps-btn" onclick="copyTrackedApps()" class="px-3 py-1 text-[10px] font-bold bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 rounded-lg transition-colors flex items-center gap-1">
-                    <i class="ph-bold ph-copy"></i> Copy
-                  </button>
+                  <div class="flex items-center gap-2">
+                    <button id="dev-copy-apps-btn" onclick="event.stopPropagation(); copyTrackedApps()" class="px-3 py-1 text-[10px] font-bold bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 rounded-lg transition-colors flex items-center gap-1">
+                      <i class="ph-bold ph-copy"></i> Copy
+                    </button>
+                    <i class="ph-bold ph-caret-down dev-section-toggle text-gray-400"></i>
+                  </div>
                 </div>
-                <div id="dev-apps-table" class="overflow-x-auto"></div>
+                <div class="dev-section-body"><div>
+                  <div id="dev-apps-table" class="overflow-x-auto"></div>
+                </div></div>
               </div>
             </div>
 
             <!-- Performance Tab -->
             <div id="dev-tab-performance" class="dev-tab-content hidden space-y-4">
               <!-- Network Log -->
-              <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
-                <div class="flex items-center justify-between mb-3">
+              <div class="dev-section glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800" data-collapsed="false">
+                <div class="flex items-center justify-between mb-3 cursor-pointer" onclick="toggleDevSection(this)">
                   <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Network Log</h4>
-                  <button onclick="clearNetworkLog()" class="px-3 py-1 text-[10px] font-bold bg-red-500/20 text-red-500 hover:bg-red-500/30 rounded-lg transition-colors">
-                    <i class="ph-bold ph-trash"></i> Clear
-                  </button>
+                  <div class="flex items-center gap-2">
+                    <button onclick="event.stopPropagation(); clearNetworkLog()" class="px-3 py-1 text-[10px] font-bold bg-red-500/20 text-red-500 hover:bg-red-500/30 rounded-lg transition-colors">
+                      <i class="ph-bold ph-trash"></i> Clear
+                    </button>
+                    <i class="ph-bold ph-caret-down dev-section-toggle text-gray-400"></i>
+                  </div>
                 </div>
-                <div id="dev-network-log" class="text-xs text-gray-600 dark:text-gray-400">No network activity recorded yet...</div>
+                <div class="dev-section-body"><div>
+                  <div id="dev-network-log" class="text-xs text-gray-600 dark:text-gray-400">No network activity recorded yet...</div>
+                </div></div>
               </div>
 
               <!-- Render Metrics -->
-              <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
-                <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">Render Metrics</h4>
-                <div id="dev-render-metrics" class="text-xs text-gray-600 dark:text-gray-400">Render performance data will appear here...</div>
+              <div class="dev-section glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800" data-collapsed="false">
+                <div class="flex items-center justify-between mb-3 cursor-pointer" onclick="toggleDevSection(this)">
+                  <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Render Metrics</h4>
+                  <i class="ph-bold ph-caret-down dev-section-toggle text-gray-400"></i>
+                </div>
+                <div class="dev-section-body"><div>
+                  <div id="dev-render-metrics" class="text-xs text-gray-600 dark:text-gray-400">Render performance data will appear here...</div>
+                </div></div>
               </div>
             </div>
 
             <!-- Testing Tab -->
             <div id="dev-tab-testing" class="dev-tab-content hidden space-y-4">
               <!-- Data Simulator -->
-              <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
-                <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">Data Simulator</h4>
-                <div class="grid grid-cols-2 gap-2">
-                  <button onclick="simulateData('empty')" class="px-3 py-2 text-xs font-bold bg-gray-500/20 text-gray-500 hover:bg-gray-500/30 rounded-lg transition-colors">
-                    <i class="ph-bold ph-empty"></i> Empty Data
-                  </button>
-                  <button onclick="simulateData('large')" class="px-3 py-2 text-xs font-bold bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 rounded-lg transition-colors">
-                    <i class="ph-bold ph-trend-up"></i> 1000+ Games
-                  </button>
-                  <button onclick="simulateData('mixed')" class="px-3 py-2 text-xs font-bold bg-orange-500/20 text-orange-500 hover:bg-orange-500/30 rounded-lg transition-colors">
-                    <i class="ph-bold ph-shuffle"></i> Mixed Formats
-                  </button>
-                  <button onclick="simulateData('reset')" class="px-3 py-2 text-xs font-bold bg-red-500/20 text-red-500 hover:bg-red-500/30 rounded-lg transition-colors">
-                    <i class="ph-bold ph-arrow-counter-clockwise"></i> Reset to Real
-                  </button>
+              <div class="dev-section glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800" data-collapsed="false">
+                <div class="flex items-center justify-between mb-3 cursor-pointer" onclick="toggleDevSection(this)">
+                  <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Data Simulator</h4>
+                  <i class="ph-bold ph-caret-down dev-section-toggle text-gray-400"></i>
                 </div>
-                <div id="dev-simulator-status" class="mt-3 text-xs text-gray-500"></div>
+                <div class="dev-section-body"><div>
+                  <div class="grid grid-cols-2 gap-2">
+                    <button onclick="simulateData('empty')" class="px-3 py-2 text-xs font-bold bg-gray-500/20 text-gray-500 hover:bg-gray-500/30 rounded-lg transition-colors">
+                      <i class="ph-bold ph-empty"></i> Empty Data
+                    </button>
+                    <button onclick="simulateData('large')" class="px-3 py-2 text-xs font-bold bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 rounded-lg transition-colors">
+                      <i class="ph-bold ph-trend-up"></i> 1000+ Games
+                    </button>
+                    <button onclick="simulateData('mixed')" class="px-3 py-2 text-xs font-bold bg-orange-500/20 text-orange-500 hover:bg-orange-500/30 rounded-lg transition-colors">
+                      <i class="ph-bold ph-shuffle"></i> Mixed Formats
+                    </button>
+                    <button onclick="simulateData('reset')" class="px-3 py-2 text-xs font-bold bg-red-500/20 text-red-500 hover:bg-red-500/30 rounded-lg transition-colors">
+                      <i class="ph-bold ph-arrow-counter-clockwise"></i> Reset to Real
+                    </button>
+                  </div>
+                  <div id="dev-simulator-status" class="mt-3 text-xs text-gray-500"></div>
+                </div></div>
               </div>
 
               <!-- Manual Refresh -->
-              <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
-                <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">Manual Refresh</h4>
-                <div class="space-y-2">
-                  <button onclick="manualRefresh(false)" class="w-full px-3 py-2 text-xs font-bold bg-green-500/20 text-green-500 hover:bg-green-500/30 rounded-lg transition-colors flex items-center justify-center gap-2">
-                    <i class="ph-bold ph-arrows-clockwise"></i> Force Refresh (Clear Cache)
-                  </button>
-                  <button onclick="manualRefresh(true)" class="w-full px-3 py-2 text-xs font-bold bg-orange-500/20 text-orange-500 hover:bg-orange-500/30 rounded-lg transition-colors flex items-center justify-center gap-2">
-                    <i class="ph-bold ph-warning"></i> Test Fallback (Simulate Reddit Fail)
-                  </button>
+              <div class="dev-section glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800" data-collapsed="false">
+                <div class="flex items-center justify-between mb-3 cursor-pointer" onclick="toggleDevSection(this)">
+                  <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Manual Refresh</h4>
+                  <i class="ph-bold ph-caret-down dev-section-toggle text-gray-400"></i>
                 </div>
+                <div class="dev-section-body"><div>
+                  <div class="space-y-2">
+                    <button onclick="manualRefresh(false)" class="w-full px-3 py-2 text-xs font-bold bg-green-500/20 text-green-500 hover:bg-green-500/30 rounded-lg transition-colors flex items-center justify-center gap-2">
+                      <i class="ph-bold ph-arrows-clockwise"></i> Force Refresh (Clear Cache)
+                    </button>
+                    <button onclick="manualRefresh(true)" class="w-full px-3 py-2 text-xs font-bold bg-orange-500/20 text-orange-500 hover:bg-orange-500/30 rounded-lg transition-colors flex items-center justify-center gap-2">
+                      <i class="ph-bold ph-warning"></i> Test Fallback (Simulate Reddit Fail)
+                    </button>
+                  </div>
+                </div></div>
               </div>
             </div>
 
             <!-- Management Tab -->
             <div id="dev-tab-management" class="dev-tab-content hidden space-y-4">
               <!-- Export/Import -->
-              <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
-                <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-3">Export / Import</h4>
-                <div class="space-y-2">
-                  <button onclick="exportAllData()" class="w-full px-3 py-2 text-xs font-bold bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 rounded-lg transition-colors flex items-center justify-center gap-2">
-                    <i class="ph-bold ph-export"></i> Export All Data (JSON)
-                  </button>
-                  <button onclick="importDataPrompt()" class="w-full px-3 py-2 text-xs font-bold bg-purple-500/20 text-purple-500 hover:bg-purple-500/30 rounded-lg transition-colors flex items-center justify-center gap-2">
-                    <i class="ph-bold ph-import"></i> Import Data
-                  </button>
+              <div class="dev-section glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800" data-collapsed="false">
+                <div class="flex items-center justify-between mb-3 cursor-pointer" onclick="toggleDevSection(this)">
+                  <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Export / Import</h4>
+                  <i class="ph-bold ph-caret-down dev-section-toggle text-gray-400"></i>
                 </div>
+                <div class="dev-section-body"><div>
+                  <div class="space-y-2">
+                    <button onclick="exportAllData()" class="w-full px-3 py-2 text-xs font-bold bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 rounded-lg transition-colors flex items-center justify-center gap-2">
+                      <i class="ph-bold ph-export"></i> Export All Data (JSON)
+                    </button>
+                    <button onclick="importDataPrompt()" class="w-full px-3 py-2 text-xs font-bold bg-purple-500/20 text-purple-500 hover:bg-purple-500/30 rounded-lg transition-colors flex items-center justify-center gap-2">
+                      <i class="ph-bold ph-import"></i> Import Data
+                    </button>
+                  </div>
+                </div></div>
               </div>
 
               <!-- Clear Selective Data -->
-              <div class="glass-panel p-4 rounded-2xl border border-red-500/50 dark:border-red-500/30">
-                <h4 class="text-xs font-bold text-red-500 uppercase tracking-widest mb-3 flex items-center gap-2">
-                  <i class="ph-bold ph-warning"></i> Danger Zone
-                </h4>
-                <div class="space-y-2">
-                  <button onclick="clearSelectiveData('publish_dates')" class="w-full px-3 py-2 text-xs font-bold bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors flex items-center justify-between">
-                    <span><i class="ph-bold ph-trash"></i> Clear publish_dates</span>
-                    <span class="text-[10px] opacity-70">Lose date tracking</span>
-                  </button>
-                  <button onclick="clearSelectiveData('deleted_history')" class="w-full px-3 py-2 text-xs font-bold bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors flex items-center justify-between">
-                    <span><i class="ph-bold ph-trash"></i> Clear deleted_history</span>
-                    <span class="text-[10px] opacity-70">Can't track deletions</span>
-                  </button>
-                  <button onclick="clearSelectiveData('claimed_games')" class="w-full px-3 py-2 text-xs font-bold bg-red-600/20 text-red-600 hover:bg-red-600/30 rounded-lg transition-colors flex items-center justify-between border border-red-500/50">
-                    <span><i class="ph-bold ph-warning-octagon"></i> Clear claimed_games</span>
-                    <span class="text-[10px] font-bold">LOSE ALL CLAIMS!</span>
-                  </button>
+              <div class="dev-section glass-panel p-4 rounded-2xl border border-red-500/50 dark:border-red-500/30" data-collapsed="false">
+                <div class="flex items-center justify-between mb-3 cursor-pointer" onclick="toggleDevSection(this)">
+                  <h4 class="text-xs font-bold text-red-500 uppercase tracking-widest flex items-center gap-2">
+                    <i class="ph-bold ph-warning"></i> Danger Zone
+                  </h4>
+                  <i class="ph-bold ph-caret-down dev-section-toggle text-gray-400"></i>
                 </div>
+                <div class="dev-section-body"><div>
+                  <div class="space-y-2">
+                    <button onclick="clearSelectiveData('publish_dates')" class="w-full px-3 py-2 text-xs font-bold bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors flex items-center justify-between">
+                      <span><i class="ph-bold ph-trash"></i> Clear publish_dates</span>
+                      <span class="text-[10px] opacity-70">Lose date tracking</span>
+                    </button>
+                    <button onclick="clearSelectiveData('deleted_history')" class="w-full px-3 py-2 text-xs font-bold bg-red-500/10 text-red-500 hover:bg-red-500/20 rounded-lg transition-colors flex items-center justify-between">
+                      <span><i class="ph-bold ph-trash"></i> Clear deleted_history</span>
+                      <span class="text-[10px] opacity-70">Can't track deletions</span>
+                    </button>
+                    <button onclick="clearSelectiveData('claimed_games')" class="w-full px-3 py-2 text-xs font-bold bg-red-600/20 text-red-600 hover:bg-red-600/30 rounded-lg transition-colors flex items-center justify-between border border-red-500/50">
+                      <span><i class="ph-bold ph-warning-octagon"></i> Clear claimed_games</span>
+                      <span class="text-[10px] font-bold">LOSE ALL CLAIMS!</span>
+                    </button>
+                  </div>
               </div>
             </div>
 
             <!-- Errors Tab -->
             <div id="dev-tab-errors" class="dev-tab-content hidden space-y-4">
               <!-- Error Log -->
-              <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
-                <div class="flex items-center justify-between mb-3">
+              <div class="dev-section glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800" data-collapsed="false">
+                <div class="flex items-center justify-between mb-3 cursor-pointer" onclick="toggleDevSection(this)">
                   <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">JavaScript Errors</h4>
-                  <button onclick="clearErrorLog()" class="px-3 py-1 text-[10px] font-bold bg-red-500/20 text-red-500 hover:bg-red-500/30 rounded-lg transition-colors">
-                    <i class="ph-bold ph-trash"></i> Clear
-                  </button>
+                  <div class="flex items-center gap-2">
+                    <button onclick="event.stopPropagation(); clearErrorLog()" class="px-3 py-1 text-[10px] font-bold bg-red-500/20 text-red-500 hover:bg-red-500/30 rounded-lg transition-colors">
+                      <i class="ph-bold ph-trash"></i> Clear
+                    </button>
+                    <i class="ph-bold ph-caret-down dev-section-toggle text-gray-400"></i>
+                  </div>
                 </div>
-                <div id="dev-error-log" class="text-xs text-gray-600 dark:text-gray-400">No errors recorded yet...</div>
+                <div class="dev-section-body"><div>
+                  <div id="dev-error-log" class="text-xs text-gray-600 dark:text-gray-400">No errors recorded yet...</div>
+                </div></div>
               </div>
 
               <!-- Operation History -->
-              <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
-                <div class="flex items-center justify-between mb-3">
+              <div class="dev-section glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800" data-collapsed="false">
+                <div class="flex items-center justify-between mb-3 cursor-pointer" onclick="toggleDevSection(this)">
                   <h4 class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Operation History</h4>
-                  <button onclick="clearOperationHistory()" class="px-3 py-1 text-[10px] font-bold bg-gray-500/20 text-gray-500 hover:bg-gray-500/30 rounded-lg transition-colors">
-                    <i class="ph-bold ph-trash"></i> Clear
-                  </button>
+                  <div class="flex items-center gap-2">
+                    <button onclick="event.stopPropagation(); clearOperationHistory()" class="px-3 py-1 text-[10px] font-bold bg-gray-500/20 text-gray-500 hover:bg-gray-500/30 rounded-lg transition-colors">
+                      <i class="ph-bold ph-trash"></i> Clear
+                    </button>
+                    <i class="ph-bold ph-caret-down dev-section-toggle text-gray-400"></i>
+                  </div>
                 </div>
-                <div id="dev-operation-history" class="text-xs text-gray-600 dark:text-gray-400">No operations recorded yet...</div>
+                <div class="dev-section-body"><div>
+                  <div id="dev-operation-history" class="text-xs text-gray-600 dark:text-gray-400">No operations recorded yet...</div>
+                </div></div>
               </div>
             </div>
 
@@ -2766,6 +2838,14 @@
                     btn.className = 'dev-tab px-3 py-1.5 text-xs font-bold rounded-lg bg-gray-200 dark:bg-gray-800 text-gray-500 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors';
                 }
             });
+        };
+
+        // ===== DEVELOPER MODE: Collapsible Sections =====
+        window.toggleDevSection = function(headerEl) {
+            const section = headerEl.closest('.dev-section');
+            if (!section) return;
+            const isCollapsed = section.dataset.collapsed === 'true';
+            section.dataset.collapsed = isCollapsed ? 'false' : 'true';
         };
 
         // ===== DEVELOPER MODE: Data Health Report =====

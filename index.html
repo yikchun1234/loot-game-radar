@@ -2904,22 +2904,30 @@
                     html += `</div>`;
                     html += `<div class="text-[10px] text-blue-500 mb-1.5 font-mono">${normId}</div>`;
 
+                    // Determine which entries to auto-check (URL keys = old, should be deleted)
+                    const hasNormKey = entries.some(e => !e.key.startsWith('http'));
+
                     entries.forEach((entry, idx) => {
                         const g = entry.game;
                         const claimedDate = g.claimed_date || g.date || 'unknown';
                         const dateStr = claimedDate !== 'unknown' ? new Date(claimedDate).toLocaleString() : 'unknown';
                         const source = g.source || '-';
                         const isUrlKey = entry.key.startsWith('http');
-                        const keyLabel = isUrlKey ? '🔗 URL key' : '🏷️ Normalized key';
+                        const shouldDelete = isUrlKey && hasNormKey; // Auto-check URL keys when normalized key exists
+                        const keyLabel = isUrlKey ? '🔗 URL key (old)' : '🏷️ Normalized key (keep)';
                         const bgColor = isUrlKey ? 'bg-yellow-500/5 border-yellow-500/20' : 'bg-green-500/5 border-green-500/20';
+                        const badgeHtml = shouldDelete
+                            ? '<span class="text-[9px] font-bold px-1 py-0.5 bg-red-500/20 text-red-500 rounded ml-auto">DELETE</span>'
+                            : '<span class="text-[9px] font-bold px-1 py-0.5 bg-green-500/20 text-green-500 rounded ml-auto">KEEP</span>';
 
                         html += `<label class="flex items-start gap-2 p-1.5 ${bgColor} border rounded mb-1 cursor-pointer hover:bg-opacity-20 transition-colors">`;
-                        html += `<input type="checkbox" class="dup-checkbox mt-0.5" data-storage-key="${entry.key}" data-norm-id="${entry.normId}">`;
+                        html += `<input type="checkbox" class="dup-checkbox mt-0.5" data-storage-key="${entry.key}" data-norm-id="${entry.normId}" ${shouldDelete ? 'checked' : ''}>`;
                         html += `<div class="flex-1 min-w-0">`;
                         html += `<div class="flex items-center gap-2">`;
                         html += `<span class="text-[10px] font-bold ${isUrlKey ? 'text-yellow-500' : 'text-green-500'}">${keyLabel}</span>`;
                         html += `<span class="text-[10px] text-gray-400">${source}</span>`;
                         html += `<span class="text-[10px] text-gray-500">${dateStr}</span>`;
+                        html += badgeHtml;
                         html += `</div>`;
                         html += `<div class="text-[10px] text-gray-500 font-mono truncate" title="${entry.key}">${entry.key}</div>`;
                         html += `</div></label>`;
@@ -2931,7 +2939,7 @@
 
             // Orphan URL-key entries (full URL keys that might have a normalized counterpart)
             if (orphanEntries.length > 0) {
-                html += '<div class="text-[11px] font-bold text-purple-500 mb-2 mt-3"><i class="ph-bold ph-link mr-1"></i>URL-Key Entries (full URL as key)</div>';
+                html += '<div class="text-[11px] font-bold text-purple-500 mb-2 mt-3"><i class="ph-bold ph-link mr-1"></i>URL-Key Entries (full URL as key, no normalized entry)</div>';
                 orphanEntries.forEach(entry => {
                     const g = entry.game;
                     const claimedDate = g.claimed_date || g.date || 'unknown';

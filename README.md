@@ -31,7 +31,7 @@
 ---
 
 ### ✨ Features
-* 🌍 **Universal Tracking:** Automatically scrapes and aggregates free game deals from Steam, Epic Games, Prime Gaming, GOG, Ubisoft, iOS, Android, and Consoles. Powered by **Cloudflare Worker API** with multi-source fallback: Reddit RSS → AppSales (Android) / CheapCharts (iOS). Features **URL normalization & ID-based deduplication** (converts full store URLs to short IDs like `gplay:com.example.app`) with persistent publish date tracking across data sources!
+* 🌍 **Universal Tracking:** Automatically scrapes and aggregates free game deals from Steam, Epic Games, Prime Gaming, GOG, Ubisoft, iOS, Android, and Consoles. Powered by **Cloudflare Worker API** with multi-source fallback: Reddit RSS → AppSales (Android) / CheapCharts (iOS) + **NewMobileLife RSS** (iOS free apps). Features **URL normalization & ID-based deduplication** (converts full store URLs to short IDs like `gplay:com.example.app`, `ios:id123`, `gp:slug`) with persistent publish date tracking across data sources!
 * 💰 **My Loot Library & Wallet:** Keep a permanent record of every game you claim. The app automatically calculates your **Total Lifetime Savings**. Manage your library with precision by removing expired, failed, or paywalled games (featuring custom visual UI states) to keep your financial stats 100% accurate, with full support to reclaim them later! Features **Grid/List View toggle**, **clickable cards** (link directly to store pages), **collapsible dropdowns** on mobile for space-saving, and smart sort options including **Date: Recently Claimed** (default), **Date: Oldest Claimed**, **Date: Newest/Oldest Deal**, **Price**, and **Name A-Z/Z-A**. Delete reasons include expired, failed, paywall, not interested, and duplicate — with **duplicate items** instantly removed without history tracking.
 * 📊 **Loot Analytics Dashboard:** A zero-dependency, 100% Vanilla JS and SVG-powered statistics dashboard. Features: interactive **Donut Charts** for platform & value breakdowns, **scrollable Monthly Activity Bar Chart** with **tap-to-reveal animations**, **Claim Timeline Heatmap** (GitHub-style), **Top 10 Most Valuable Claims**, **Price Distribution Histogram**, **Savings Forecast** line chart, **Average Claim Value & Claim Streak** stat cards, **Monthly Trend Comparison**, and a Robinhood-style **Wealth Growth Line Chart** with an interactive date scrubber.
 * ⚙️ **Settings Panel:** Unified settings hub with **QR Code sharing** (scan to share app with friends), **Language selector**, **Theme toggle** (Light/Dark), and **Device Sync** controls. Features native Web Share API support on mobile for one-tap sharing.
@@ -42,7 +42,7 @@
 * 🛡️ **Advanced Security:** Built-in Domain Lockdown and Anti-Debugger/Inspect Element blockers to prevent unauthorized scraping or cloning of the app.
 * 🌓 **Dynamic Theming:** Seamless Light and Dark mode toggling.
 * ⚡ **Lightning Fast Performance:** Highly optimized DOM rendering uses Document Fragments, **Pre-rendered Modals** (zero layout recalculation on open), **CSS Grid-based animations** with cubic-bezier easing, and decoupled CSS transitions to instantly load, filter, and render hundreds of games with zero layout thrashing or lag. **Loading spinners** during library setup provide smooth feedback.
-* 🛠️ **Hidden Developer Mode:** Tap the "Loot Analytics" title 5 times to reveal 5 tabs of debugging tools: **Data Debugging** (Storage Analyzer, Data Health Report, Duplicates Detector), **Performance** (Render Metrics, Network Log), **Testing** (Data Simulator, Manual Refresh), **Data Management** (Comprehensive Export/Import, Clear Selective Data), and **Error Tracking** (Error Log with stack traces). Perfect for troubleshooting and monitoring data flow.
+* 🛠️ **Hidden Developer Mode:** Tap the "Loot Analytics" title 5 times to reveal 5 tabs of debugging tools with **collapsible sections** (chevron toggle, smooth CSS Grid animation): **Data Debugging** (Storage Analyzer with key descriptions + compression stats, Data Health Report, Duplicates Detector with CONVERT/MERGE orphan handling), **Performance** (Render Metrics, Network Log), **Testing** (Data Simulator, Manual Refresh), **Data Management** (Comprehensive Export/Import, Clear Selective Data with clear labels), and **Error Tracking** (Error Log with stack traces). Perfect for troubleshooting and monitoring data flow.
 
 ---
 
@@ -177,6 +177,7 @@ flowchart LR
         A["📱 AppSales"]
         C["🍎 CheapCharts"]
         G["🎮 GamerPower"]
+        N["📰 NewMobileLife"]
         R -->|fallback| A
         R -->|fallback| C
     end

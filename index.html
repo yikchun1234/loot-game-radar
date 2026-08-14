@@ -2866,7 +2866,8 @@
             Object.entries(claimedGames).forEach(([key, game]) => {
                 if (!game || typeof game === 'boolean') return;
                 if (key.startsWith('http://') || key.startsWith('https://')) {
-                    const normId = game.normalizedId || normalizeUrl(game.open_giveaway || key);
+                    // For URL-key entries, always compute from the key itself — don't trust old game.normalizedId
+                    const normId = normalizeUrl(key);
                     if (normId && normId !== key) {
                         // Can be converted — show in orphan section
                         const hasNormEntry = !!claimedGames[normId];
@@ -3078,7 +3079,7 @@
             Object.entries(claimedGames).forEach(([key, game]) => {
                 if (!game || typeof game === 'boolean') return;
                 if (key.startsWith('http://') || key.startsWith('https://')) {
-                    const normId = game.normalizedId || normalizeUrl(game.open_giveaway || key);
+                    const normId = normalizeUrl(key);
                     if (normId && normId !== key) {
                         keysToProcess.push({ oldKey: key, newKey: normId, game });
                     } else {

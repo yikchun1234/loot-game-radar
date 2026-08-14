@@ -548,9 +548,10 @@ async function fetchNewMobileLife() {
       const image = imgMatch ? imgMatch[1] : '';
 
       // Extract original price from description/title
-      // Format: "原價 US $19.99" or "原價 US$19.99"
-      const priceMatch = (description + ' ' + title).match(/原價\s*(?:US\s*)?\$?\s*([0-9.]+)/);
-      const worth = 'Free'; // All items here are free (price set to 0.00)
+      // Format: "原價 US $19.99" → worth = "$19.99"
+      // Frontend shows: "Worth $19.99" (strikethrough) + "Free" (green below)
+      const priceMatch = (description + ' ' + title).match(/原價\s*(?:US\s*)?\$\s*([0-9.]+)/);
+      const worth = priceMatch ? `$${priceMatch[1]}` : 'Free';
 
       apps.push({
         title: finalTitle,

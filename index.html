@@ -690,6 +690,15 @@
                 <div id="dev-storage-report" class="space-y-2"></div>
               </div>
 
+              <!-- Current Feed Order Section (debug sort) -->
+              <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
+                <div class="flex items-center justify-between mb-3">
+                  <h4 class="text-xs font-bold text-purple-500 dark:text-neon-purple uppercase tracking-widest">📋 Current Feed Order</h4>
+                  <span class="text-[10px] text-gray-400">Shows exact render order + published_date</span>
+                </div>
+                <div id="dev-feed-debug" class="overflow-x-auto"></div>
+              </div>
+
               <!-- All Apps Section -->
               <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800">
                 <div class="flex items-center justify-between mb-3">
@@ -2591,6 +2600,41 @@
         function renderDevPanel() {
             // Update storage analyzer on panel open
             analyzeStorage();
+
+            // --- Current Feed Order (debug sort) ---
+            const feedDebugEl = document.getElementById('dev-feed-debug');
+            if (feedDebugEl && state.games && state.games.length > 0) {
+                const feedRows = state.games.map((g, i) => {
+                    const pDate = g.published_date ? new Date(g.published_date) : null;
+                    const dateStr = pDate && !isNaN(pDate.getTime()) ? pDate.toLocaleString() : '❌ INVALID';
+                    const shortTitle = (g.title || '').length > 25 ? (g.title || '').substring(0, 25) + '...' : (g.title || '-');
+                    return `<tr class="border-b border-gray-100 dark:border-gray-800">
+                        <td class="py-1 pr-2 text-[10px] text-gray-400">#${i+1}</td>
+                        <td class="py-1 pr-2 text-[10px] font-bold dark:text-gray-200 max-w-[150px] truncate" title="${g.title || ''}">${shortTitle}</td>
+                        <td class="py-1 pr-2 text-[10px] text-purple-500">${g.platforms || '-'}</td>
+                        <td class="py-1 pr-2 text-[10px] font-mono ${pDate && !isNaN(pDate.getTime()) ? 'text-gray-600 dark:text-gray-300' : 'text-red-500 font-bold'}">${dateStr}</td>
+                        <td class="py-1 pr-2 text-[10px] text-gray-400">${g.source || '-'}</td>
+                        <td class="py-1 text-[10px] font-mono text-blue-500 max-w-[120px] truncate" title="${g.normalizedId || ''}">${(g.normalizedId || '').length > 20 ? (g.normalizedId || '').substring(0, 20) + '...' : (g.normalizedId || '-')}</td>
+                    </tr>`;
+                }).join('');
+                feedDebugEl.innerHTML = `
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="border-b border-gray-200 dark:border-gray-700">
+                                    <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">#</th>
+                                    <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Title</th>
+                                    <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Platform</th>
+                                    <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Published Date</th>
+                                    <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Source</th>
+                                    <th class="py-1.5 text-[10px] font-bold text-blue-500 uppercase">Normalized ID</th>
+                                </tr>
+                            </thead>
+                            <tbody>${feedRows}</tbody>
+                        </table>
+                    </div>
+                    <div class="mt-2 text-[10px] text-gray-400">${state.games.length} games in feed • Sorted by: date desc → price desc → title A-Z</div>`;
+            }
 
             // --- All Tracked Apps Table ---
             const appsTable = document.getElementById('dev-apps-table');

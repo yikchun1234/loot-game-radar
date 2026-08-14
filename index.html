@@ -3276,20 +3276,20 @@
         // ===== DEVELOPER MODE: Storage Analyzer =====
         function analyzeStorage() {
             const report = document.getElementById('dev-storage-report');
-            const keys = [
-                'lootradar_claimed_v2',
-                'lootradar_publish_dates',
-                'lootradar_deleted_history',
-                'lootradar_lib_view',
-                'lootradar_lib_dropdown_collapsed',
-                'lootradar_total_saved',
-                'lootradar_theme',
-                'lootradar_lang'
+            const keysWithDesc = [
+                { key: 'lootradar_claimed_v2', desc: 'Your claimed games library (LZ-String compressed)' },
+                { key: 'lootradar_publish_dates', desc: 'All apps ever seen in feed — used for date sorting (cumulative, never auto-deleted)' },
+                { key: 'lootradar_deleted_history', desc: 'Apps you deleted with reason (expired/failed/paywall/etc)' },
+                { key: 'lootradar_lib_view', desc: 'Library view mode preference (grid or list)' },
+                { key: 'lootradar_lib_dropdown_collapsed', desc: 'Mobile filter dropdown collapsed state' },
+                { key: 'lootradar_total_saved', desc: 'Your total lifetime savings amount ($)' },
+                { key: 'lootradar_theme', desc: 'Theme preference (light or dark)' },
+                { key: 'lootradar_lang', desc: 'Language preference (en, zh-CN, etc.)' }
             ];
 
             let totalSize = 0;
             let rows = '';
-            keys.forEach(key => {
+            keysWithDesc.forEach(({ key, desc }) => {
                 const raw = localStorage.getItem(key);
                 const compressedSize = raw ? new Blob([raw]).size : 0;
                 totalSize += compressedSize;
@@ -3323,11 +3323,12 @@
 
                 rows += `
                     <div class="text-xs">
-                        <div class="flex items-center gap-3 mb-1">
+                        <div class="flex items-center gap-3 mb-0.5">
                             <span class="font-mono font-bold text-gray-600 dark:text-gray-300 flex-1 truncate" title="${key}">${key}</span>
                             <span class="font-bold text-purple-500 w-24 text-right">${compressedStr}${isCompressed ? ' <i class="ph-bold ph-arrows-in-simple text-[8px]"></i>' : ''}</span>
                             <span class="text-gray-400 w-12 text-right">${itemCount} items</span>
                         </div>
+                        <div class="text-[10px] text-gray-400 mb-1 italic">${desc}</div>
                         <div class="flex items-center gap-3 text-[10px] text-gray-400">
                             <span class="flex-1">${isCompressed ? `Raw: ${uncompressedStr} → Stored: ${compressedStr}` : `Not compressed: ${compressedStr}`}</span>
                             <span class="w-20 text-right text-green-500 font-bold">${isCompressed ? `-${ratio}%` : ''}</span>

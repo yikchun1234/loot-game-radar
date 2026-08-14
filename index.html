@@ -1681,6 +1681,7 @@
                         title: game.title,
                         worth: game.worth || 'Free',
                         platforms: game.platforms || 'PC',
+                        source: game.source || '',
                         deletedAt: new Date().toISOString(),
                         reason: selectedReason
                     };
@@ -4718,18 +4719,24 @@
                 // Check if the game was previously deleted by searching history backwards (gets the most recent reason)
                 let deletedReason = null;
                 if (!isClaimed && state.deletedHistory) {
+                  const gameSource = (game.source || '').toLowerCase();
                   for (let i = state.deletedHistory.length - 1; i >= 0; i--) {
                     const histItem = state.deletedHistory[i];
                     // Match by: id, normalizedId, or originalUrl
                     const histId = histItem.id || '';
                     const histNorm = histItem.normalizedId || histId;
                     const histUrl = histItem.originalUrl || histId;
+                    const histSource = (histItem.source || '').toLowerCase();
 
-                    if (histId === gameNormalizedId ||
+                    // Check if same source (if both have source info)
+                    const sameSource = !histSource || !gameSource || histSource === gameSource;
+
+                    if (sameSource && (
+                        histId === gameNormalizedId ||
                         histId === String(game.id) ||
                         histNorm === gameNormalizedId ||
                         histUrl === game.open_giveaway ||
-                        histUrl === String(game.id)) {
+                        histUrl === String(game.id))) {
                       deletedReason = histItem.reason;
                       break;
                     }

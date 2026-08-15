@@ -2674,17 +2674,58 @@
             // --- Current Feed Order (debug sort) ---
             const feedDebugEl = document.getElementById('dev-feed-debug');
             if (feedDebugEl && state.games && state.games.length > 0) {
+                // Load claimed games and deleted history for status comparison
+                const claimedGames = state.claimedGames || {};
+                const deletedHistory = state.deletedHistory || [];
+
                 const feedRows = state.games.map((g, i) => {
                     const pDate = g.published_date ? new Date(g.published_date) : null;
                     const dateStr = pDate && !isNaN(pDate.getTime()) ? pDate.toLocaleString() : '❌ INVALID';
                     const shortTitle = (g.title || '').length > 25 ? (g.title || '').substring(0, 25) + '...' : (g.title || '-');
+
+                    // Determine status from localStorage (same logic as renderGames)
+                    const normId = g.normalizedId || normalizeUrl(g.open_giveaway || g.id || '');
+                    const fullUrl = g.open_giveaway || '';
+                    const isClaimed = !!claimedGames[normId] || !!claimedGames[fullUrl];
+
+                    let statusLabel = 'Claim Now';
+                    let statusClass = 'text-blue-500 bg-blue-50 dark:bg-blue-900/20';
+
+                    if (isClaimed) {
+                        statusLabel = '✅ Claimed';
+                        statusClass = 'text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400';
+                    } else if (deletedHistory.length > 0) {
+                        // Search deletedHistory for match
+                        for (let j = deletedHistory.length - 1; j >= 0; j--) {
+                            const h = deletedHistory[j];
+                            const hId = h.id || '';
+                            const hNorm = h.normalizedId || hId;
+                            const hUrl = h.originalUrl || hId;
+                            if (hId === normId || hId === String(g.id) ||
+                                hNorm === normId || hUrl === fullUrl || hUrl === String(g.id)) {
+                                const reasonMap = {
+                                    expired: { label: '⏰ Expired', cls: 'text-orange-500 bg-orange-50 dark:bg-orange-900/20 dark:text-orange-400' },
+                                    failed: { label: '❌ Failed', cls: 'text-red-500 bg-red-50 dark:bg-red-900/20 dark:text-red-400' },
+                                    paywall: { label: '🔒 Paywall', cls: 'text-amber-600 bg-amber-50 dark:bg-amber-900/20 dark:text-amber-400' },
+                                    accidental: { label: '↩️ Accidental', cls: 'text-gray-500 bg-gray-50 dark:bg-gray-900/20' },
+                                    duplicate: { label: '📋 Duplicate', cls: 'text-purple-500 bg-purple-50 dark:bg-purple-900/20 dark:text-purple-400' }
+                                };
+                                const mapped = reasonMap[h.reason] || { label: `🗑️ ${h.reason}`, cls: 'text-gray-500 bg-gray-50 dark:bg-gray-900/20' };
+                                statusLabel = mapped.label;
+                                statusClass = mapped.cls;
+                                break;
+                            }
+                        }
+                    }
+
                     return `<tr class="border-b border-gray-100 dark:border-gray-800">
                         <td class="py-1 pr-2 text-[10px] text-gray-400">#${i+1}</td>
                         <td class="py-1 pr-2 text-[10px] font-bold dark:text-gray-200 max-w-[150px] truncate" title="${g.title || ''}">${shortTitle}</td>
                         <td class="py-1 pr-2 text-[10px] text-purple-500">${g.platforms || '-'}</td>
                         <td class="py-1 pr-2 text-[10px] font-mono ${pDate && !isNaN(pDate.getTime()) ? 'text-gray-600 dark:text-gray-300' : 'text-red-500 font-bold'}">${dateStr}</td>
                         <td class="py-1 pr-2 text-[10px] text-gray-400">${g.source || '-'}</td>
-                        <td class="py-1 text-[10px] font-mono text-blue-500 max-w-[120px] truncate" title="${g.normalizedId || ''}">${(g.normalizedId || '').length > 20 ? (g.normalizedId || '').substring(0, 20) + '...' : (g.normalizedId || '-')}</td>
+                        <td class="py-1 pr-2 text-[10px] font-mono text-blue-500 max-w-[120px] truncate" title="${g.normalizedId || ''}">${(g.normalizedId || '').length > 20 ? (g.normalizedId || '').substring(0, 20) + '...' : (g.normalizedId || '-')}</td>
+                        <td class="py-1 px-2 text-[10px] font-bold whitespace-nowrap"><span class="px-1.5 py-0.5 rounded ${statusClass}">${statusLabel}</span></td>
                     </tr>`;
                 }).join('');
                 feedDebugEl.innerHTML = `
@@ -2697,13 +2738,14 @@
                                     <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Platform</th>
                                     <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Published Date</th>
                                     <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Source</th>
-                                    <th class="py-1.5 text-[10px] font-bold text-blue-500 uppercase">Normalized ID</th>
+                                    <th class="py-1.5 pr-2 text-[10px] font-bold text-blue-500 uppercase">Normalized ID</th>
+                                    <th class="py-1.5 px-2 text-[10px] font-bold text-gray-500 uppercase">Status</th>
                                 </tr>
                             </thead>
                             <tbody>${feedRows}</tbody>
                         </table>
                     </div>
-                    <div class="mt-2 text-[10px] text-gray-400">${state.games.length} games in feed • Sorted by: date desc → price desc → title A-Z</div>`;
+                    <div class="mt-2 text-[10px] text-gray-400">${state.games.length} games in feed • Sorted by: date desc → price desc → title A-Z • Status from localStorage comparison</div>`;
             }
 
             // --- All Tracked Apps Table ---

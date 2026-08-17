@@ -2784,10 +2784,8 @@
 
                         let matchField = null;
                         if (hId === normId) matchField = 'histId=normId';
-                        else if (hId === String(g.id)) matchField = 'histId=game.id';
                         else if (hNorm === normId) matchField = 'histNorm=normId';
                         else if (hUrl === fullUrl) matchField = 'histUrl=open_giveaway';
-                        else if (hUrl === String(g.id)) matchField = 'histUrl=game.id';
 
                         if (matchField) {
                             matches.push({
@@ -4433,12 +4431,29 @@
 
             // Remove ALL "duplicate" entries from deleted_history (no longer needed)
             // These entries cause items to show as "DUPLICATE" status which is confusing
-            const currentDeleted = loadSafeStorage('lootradar_deleted_history') || [];
-            const filteredDeleted = currentDeleted.filter(item => item.reason !== 'duplicate');
+            let currentDeleted = loadSafeStorage('lootradar_deleted_history') || [];
+            let filteredDeleted = currentDeleted.filter(item => item.reason !== 'duplicate');
             if (filteredDeleted.length < currentDeleted.length) {
                 saveSafeStorage('lootradar_deleted_history', filteredDeleted);
                 state.deletedHistory = filteredDeleted;
                 console.log(`Removed ${currentDeleted.length - filteredDeleted.length} duplicate entries from deleted_history`);
+            }
+
+            // Remove CORRUPTED entries from deleted_history (id/normalizedId/originalUrl are all "undefined")
+            // These cause false matches with items that have no game.id (e.g. NewMobileLife items)
+            currentDeleted = loadSafeStorage('lootradar_deleted_history') || [];
+            filteredDeleted = currentDeleted.filter(item => {
+                const id = item.id || '';
+                const normId = item.normalizedId || id;
+                const origUrl = item.originalUrl || id;
+                // Keep entry if at least one field has a real value (not "undefined" or empty)
+                return id !== 'undefined' && normId !== 'undefined' && origUrl !== 'undefined' &&
+                       id !== '' && normId !== '' && origUrl !== '';
+            });
+            if (filteredDeleted.length < currentDeleted.length) {
+                saveSafeStorage('lootradar_deleted_history', filteredDeleted);
+                state.deletedHistory = filteredDeleted;
+                console.log(`Removed ${currentDeleted.length - filteredDeleted.length} corrupted entries (all fields "undefined") from deleted_history`);
             }
 
             // Deduplicate claimed_games: if same app exists under both full URL key and normalized ID key,
@@ -4988,10 +5003,8 @@
 
                     let matchField = null;
                     if (histId === gameNormalizedId) matchField = 'histId===normId';
-                    else if (histId === String(game.id)) matchField = 'histId===game.id';
                     else if (histNorm === gameNormalizedId) matchField = 'histNorm===normId';
                     else if (histUrl === game.open_giveaway) matchField = 'histUrl===open_giveaway';
-                    else if (histUrl === String(game.id)) matchField = 'histUrl===game.id';
 
                     if (matchField) {
                       deletedReason = histItem.reason;

@@ -1050,7 +1050,7 @@
             en: {
                 title: "LootRadar", subtitle: "Tracking free games across the multiverse", 
                 loading: ["Scanning the matrix for loot...", "Hacking the Epic Games vault...", "Bribing Gabe Newell for keys...", "Locating hidden Prime drops...", "Waking up the server hamsters...", "Reticulating splines...", "Brewing coffee for the bots..."], 
-                error: "Failed to connect to the servers.", empty: "No freebies found right now.", ptrPull: "Pull to refresh...", ptrRelease: "Release to scan...", free: "FREE", worth: "Was ", getBtn: "Claim Now", claimedBtn: "Claimed", platformAll: "All Platforms", platformPC: "PC (Other)", newTip: "NEW", prime: "Prime", ubisoft: "Ubisoft", epicPhone: "Epic Game Phone",
+                error: "Failed to connect to the servers.", empty: "No freebies found right now.", ptrPull: "Pull to refresh...", ptrRelease: "Release to scan...", free: "FREE", worth: "Was ", getBtn: "Claim Now", claimedBtn: "Claimed", unclaimed: "Unclaimed", platformAll: "All Platforms", platformPC: "PC (Other)", newTip: "NEW", prime: "Prime", ubisoft: "Ubisoft", epicPhone: "Epic Game Phone",
                 savedSince: "Total saved since install", libTitle: "My Loot Library", libTotal: "Total Games", libSaved: "Total Saved", libEmpty: "Your library is empty. Start claiming free games!", libNoFilter: "No games match this platform.",
                 instTitle: "Install LootRadar", instDesc: "Install to access instantly! We will track your claimed games and calculate your total lifetime savings.", instB1: "Track Claimed History", instB2: "Calculate Total Savings", instBtn: "Install App", instDismiss: "Maybe Later",
                 instIos1: "1. Tap the Share icon below", instIos2: "2. Select 'Add to Home Screen'", instGotIt: "Got it!",
@@ -1084,7 +1084,7 @@
             'zh-CN': {
                 title: "白嫖雷达", subtitle: "全网免费游戏限免实时追踪平台",
                 loading: ["正在扫描白嫖资源...", "正在黑入 Epic 游戏金库...", "正在给 G 胖塞钱...", "正在定位 Prime 隐藏掉落...", "正在叫醒服务器的小仓鼠...", "正在给雷达加注燃料...", "不要走开，马上就好..."],
-                error: "连接服务器失败，请稍后再试。", empty: "该平台当前暂无免费游戏。", ptrPull: "下拉刷新...", ptrRelease: "松开开始扫描...", free: "免费", worth: "原价 ", getBtn: "立即领取", claimedBtn: "已入库", platformAll: "全部平台", platformPC: "PC通用", newTip: "新发布", prime: "Prime特权", ubisoft: "育碧", epicPhone: "Epic Game Phone",
+                error: "连接服务器失败，请稍后再试。", empty: "该平台当前暂无免费游戏。", ptrPull: "下拉刷新...", ptrRelease: "松开开始扫描...", free: "免费", worth: "原价 ", getBtn: "立即领取", claimedBtn: "已入库", unclaimed: "待领取", platformAll: "全部平台", platformPC: "PC通用", newTip: "新发布", prime: "Prime特权", ubisoft: "育碧", epicPhone: "Epic Game Phone",
                 savedSince: "自安装起累计省下", libTitle: "我的白嫖库", libTotal: "游戏总数", libSaved: "累计省下", libEmpty: "你的游戏库空空如也，快去白嫖吧！", libNoFilter: "没有找到符合该平台的游戏。",
                 instTitle: "安装 白嫖雷达", instDesc: "添加到桌面以快速访问！我们将为您永久记录入库游戏并计算省下的总金额。", instB1: "记录领取历史与封面", instB2: "计算终身省下的金钱", instBtn: "立即安装", instDismiss: "以后再说",
                 instIos1: "1. 点击浏览器底部的『分享』图标", instIos2: "2. 选择『添加到主屏幕』", instGotIt: "我知道了",
@@ -1489,6 +1489,7 @@
           theme: localStorage.getItem('theme') || 'dark',
           games: [],
           currentPlatform: 'All',
+          showUnclaimedOnly: false, // Filter to show only unclaimed items
           isLoading: false,
           claimedGames: loadSafeStorage('lootradar_claimed_v2') || loadSafeStorage('lootradar_claimed') || {},
           totalSaved: parseFloat(localStorage.getItem('lootradar_saved_money')) || 0,
@@ -4956,6 +4957,42 @@
                 btn.innerHTML = `<i class="ph-fill ${plat.icon} text-lg"></i><span>${label}</span><span class="text-xs opacity-60 ml-1">(${count})</span>${hasNew ? `<span class="absolute -top-1 -right-1 flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span>` : ''}`;
                 tabsContainer.appendChild(btn);
             });
+
+            // Add "Unclaimed" filter chip
+            const unclaimedCount = state.games.filter(g => {
+                const normId = g.normalizedId || normalizeUrl(g.open_giveaway || g.id || '');
+                const fullUrl = g.open_giveaway || '';
+                const isClaimed = !!state.claimedGames[normId] || !!state.claimedGames[fullUrl];
+                // Also check deleted history
+                let isDeleted = false;
+                if (state.deletedHistory) {
+                    for (const h of state.deletedHistory) {
+                        const hId = h.id || '';
+                        const hNorm = h.normalizedId || hId;
+                        const hUrl = h.originalUrl || hId;
+                        if (hId === normId || hNorm === normId || hUrl === fullUrl) { isDeleted = true; break; }
+                    }
+                }
+                return !isClaimed && !isDeleted;
+            }).length;
+
+            if (unclaimedCount > 0) {
+                const isUnclaimedActive = state.showUnclaimedOnly;
+                const unclaimedBtn = document.createElement('button');
+                const ucBase = "relative flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-full font-medium transition-all duration-300 cursor-pointer text-sm border";
+                const ucActive = isUnclaimedActive
+                    ? "bg-orange-500 text-white border-orange-500 dark:bg-orange-500/20 dark:text-orange-400 dark:border-orange-400 shadow-[0_4px_15px_rgba(249,115,22,0.4)] dark:shadow-[0_0_15px_rgba(249,115,22,0.3)] transform -translate-y-[2px]"
+                    : "bg-white text-gray-600 border-light-border hover:bg-light-surface hover:-translate-y-[2px] hover:shadow-md dark:bg-dark-card dark:text-gray-400 dark:border-gray-800 dark:hover:border-gray-600 dark:hover:shadow-[0_4px_10px_rgba(0,0,0,0.5)]";
+
+                unclaimedBtn.className = `${ucBase} ${ucActive}`;
+                unclaimedBtn.onclick = () => {
+                    state.showUnclaimedOnly = !state.showUnclaimedOnly;
+                    renderTabs();
+                    renderGames();
+                };
+                unclaimedBtn.innerHTML = `<i class="ph-fill ph-target text-lg"></i><span>${t.unclaimed}</span><span class="text-xs opacity-60 ml-1">(${unclaimedCount})</span>`;
+                tabsContainer.appendChild(unclaimedBtn);
+            }
         }
 
         function renderGames() {
@@ -4967,7 +5004,27 @@
             grid.innerHTML = '';
 
             const currentPlatObj = platforms.find(p => p.id === state.currentPlatform);
-            const filteredGames = state.currentPlatform === 'All' ? state.games : state.games.filter(g => isPlatformMatch(g, currentPlatObj.matches, currentPlatObj.excludes, currentPlatObj.requires, currentPlatObj.customRule));
+            let filteredGames = state.currentPlatform === 'All' ? state.games : state.games.filter(g => isPlatformMatch(g, currentPlatObj.matches, currentPlatObj.excludes, currentPlatObj.requires, currentPlatObj.customRule));
+
+            // Apply Unclaimed filter
+            if (state.showUnclaimedOnly) {
+                filteredGames = filteredGames.filter(g => {
+                    const normId = g.normalizedId || normalizeUrl(g.open_giveaway || g.id || '');
+                    const fullUrl = g.open_giveaway || '';
+                    const isClaimed = !!state.claimedGames[normId] || !!state.claimedGames[fullUrl];
+                    if (isClaimed) return false;
+                    // Also exclude items in deleted history
+                    if (state.deletedHistory) {
+                        for (const h of state.deletedHistory) {
+                            const hId = h.id || '';
+                            const hNorm = h.normalizedId || hId;
+                            const hUrl = h.originalUrl || hId;
+                            if (hId === normId || hNorm === normId || hUrl === fullUrl) return false;
+                        }
+                    }
+                    return true;
+                });
+            }
 
             if (filteredGames.length === 0) {
                 emptyState.classList.remove('hidden');

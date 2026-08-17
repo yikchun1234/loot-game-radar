@@ -1921,18 +1921,23 @@
         function toggleLibrary() {
           const modal = document.getElementById('library-modal');
           const scrollTopBtn = document.getElementById('scroll-to-top-btn');
+          const spinner = document.getElementById('lib-loading-spinner');
 
           if (modal.classList.contains('pointer-events-none')) {
             // --- OPENING THE LIBRARY ---
-            // 1. IMMEDIATELY enable interaction + start animation
+            // 1. IMMEDIATELY enable interaction + show spinner, start animation
             modal.classList.remove('pointer-events-none');
+            if (spinner) {
+                spinner.classList.remove('hidden');
+                spinner.classList.add('flex');
+            }
 
             // No layout recalculation needed - modal is already rendered!
             requestAnimationFrame(() => {
                 modal.classList.remove('translate-x-full');
             });
 
-            // 2. Defer setup work
+            // 2. Defer setup work, hide spinner when done
             setTimeout(() => {
                 // Set view select value and icon
                 const viewSelect = document.getElementById('lib-view-select');
@@ -1947,11 +1952,22 @@
                 // Restore dropdown collapse state (mobile)
                 restoreLibDropdownState();
 
+                // Re-trigger the odometer animation
+                const totalGames = Object.keys(state.claimedGames).length;
+                animateOdometer('lib-total-count', totalGames, false);
+                animateOdometer('lib-total-saved', state.totalSaved, true);
+
                 // updateScrollButtonState handles both visibility and z-index
                 window.updateScrollButtonState();
 
-                // Render library with odometer animation on open
-                renderLibrary(false);
+                // Hide spinner with fade out
+                if (spinner) {
+                    spinner.classList.add('opacity-0');
+                    setTimeout(() => {
+                        spinner.classList.add('hidden');
+                        spinner.classList.remove('flex', 'opacity-0');
+                    }, 200);
+                }
             }, 50);
         
             setTimeout(() => {
@@ -4805,14 +4821,7 @@
 
         function renderLibrary(skipOdometer = false) {
             const grid = document.getElementById('library-grid');
-            const spinner = document.getElementById('lib-loading-spinner');
             if (!grid) return;
-
-            // Show spinner before heavy render
-            if (spinner) spinner.classList.remove('hidden');
-
-            // Use rAF to let browser paint spinner first, then render
-            requestAnimationFrame(() => {
 
             // Sync sort dropdown with saved state
             const sortSelect = document.getElementById('lib-sort-select');
@@ -4998,10 +5007,6 @@
 
             // 🔄 If library filters changed, re-evaluate the scroll button
             setTimeout(() => window.updateScrollButtonState(), 50);
-
-            // Hide spinner after render
-            if (spinner) spinner.classList.add('hidden');
-            }); // end rAF
         }
 
         

@@ -627,7 +627,7 @@
         <!-- Library Scroll Area -->
         <div class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 relative z-0 library-scroll-area">
             <!-- Loading Spinner (shown briefly while setting up) -->
-            <div id="lib-loading-spinner" class="hidden absolute inset-0 flex items-center justify-center bg-light-bg/80 dark:bg-dark-bg/80 backdrop-blur-sm z-10 transition-opacity duration-200">
+            <div id="lib-loading-spinner" class="hidden absolute inset-0 flex items-center justify-center bg-light-bg/80 dark:bg-dark-bg/80 backdrop-blur-sm z-[40] transition-opacity duration-200">
                 <div class="flex flex-col items-center gap-3">
                     <div class="w-10 h-10 border-4 border-purple-200 dark:border-neon-purple/20 border-t-purple-500 dark:border-t-neon-purple rounded-full animate-spin"></div>
                     <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Loading...</span>
@@ -1946,6 +1946,11 @@
 
                 // Restore dropdown collapse state (mobile)
                 restoreLibDropdownState();
+
+                // Re-trigger the odometer animation
+                const totalGames = Object.keys(state.claimedGames).length;
+                animateOdometer('lib-total-count', totalGames, false);
+                animateOdometer('lib-total-saved', state.totalSaved, true);
 
                 // updateScrollButtonState handles both visibility and z-index
                 window.updateScrollButtonState();
@@ -4876,6 +4881,7 @@
                     emptyState.classList.remove('hidden');
                     emptyState.classList.add('flex');
                 }
+                hideLibSpinner();
                 return;
             } else {
                 if (emptyState) {
@@ -4991,10 +4997,9 @@
                 grid._libTouchBound = true;
             }
 
-            // 🔄 If library filters changed, re-evaluate the scroll button
+            //  If library filters changed, re-evaluate the scroll button
             setTimeout(() => window.updateScrollButtonState(), 50);
-            // Delay hide to ensure user sees spinner
-            setTimeout(() => hideLibSpinner(), 100);
+            hideLibSpinner();
         }
 
         function showLibSpinner() {

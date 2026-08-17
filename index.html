@@ -4718,7 +4718,7 @@
             renderGames();
 
             //  NEW: ALWAYS update the library in the background so it's perfectly ready for when they open it!
-            renderLibrary();
+            renderLibrary(true);
           } else {
             // Already claimed - update claimed_date to track last opened
             if (state.claimedGames[storageKey]) {
@@ -4728,11 +4728,11 @@
           }
         };
 
-        window.updateLibFilter = function(val) { state.libFilter = val; renderLibrary(); };
+        window.updateLibFilter = function(val) { state.libFilter = val; renderLibrary(true); };
         window.updateLibSort = function(val) {
             state.libSort = val;
             localStorage.setItem('lootradar_lib_sort', val);
-            renderLibrary();
+            renderLibrary(true);
         };
         window.updateLibView = function(val) {
             state.libView = val;
@@ -4744,7 +4744,7 @@
                     ? 'ph-fill ph-list-bullets text-green-500 dark:text-green-400 text-lg group-hover:scale-110 transition-transform'
                     : 'ph-fill ph-squares-four text-green-500 dark:text-green-400 text-lg group-hover:scale-110 transition-transform';
             }
-            renderLibrary();
+            renderLibrary(true);
         };
 
         // Library Dropdown Collapse Toggle (mobile only)
@@ -4819,7 +4819,7 @@
             }
         }
 
-        function renderLibrary() {
+        function renderLibrary(skipOdometer = false) {
             const grid = document.getElementById('library-grid');
             if (!grid) return;
 
@@ -4836,11 +4836,12 @@
             }));
             
         // --- RESTORED MISSING UI LOGIC ---
-        // Animate Total Games Count (Pass 'false' because it is not currency)
-        animateOdometer('lib-total-count', libraryGames.length, false);
-        
-        // Animate Total Saved Value (Pass 'true' because it is currency)
-        animateOdometer('lib-total-saved', state.totalSaved, true);
+        if (!skipOdometer) {
+            // Animate Total Games Count (Pass 'false' because it is not currency)
+            animateOdometer('lib-total-count', libraryGames.length, false);
+            // Animate Total Saved Value (Pass 'true' because it is currency)
+            animateOdometer('lib-total-saved', state.totalSaved, true);
+        }
             
             // Build Filter Options dynamically ONLY if the language has changed or it's empty
             const filterSelect = document.getElementById('lib-filter-select');
@@ -5094,7 +5095,7 @@
             }
 
             // 🚀 FIXED: ALWAYS update the library in the background so dropdown translations apply instantly!
-            renderLibrary();
+            renderLibrary(true);
         }
 
         function isPlatformMatch(game, matchKeywords, excludeKeywords = [], requireKeywords = [], customRule = null) {

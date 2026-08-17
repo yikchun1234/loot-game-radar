@@ -1019,6 +1019,17 @@
             </div>
           </div>
 
+          <!-- Install Guide Section -->
+          <div class="glass-panel p-6 rounded-3xl shadow-sm border border-light-border dark:border-gray-800">
+            <h3 class="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4 flex items-center gap-2">
+              <i class="ph-fill ph-download-simple text-blue-500"></i>
+              <span id="ui-install-guide-title">How to Install</span>
+            </h3>
+            <div id="install-guide-content" class="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-neon-blue/30 rounded-2xl p-4">
+              <p id="ui-install-guide-text" class="text-sm font-medium text-blue-600 dark:text-neon-blue whitespace-pre-line"></p>
+            </div>
+          </div>
+
           <!-- Share App Section -->
           <div class="glass-panel p-6 rounded-3xl shadow-sm border border-light-border dark:border-gray-800">
             <h3 class="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4 flex items-center gap-2">
@@ -1087,6 +1098,11 @@
                 settingsLanguage: "Language", settingsTheme: "Theme", themeLight: "Light", themeDark: "Dark",
                 settingsSync: "Device Sync", settingsSyncDesc: "Securely migrate your claimed games and total savings to another device using a 15-minute PIN.",
                 settingsExport: "Export", settingsImport: "Import",
+                installGuideTitle: "How to Install",
+                installAndroid: "1. Tap the 3-dot menu in the top right corner\n2. Select 'Add to Home Screen' or 'Install App'\n3. Tap 'Install' to confirm",
+                installIosSafari: "1. Tap the Share icon at the bottom of the screen\n2. Scroll down and tap 'Add to Home Screen'\n3. Tap 'Add' to confirm",
+                installIosChrome: "1. Tap the 3-dot menu in the top right corner\n2. Tap 'Add to Home Screen'\n3. Tap 'Add' to confirm",
+                installDesktop: "1. Look for the install icon (⊞) in the address bar on the right\n2. Click 'Install' to add LootRadar to your device",
                 discTitle: "Notice & Disclaimer", 
                 disc1: "Games are fetched via third-party APIs and web scraping.", 
                 disc2: "Information may sometimes be displayed incorrectly or incompletely.", 
@@ -1122,6 +1138,11 @@
                 settingsLanguage: "语言", settingsTheme: "主题", themeLight: "浅色", themeDark: "深色",
                 settingsSync: "设备同步", settingsSyncDesc: "使用 15 分钟 PIN 码安全迁移您的游戏库和储蓄到另一台设备。",
                 settingsExport: "导出", settingsImport: "导入",
+                installGuideTitle: "如何安装",
+                installAndroid: "1. 点击右上角的三点菜单\n2. 选择『添加到主屏幕』或『安装应用』\n3. 点击『安装』确认",
+                installIosSafari: "1. 点击屏幕底部的分享图标\n2. 向下滚动，点击『添加到主屏幕』\n3. 点击『添加』确认",
+                installIosChrome: "1. 点击右上角的三点菜单\n2. 点击『添加到主屏幕』\n3. 点击『添加』确认",
+                installDesktop: "1. 在地址栏右侧找到安装图标（⊞）\n2. 点击『安装』将 LootRadar 添加到您的设备",
                 discTitle: "免责声明",
                 disc1: "游戏数据是通过 API 和社区爬虫自动抓取得到的。",
                 disc2: "部分游戏可能有错误显示，或者没有完整显示信息。",
@@ -1157,6 +1178,11 @@
                 settingsLanguage: "語言", settingsTheme: "主題", themeLight: "淺色", themeDark: "深色",
                 settingsSync: "裝置同步", settingsSyncDesc: "使用 15 分鐘 PIN 碼安全遷移您的遊戲庫和儲蓄到另一台裝置。",
                 settingsExport: "匯出", settingsImport: "匯入",
+                installGuideTitle: "如何安裝",
+                installAndroid: "1. 點擊右上角的三點選單\n2. 選擇『加入至主畫面』或『安裝應用程式』\n3. 點擊『安裝』確認",
+                installIosSafari: "1. 點擊畫面底部的分享圖示\n2. 向下捲動，點擊『加入至主畫面』\n3. 點擊『加入』確認",
+                installIosChrome: "1. 點擊右上角的三點選單\n2. 點擊『加入至主畫面』\n3. 點擊『加入』確認",
+                installDesktop: "1. 在網址列右側找到安裝圖示（⊞）\n2. 點擊『安裝』將 LootRadar 加入您的裝置",
                 discTitle: "免責聲明",
                 disc1: "遊戲資料是透過 API 和社區爬蟲自動抓取得到的。",
                 disc2: "部分遊戲可能會有錯誤顯示，或者沒有完整顯示資訊。",
@@ -1190,6 +1216,13 @@
                 comingSoon: "Usa los botones del header para idioma y tema. ¡Más ajustes pronto!",
                 shareAppTitle: "LootRadar - Rastreador de Juegos Gratis", shareAppText: "¡Rastrea juegos gratis y ahorra dinero con LootRadar!",
                 settingsLanguage: "Idioma", settingsTheme: "Tema", themeLight: "Claro", themeDark: "Oscuro",
+                settingsSync: "Sincronización", settingsSyncDesc: "Migra con seguridad tus juegos y ahorros a otro dispositivo usando un PIN de 15 minutos.",
+                settingsExport: "Exportar", settingsImport: "Importar",
+                installGuideTitle: "Cómo Instalar",
+                installAndroid: "1. Toca el menú de 3 puntos en la esquina superior derecha\n2. Selecciona 'Añadir a la pantalla de inicio' o 'Instalar aplicación'\n3. Toca 'Instalar' para confirmar",
+                installIosSafari: "1. Toca el icono Compartir en la parte inferior\n2. Desplázate hacia abajo y toca 'Añadir a la pantalla de inicio'\n3. Toca 'Añadir' para confirmar",
+                installIosChrome: "1. Toca el menú de 3 puntos en la esquina superior derecha\n2. Toca 'Añadir a la pantalla de inicio'\n3. Toca 'Añadir' para confirmar",
+                installDesktop: "1. Busca el icono de instalación (⊞) en el lado derecho de la barra de direcciones\n2. Haz clic en 'Instalar' para añadir LootRadar a tu dispositivo",
                 settingsSync: "Sync Dispositivo", settingsSyncDesc: "Migra de forma segura tus juegos y ahorros a otro dispositivo con un PIN de 15 minutos.",
                 settingsExport: "Exportar", settingsImport: "Importar",
                 discTitle: "Aviso legal", 
@@ -1225,6 +1258,13 @@
                 comingSoon: "Utilisez les boutons du header pour la langue et le thème. Plus de paramètres bientôt !",
                 shareAppTitle: "LootRadar - Suivi de Jeux Gratuits", shareAppText: "Suivez les jeux gratuits et économisez avec LootRadar !",
                 settingsLanguage: "Langue", settingsTheme: "Thème", themeLight: "Clair", themeDark: "Sombre",
+                settingsSync: "Synchronisation", settingsSyncDesc: "Migrez en sécurité vos jeux et économies vers un autre appareil avec un PIN de 15 minutes.",
+                settingsExport: "Exporter", settingsImport: "Importer",
+                installGuideTitle: "Comment Installer",
+                installAndroid: "1. Appuyez sur le menu à 3 points en haut à droite\n2. Sélectionnez 'Ajouter à l'écran d'accueil' ou 'Installer l'application'\n3. Appuyez sur 'Installer' pour confirmer",
+                installIosSafari: "1. Appuyez sur l'icône Partager en bas de l'écran\n2. Faites défiler vers le bas et appuyez sur 'Sur l'écran d'accueil'\n3. Appuyez sur 'Ajouter' pour confirmer",
+                installIosChrome: "1. Appuyez sur le menu à 3 points en haut à droite\n2. Appuyez sur 'Sur l'écran d'accueil'\n3. Appuyez sur 'Ajouter' pour confirmer",
+                installDesktop: "1. Recherchez l'icône d'installation (⊞) à droite de la barre d'adresse\n2. Cliquez sur 'Installer' pour ajouter LootRadar à votre appareil",
                 settingsSync: "Sync Appareil", settingsSyncDesc: "Migrez en sécurité vos jeux et économies vers un autre appareil avec un PIN de 15 minutes.",
                 settingsExport: "Exporter", settingsImport: "Importer",
                 discTitle: "Avertissement", 
@@ -1260,6 +1300,13 @@
                 comingSoon: "Nutze die Header-Buttons für Sprache und Thema. Weitere Einstellungen folgen!",
                 shareAppTitle: "LootRadar - Gratis-Spiele Tracker", shareAppText: "Verfolge Gratis-Spiele und spare Geld mit LootRadar!",
                 settingsLanguage: "Sprache", settingsTheme: "Thema", themeLight: "Hell", themeDark: "Dunkel",
+                settingsSync: "Gerätesynchronisierung", settingsSyncDesc: "Übertragen Sie Ihre Spiele und Ersparnisse sicher mit einem 15-Minuten-PIN auf ein anderes Gerät.",
+                settingsExport: "Exportieren", settingsImport: "Importieren",
+                installGuideTitle: "So installieren Sie",
+                installAndroid: "1. Tippen Sie auf das 3-Punkte-Menü oben rechts\n2. Wählen Sie 'Zum Startbildschirm hinzufügen' oder 'App installieren'\n3. Tippen Sie auf 'Installieren' zum Bestätigen",
+                installIosSafari: "1. Tippen Sie auf das Teilen-Symbol unten am Bildschirm\n2. Scrollen Sie nach unten und tippen Sie auf 'Zum Home-Bildschirm'\n3. Tippen Sie auf 'Hinzufügen' zum Bestätigen",
+                installIosChrome: "1. Tippen Sie auf das 3-Punkte-Menü oben rechts\n2. Tippen Sie auf 'Zum Home-Bildschirm'\n3. Tippen Sie auf 'Hinzufügen' zum Bestätigen",
+                installDesktop: "1. Suchen Sie das Installations-Symbol (⊞) rechts in der Adressleiste\n2. Klicken Sie auf 'Installieren', um LootRadar hinzuzufügen",
                 settingsSync: "Geräte-Sync", settingsSyncDesc: "Migriere sicher deine Spiele und Ersparnisse auf ein anderes Gerät mit einer 15-Minuten-PIN.",
                 settingsExport: "Exportieren", settingsImport: "Importieren",
                 discTitle: "Haftungsausschluss", 
@@ -1295,6 +1342,13 @@
                 comingSoon: "Используйте кнопки в шапке для языка и темы. Больше настроек скоро!",
                 shareAppTitle: "LootRadar - Трекер бесплатных игр", shareAppText: "Отслеживайте бесплатные игры и экономьте с LootRadar!",
                 settingsLanguage: "Язык", settingsTheme: "Тема", themeLight: "Светлая", themeDark: "Тёмная",
+                settingsSync: "Синхронизация", settingsSyncDesc: "Безопасно переносите игры и сбережения на другое устройство с помощью 15-минутного PIN-кода.",
+                settingsExport: "Экспорт", settingsImport: "Импорт",
+                installGuideTitle: "Как установить",
+                installAndroid: "1. Нажмите на меню из 3 точек в правом верхнем углу\n2. Выберите 'Добавить на главный экран' или 'Установить приложение'\n3. Нажмите 'Установить' для подтверждения",
+                installIosSafari: "1. Нажмите на иконку 'Поделиться' внизу экрана\n2. Прокрутите вниз и нажмите 'На экран «Домой»'\n3. Нажмите 'Добавить' для подтверждения",
+                installIosChrome: "1. Нажмите на меню из 3 точек в правом верхнем углу\n2. Нажмите 'На экран «Домой»'\n3. Нажмите 'Добавить' для подтверждения",
+                installDesktop: "1. Найдите иконку установки (⊞) справа в адресной строке\n2. Нажмите 'Установить', чтобы добавить LootRadar",
                 settingsSync: "Синхронизация", settingsSyncDesc: "Безопасно перенесите игры и сбережения на другое устройство с помощью 15-минутного PIN.",
                 settingsExport: "Экспорт", settingsImport: "Импорт",
                 discTitle: "Отказ от ответственности", 
@@ -1332,6 +1386,13 @@
                 settingsLanguage: "言語", settingsTheme: "テーマ", themeLight: "ライト", themeDark: "ダーク",
                 settingsSync: "デバイス同期", settingsSyncDesc: "15分PINでゲームと節約額を別のデバイスに安全に移行します。",
                 settingsExport: "出力", settingsImport: "入力",
+                installGuideTitle: "インストール方法",
+                installAndroid: "1. 右上の三点メニューをタップ\n2. 『ホーム画面に追加』または『アプリをインストール』を選択\n3. 『インストール』をタップして確認",
+                installIosSafari: "1. 画面下部の共有アイコンをタップ\n2. 下にスクロールし『ホーム画面に追加』をタップ\n3. 『追加』をタップして確認",
+                installIosChrome: "1. 右上の三点メニューをタップ\n2. 『ホーム画面に追加』をタップ\n3. 『追加』をタップして確認",
+                installDesktop: "1. アドレスバー右側のインストールアイコン（）を探す\n2. 『インストール』をクリックして LootRadar を追加",
+                settingsSync: "デバイス同期", settingsSyncDesc: "15分PINでゲームと節約額を別のデバイスに安全に移行します。",
+                settingsExport: "出力", settingsImport: "入力",
                 discTitle: "免責事項", 
                 disc1: "ゲームはAPIとWebスクレイピングを通じて取得されます。", 
                 disc2: "情報が誤って表示されたり、不完全な場合があります。", 
@@ -1365,6 +1426,13 @@
                 comingSoon: "헤더 버튼으로 언어와 테마를 변경하세요. 더 많은 설정이 곧 제공됩니다!",
                 shareAppTitle: "LootRadar - 무료 게임 트래커", shareAppText: "LootRadar로 무료 게임을 추적하고 돈을 절약하세요!",
                 settingsLanguage: "언어", settingsTheme: "테마", themeLight: "라이트", themeDark: "다크",
+                settingsSync: "기기 동기화", settingsSyncDesc: "15분 PIN으로 게임과 절약액을 안전하게 다른 기기로 이전합니다.",
+                settingsExport: "내보내기", settingsImport: "가져오기",
+                installGuideTitle: "설치 방법",
+                installAndroid: "1. 오른쪽 상단의 3점 메뉴를 탭하세요\n2. '홈 화면에 추가' 또는 '앱 설치'를 선택하세요\n3. '설치'를 탭하여 확인하세요",
+                installIosSafari: "1. 화면 하단의 공유 아이콘을 탭하세요\n2. 아래로 크롤하여 '홈 화면에 추가'를 탭하세요\n3. '추가'를 탭하여 확인하세요",
+                installIosChrome: "1. 오른쪽 상단의 3점 메뉴를 탭하세요\n2. '홈 화면에 추가'를 하세요\n3. '추가'를 탭하여 확인하세요",
+                installDesktop: "1. 주소창 오른쪽에서 설치 아이콘(⊞)을 찾으세요\n2. '설치'를 클릭하여 LootRadar를 추가하세요",
                 settingsSync: "기기 동기화", settingsSyncDesc: "15분 PIN으로 획득한 게임과 총 절약액을 다른 기기로 안전하게 마이그레이션하세요.",
                 settingsExport: "내보내기", settingsImport: "가져오기",
                 discTitle: "면책 조항", 
@@ -1400,6 +1468,13 @@
                 comingSoon: "Use os botões do header para idioma e tema. Mais configurações em breve!",
                 shareAppTitle: "LootRadar - Rastreador de Jogos Grátis", shareAppText: "Rastreie jogos grátis e economize com o LootRadar!",
                 settingsLanguage: "Idioma", settingsTheme: "Tema", themeLight: "Claro", themeDark: "Escuro",
+                settingsSync: "Sync Dispositivo", settingsSyncDesc: "Migre com segurança seus jogos e economia para outro dispositivo usando um PIN de 15 minutos.",
+                settingsExport: "Exportar", settingsImport: "Importar",
+                installGuideTitle: "Como Instalar",
+                installAndroid: "1. Toque no menu de 3 pontos no canto superior direito\n2. Selecione 'Adicionar à tela inicial' ou 'Instalar aplicativo'\n3. Toque em 'Instalar' para confirmar",
+                installIosSafari: "1. Toque no ícone Compartilhar na parte inferior\n2. Role para baixo e toque em 'Adicionar à Tela de Início'\n3. Toque em 'Adicionar' para confirmar",
+                installIosChrome: "1. Toque no menu de 3 pontos no canto superior direito\n2. Toque em 'Adicionar à Tela de Início'\n3. Toque em 'Adicionar' para confirmar",
+                installDesktop: "1. Procure o ícone de instalação (⊞) no lado direito da barra de endereço\n2. Clique em 'Instalar' para adicionar o LootRadar",
                 settingsSync: "Sync Dispositivo", settingsSyncDesc: "Migre com segurança seus jogos e economia para outro dispositivo usando um PIN de 15 minutos.",
                 settingsExport: "Exportar", settingsImport: "Importar",
                 discTitle: "Aviso Legal", 
@@ -5493,6 +5568,25 @@
             safeSetText('ui-settings-sync-desc', t.settingsSyncDesc);
             safeSetText('ui-settings-export', t.settingsExport);
             safeSetText('ui-settings-import', t.settingsImport);
+            safeSetText('ui-install-guide-title', t.installGuideTitle);
+            // Detect platform and show appropriate install instructions
+            const ua = navigator.userAgent;
+            let installText = '';
+            if (/iPhone|iPad|iPod/i.test(ua)) {
+                // iOS
+                if (/CriOS/i.test(ua)) {
+                    installText = t.installIosChrome || t.installIosSafari;
+                } else {
+                    installText = t.installIosSafari;
+                }
+            } else if (/Android/i.test(ua)) {
+                installText = t.installAndroid;
+            } else {
+                // Desktop (Windows/Mac/Linux)
+                installText = t.installDesktop;
+            }
+            const installGuideEl = document.getElementById('ui-install-guide-text');
+            if (installGuideEl) installGuideEl.textContent = installText;
             safeSetText('ui-share-title', t.shareTitle);
             safeSetText('ui-share-desc', t.shareDesc);
             safeSetText('ui-copy-link', t.copyLink);

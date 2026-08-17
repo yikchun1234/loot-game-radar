@@ -2513,8 +2513,8 @@
                 const lastYearCount = lastYearGames.length;
                 const countGrowth = lastYearCount > 0 ? ((thisYearCount - lastYearCount) / lastYearCount * 100).toFixed(0) : 0;
 
-                const thisYearSavings = thisYearGames.reduce((sum, g) => sum + (parseFloat(g.worth) || 0), 0);
-                const lastYearSavings = lastYearGames.reduce((sum, g) => sum + (parseFloat(g.worth) || 0), 0);
+                const thisYearSavings = thisYearGames.reduce((sum, g) => sum + (parseFloat((g.worth || '0').replace(/[^0-9.]/g, '')) || 0), 0);
+                const lastYearSavings = lastYearGames.reduce((sum, g) => sum + (parseFloat((g.worth || '0').replace(/[^0-9.]/g, '')) || 0), 0);
                 const savingsGrowth = lastYearSavings > 0 ? ((thisYearSavings - lastYearSavings) / lastYearSavings * 100).toFixed(0) : 0;
 
                 const formatMoney = (v) => '$' + v.toFixed(2);
@@ -2581,8 +2581,8 @@
                 const prevMonthCount = prevMonthGames.length;
                 const countGrowth = prevMonthCount > 0 ? ((thisMonthCount - prevMonthCount) / prevMonthCount * 100).toFixed(0) : 0;
 
-                const thisMonthSavings = thisMonthGames.reduce((sum, g) => sum + (parseFloat(g.worth) || 0), 0);
-                const prevMonthSavings = prevMonthGames.reduce((sum, g) => sum + (parseFloat(g.worth) || 0), 0);
+                const thisMonthSavings = thisMonthGames.reduce((sum, g) => sum + (parseFloat((g.worth || '0').replace(/[^0-9.]/g, '')) || 0), 0);
+                const prevMonthSavings = prevMonthGames.reduce((sum, g) => sum + (parseFloat((g.worth || '0').replace(/[^0-9.]/g, '')) || 0), 0);
                 const savingsGrowth = prevMonthSavings > 0 ? ((thisMonthSavings - prevMonthSavings) / prevMonthSavings * 100).toFixed(0) : 0;
 
                 const formatMoney = (v) => '$' + v.toFixed(2);

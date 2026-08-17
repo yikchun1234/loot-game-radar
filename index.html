@@ -4917,7 +4917,7 @@
                 if (isListView) {
                     // List View - horizontal card
                     return `
-                    <a href="${gameLink}" target="_blank" rel="noopener noreferrer" class="flex bg-white dark:bg-dark-card rounded-xl overflow-hidden shadow-md border border-light-border dark:border-gray-800 relative group animate-[fadeUp_0.3s_ease_forwards] hover:shadow-xl hover:border-blue-500/50 dark:hover:border-neon-blue/50 transition-all duration-300">
+                    <a href="${gameLink}" target="_blank" rel="noopener noreferrer" class="flex bg-white dark:bg-dark-card rounded-xl overflow-hidden shadow-md border border-light-border dark:border-gray-800 relative group hover:shadow-xl hover:border-blue-500/50 dark:hover:border-neon-blue/50 transition-all duration-300">
                         <div class="w-20 h-20 sm:w-24 sm:h-24 flex-shrink-0 bg-gray-200 dark:bg-gray-800 relative">
                             <img src="${game.image}" class="w-full h-full object-cover" loading="lazy" onerror="this.src='https://placehold.co/200x200/1e293b/ffffff?text=Game'">
                             <div class="absolute top-1 right-1 bg-black/70 text-white text-[9px] font-semibold px-1 py-0.5 rounded flex items-center gap-0.5">
@@ -4947,7 +4947,7 @@
                 } else {
                     // Grid View - vertical card (existing)
                     return `
-                    <a href="${gameLink}" target="_blank" rel="noopener noreferrer" class="block bg-white dark:bg-dark-card rounded-xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-800 relative group animate-[fadeUp_0.3s_ease_forwards] hover:scale-105 hover:shadow-xl hover:border-blue-500/50 dark:hover:border-neon-blue/50 transition-all duration-300">
+                    <a href="${gameLink}" target="_blank" rel="noopener noreferrer" class="block bg-white dark:bg-dark-card rounded-xl overflow-hidden shadow-md border border-gray-100 dark:border-gray-800 relative group hover:scale-105 hover:shadow-xl hover:border-blue-500/50 dark:hover:border-neon-blue/50 transition-all duration-300">
                         <div class="h-24 md:h-32 w-full bg-gray-200 dark:bg-gray-800 relative">
                             <img src="${game.image}" class="w-full h-full object-cover" loading="lazy" onerror="this.src='https://placehold.co/400x200/1e293b/ffffff?text=Game+Image+Unavailable'">
                             <button data-delete-id="${game.id}"
@@ -4975,7 +4975,6 @@
 
             // --- Event delegation for delete buttons (replaces inline onclick) ---
             // Fixes: button inside <a> unreliable on touch devices
-            grid._deleteTouchStart = null; // cleanup previous listeners
             grid.onclick = function(e) {
                 const btn = e.target.closest('.delete-btn');
                 if (!btn) return;
@@ -4983,25 +4982,28 @@
                 e.stopPropagation();
                 handleDeleteFromLibrary(e, btn.getAttribute('data-delete-id'));
             };
-            // Touch handler for mobile (more reliable in <a> elements)
-            let _delTouchX = 0, _delTouchY = 0;
-            grid.addEventListener('touchstart', function(e) {
-                if (e.target.closest('.delete-btn')) {
-                    _delTouchX = e.touches[0].clientX;
-                    _delTouchY = e.touches[0].clientY;
-                }
-            }, { passive: true });
-            grid.addEventListener('touchend', function(e) {
-                const btn = e.target.closest('.delete-btn');
-                if (!btn) return;
-                const dx = Math.abs(e.changedTouches[0].clientX - _delTouchX);
-                const dy = Math.abs(e.changedTouches[0].clientY - _delTouchY);
-                if (dx < 15 && dy < 15) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    handleDeleteFromLibrary(e, btn.getAttribute('data-delete-id'));
-                }
-            });
+            // Touch handler for mobile — only attach ONCE
+            if (!grid._libTouchBound) {
+                let _delTouchX = 0, _delTouchY = 0;
+                grid.addEventListener('touchstart', function(e) {
+                    if (e.target.closest('.delete-btn')) {
+                        _delTouchX = e.touches[0].clientX;
+                        _delTouchY = e.touches[0].clientY;
+                    }
+                }, { passive: true });
+                grid.addEventListener('touchend', function(e) {
+                    const btn = e.target.closest('.delete-btn');
+                    if (!btn) return;
+                    const dx = Math.abs(e.changedTouches[0].clientX - _delTouchX);
+                    const dy = Math.abs(e.changedTouches[0].clientY - _delTouchY);
+                    if (dx < 15 && dy < 15) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleDeleteFromLibrary(e, btn.getAttribute('data-delete-id'));
+                    }
+                });
+                grid._libTouchBound = true;
+            }
 
             // 🔄 If library filters changed, re-evaluate the scroll button
             setTimeout(() => window.updateScrollButtonState(), 50);

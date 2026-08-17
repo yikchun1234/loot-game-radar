@@ -732,6 +732,20 @@
                 </div></div>
               </div>
 
+              <!-- Deleted History Match Diagnostic -->
+              <div class="dev-section glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800" data-collapsed="false">
+                <div class="flex items-center justify-between mb-3 cursor-pointer" onclick="toggleDevSection(this)">
+                  <h4 class="text-xs font-bold text-red-500 uppercase tracking-widest">🔍 Deleted History Matches (Debug)</h4>
+                  <div class="flex items-center gap-2">
+                    <span class="text-[10px] text-gray-400">Feed items matching deletedHistory</span>
+                    <i class="ph-bold ph-caret-down dev-section-toggle text-gray-400"></i>
+                  </div>
+                </div>
+                <div class="dev-section-body"><div>
+                  <div id="dev-deleted-match-debug" class="text-[10px]"></div>
+                </div></div>
+              </div>
+
               <!-- All Apps Section -->
               <div class="dev-section glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800" data-collapsed="false">
                 <div class="flex items-center justify-between mb-3 cursor-pointer" onclick="toggleDevSection(this)">
@@ -2746,6 +2760,96 @@
                         </table>
                     </div>
                     <div class="mt-2 text-[10px] text-gray-400">${state.games.length} games in feed • Sorted by: date desc → price desc → title A-Z • Status from localStorage comparison</div>`;
+            }
+
+            // --- Deleted History Match Diagnostic ---
+            const deletedMatchEl = document.getElementById('dev-deleted-match-debug');
+            if (deletedMatchEl && state.games && state.deletedHistory) {
+                const claimedGames = state.claimedGames || {};
+                const dh = state.deletedHistory || [];
+                const matches = [];
+
+                state.games.forEach((g, i) => {
+                    const normId = g.normalizedId || normalizeUrl(g.open_giveaway || g.id || '');
+                    const fullUrl = g.open_giveaway || '';
+                    const isClaimed = !!claimedGames[normId] || !!claimedGames[fullUrl];
+                    if (isClaimed) return;
+
+                    for (let j = dh.length - 1; j >= 0; j--) {
+                        const h = dh[j];
+                        const hId = h.id || '';
+                        const hNorm = h.normalizedId || hId;
+                        const hUrl = h.originalUrl || hId;
+
+                        let matchField = null;
+                        if (hId === normId) matchField = 'histId=normId';
+                        else if (hId === String(g.id)) matchField = 'histId=game.id';
+                        else if (hNorm === normId) matchField = 'histNorm=normId';
+                        else if (hUrl === fullUrl) matchField = 'histUrl=open_giveaway';
+                        else if (hUrl === String(g.id)) matchField = 'histUrl=game.id';
+
+                        if (matchField) {
+                            matches.push({
+                                feedIdx: i + 1,
+                                title: (g.title || '').substring(0, 30),
+                                source: g.source || '-',
+                                normId: normId,
+                                matchField,
+                                reason: h.reason,
+                                histTitle: (h.title || '').substring(0, 30),
+                                histId: hId.substring(0, 40),
+                                histNorm: hNorm.substring(0, 40),
+                                histUrl: (hUrl || '').substring(0, 60),
+                                histSource: h.source || '-',
+                                histIdx: j
+                            });
+                            break;
+                        }
+                    }
+                });
+
+                const reasonColors = {
+                    expired: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+                    failed: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+                    paywall: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+                    accidental: 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400',
+                    duplicate: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400'
+                };
+
+                if (matches.length === 0) {
+                    deletedMatchEl.innerHTML = `<div class="text-green-500 font-bold py-2">✅ No feed items match deletedHistory (${dh.length} entries in history, ${state.games.length} items in feed)</div>`;
+                } else {
+                    const rows = matches.map(m => {
+                        const colorCls = reasonColors[m.reason] || 'bg-gray-100 text-gray-600';
+                        return `<tr class="border-b border-gray-100 dark:border-gray-800">
+                            <td class="py-1 pr-1 text-[10px] text-gray-400">#${m.feedIdx}</td>
+                            <td class="py-1 pr-1 text-[10px] font-bold dark:text-gray-200 max-w-[100px] truncate" title="${m.title}">${m.title}</td>
+                            <td class="py-1 pr-1 text-[10px] text-purple-500">${m.source}</td>
+                            <td class="py-1 pr-1 text-[10px] font-mono text-blue-500 max-w-[100px] truncate" title="${m.normId}">${m.normId}</td>
+                            <td class="py-1 pr-1 text-[10px]"><span class="px-1 py-0.5 rounded ${colorCls} font-bold">${m.reason}</span></td>
+                            <td class="py-1 pr-1 text-[10px] text-gray-500">${m.matchField}</td>
+                            <td class="py-1 pr-1 text-[10px] text-gray-400 max-w-[100px] truncate" title="Hist: ${m.histTitle}">🗑️ ${(m.histTitle || '?').substring(0, 20)} <span class="text-gray-300">[${m.histSource}]</span></td>
+                        </tr>`;
+                    }).join('');
+                    deletedMatchEl.innerHTML = `
+                        <div class="mb-2 text-[10px] text-red-500 font-bold">⚠️ ${matches.length} feed items match deletedHistory! (out of ${state.games.length} feed items, ${dh.length} history entries)</div>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr class="border-b border-gray-200 dark:border-gray-700">
+                                        <th class="py-1 pr-1 text-[10px] font-bold text-gray-500">#</th>
+                                        <th class="py-1 pr-1 text-[10px] font-bold text-gray-500">Feed Item</th>
+                                        <th class="py-1 pr-1 text-[10px] font-bold text-gray-500">Src</th>
+                                        <th class="py-1 pr-1 text-[10px] font-bold text-blue-500">NormID</th>
+                                        <th class="py-1 pr-1 text-[10px] font-bold text-gray-500">Reason</th>
+                                        <th class="py-1 pr-1 text-[10px] font-bold text-gray-500">Match Via</th>
+                                        <th class="py-1 pr-1 text-[10px] font-bold text-gray-500">History Entry</th>
+                                    </tr>
+                                </thead>
+                                <tbody>${rows}</tbody>
+                            </table>
+                        </div>`;
+                }
             }
 
             // --- All Tracked Apps Table ---
@@ -4843,6 +4947,7 @@
                 // Check if the game was previously deleted by searching history backwards (gets the most recent reason)
                 // Match by normalizedId regardless of source — same item = same status
                 let deletedReason = null;
+                let deletedMatchInfo = null; // DEBUG: track which history entry matched
                 if (!isClaimed && state.deletedHistory) {
                   for (let i = state.deletedHistory.length - 1; i >= 0; i--) {
                     const histItem = state.deletedHistory[i];
@@ -4851,15 +4956,30 @@
                     const histNorm = histItem.normalizedId || histId;
                     const histUrl = histItem.originalUrl || histId;
 
-                    if (histId === gameNormalizedId ||
-                        histId === String(game.id) ||
-                        histNorm === gameNormalizedId ||
-                        histUrl === game.open_giveaway ||
-                        histUrl === String(game.id)) {
+                    let matchField = null;
+                    if (histId === gameNormalizedId) matchField = 'histId===normId';
+                    else if (histId === String(game.id)) matchField = 'histId===game.id';
+                    else if (histNorm === gameNormalizedId) matchField = 'histNorm===normId';
+                    else if (histUrl === game.open_giveaway) matchField = 'histUrl===open_giveaway';
+                    else if (histUrl === String(game.id)) matchField = 'histUrl===game.id';
+
+                    if (matchField) {
                       deletedReason = histItem.reason;
+                      deletedMatchInfo = { matchField, histId: histId.substring(0, 40), histNorm: histNorm.substring(0, 40), histUrl: histUrl.substring(0, 60), histSource: histItem.source, histTitle: (histItem.title || '').substring(0, 30), historyIndex: i };
                       break;
                     }
                   }
+                }
+                // DEBUG: Log when NewMobileLife items match deletedHistory
+                if (deletedReason && game.source === 'NewMobileLife') {
+                  console.warn('🐛 NML deletedHistory MATCH:', {
+                    gameTitle: game.title,
+                    gameNormId: gameNormalizedId,
+                    gameUrl: game.open_giveaway?.substring(0, 60),
+                    match: deletedMatchInfo,
+                    reason: deletedReason,
+                    totalDeletedHistory: state.deletedHistory.length
+                  });
                 }
             
                 // Map the reason to the translated strings and an appropriate icon

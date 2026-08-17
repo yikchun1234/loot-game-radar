@@ -737,7 +737,7 @@
                 <div class="flex items-center justify-between mb-3 cursor-pointer" onclick="toggleDevSection(this)">
                   <h4 class="text-xs font-bold text-red-500 uppercase tracking-widest">🔍 Deleted History Matches (Debug)</h4>
                   <div class="flex items-center gap-2">
-                    <span class="text-[10px] text-gray-400">Feed items matching deletedHistory</span>
+                    <button onclick="event.stopPropagation(); copyDeletedMatchDiag()" class="px-2 py-1 text-[10px] font-bold bg-red-500/20 text-red-400 hover:bg-red-500/30 rounded-lg transition-colors">📋 Copy All</button>
                     <i class="ph-bold ph-caret-down dev-section-toggle text-gray-400"></i>
                   </div>
                 </div>
@@ -2763,6 +2763,7 @@
             }
 
             // --- Deleted History Match Diagnostic ---
+            window._deletedMatchDiagData = null; // Store for copy
             const deletedMatchEl = document.getElementById('dev-deleted-match-debug');
             if (deletedMatchEl && state.games && state.deletedHistory) {
                 const claimedGames = state.claimedGames || {};
@@ -2818,7 +2819,10 @@
 
                 if (matches.length === 0) {
                     deletedMatchEl.innerHTML = `<div class="text-green-500 font-bold py-2">✅ No feed items match deletedHistory (${dh.length} entries in history, ${state.games.length} items in feed)</div>`;
+                    window._deletedMatchDiagData = null;
                 } else {
+                    // Store full data globally for copy
+                    window._deletedMatchDiagData = matches;
                     const rows = matches.map(m => {
                         const colorCls = reasonColors[m.reason] || 'bg-gray-100 text-gray-600';
                         return `<tr class="border-b border-gray-100 dark:border-gray-800">
@@ -2851,6 +2855,32 @@
                         </div>`;
                 }
             }
+
+            // Copy diagnostic data function
+            window.copyDeletedMatchDiag = function() {
+                const data = window._deletedMatchDiagData;
+                if (!data || data.length === 0) {
+                    alert('No matches to copy.');
+                    return;
+                }
+                const lines = data.map(m =>
+                    `#${m.feedIdx} | ${m.title} [${m.source}] | normId: ${m.normId} | MATCH: ${m.matchField} | REASON: ${m.reason} | HISTORY: "${m.histTitle}" [${m.histSource}] | histId: "${m.histId}" | histNorm: "${m.histNorm}" | histUrl: "${m.histUrl}"`
+                );
+                const header = `Deleted History Matches: ${data.length} items (feed: ${state.games.length}, history: ${state.deletedHistory.length})\n${'='.repeat(80)}`;
+                const text = header + '\n' + lines.join('\n');
+                navigator.clipboard.writeText(text).then(() => {
+                    alert('Copied ' + data.length + ' matches to clipboard!');
+                }).catch(() => {
+                    // Fallback for older browsers
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    alert('Copied ' + data.length + ' matches to clipboard!');
+                });
+            };
 
             // --- All Tracked Apps Table ---
             const appsTable = document.getElementById('dev-apps-table');

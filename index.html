@@ -1921,23 +1921,18 @@
         function toggleLibrary() {
           const modal = document.getElementById('library-modal');
           const scrollTopBtn = document.getElementById('scroll-to-top-btn');
-          const spinner = document.getElementById('lib-loading-spinner');
 
           if (modal.classList.contains('pointer-events-none')) {
             // --- OPENING THE LIBRARY ---
-            // 1. IMMEDIATELY enable interaction + show spinner, start animation
+            // 1. IMMEDIATELY enable interaction, start animation
             modal.classList.remove('pointer-events-none');
-            if (spinner) {
-                spinner.classList.remove('hidden');
-                spinner.classList.add('flex');
-            }
 
             // No layout recalculation needed - modal is already rendered!
             requestAnimationFrame(() => {
                 modal.classList.remove('translate-x-full');
             });
 
-            // 2. Defer setup work, hide spinner when done
+            // 2. Defer setup work
             setTimeout(() => {
                 // Set view select value and icon
                 const viewSelect = document.getElementById('lib-view-select');
@@ -1952,22 +1947,8 @@
                 // Restore dropdown collapse state (mobile)
                 restoreLibDropdownState();
 
-                // Re-trigger the odometer animation
-                const totalGames = Object.keys(state.claimedGames).length;
-                animateOdometer('lib-total-count', totalGames, false);
-                animateOdometer('lib-total-saved', state.totalSaved, true);
-
                 // updateScrollButtonState handles both visibility and z-index
                 window.updateScrollButtonState();
-
-                // Hide spinner with fade out
-                if (spinner) {
-                    spinner.classList.add('opacity-0');
-                    setTimeout(() => {
-                        spinner.classList.add('hidden');
-                        spinner.classList.remove('flex', 'opacity-0');
-                    }, 200);
-                }
             }, 50);
         
             setTimeout(() => {
@@ -4728,12 +4709,11 @@
           }
         };
 
-        window.updateLibFilter = function(val) { state.libFilter = val; showLibSpinner(); renderLibrary(true); };
+        window.updateLibFilter = function(val) { state.libFilter = val; showLibSpinnerAndRender(); };
         window.updateLibSort = function(val) {
             state.libSort = val;
             localStorage.setItem('lootradar_lib_sort', val);
-            showLibSpinner();
-            renderLibrary(true);
+            showLibSpinnerAndRender();
         };
         window.updateLibView = function(val) {
             state.libView = val;
@@ -4745,8 +4725,12 @@
                     ? 'ph-fill ph-list-bullets text-green-500 dark:text-green-400 text-lg group-hover:scale-110 transition-transform'
                     : 'ph-fill ph-squares-four text-green-500 dark:text-green-400 text-lg group-hover:scale-110 transition-transform';
             }
+            showLibSpinnerAndRender();
+        };
+        function showLibSpinnerAndRender() {
             showLibSpinner();
-            renderLibrary(true);
+            // Use setTimeout to ensure spinner is painted before render
+            setTimeout(() => renderLibrary(true), 50);
         };
 
         // Library Dropdown Collapse Toggle (mobile only)
@@ -5009,7 +4993,8 @@
 
             // 🔄 If library filters changed, re-evaluate the scroll button
             setTimeout(() => window.updateScrollButtonState(), 50);
-            hideLibSpinner();
+            // Delay hide to ensure user sees spinner
+            setTimeout(() => hideLibSpinner(), 100);
         }
 
         function showLibSpinner() {

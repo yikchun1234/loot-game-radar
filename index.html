@@ -4728,10 +4728,11 @@
           }
         };
 
-        window.updateLibFilter = function(val) { state.libFilter = val; renderLibrary(true); };
+        window.updateLibFilter = function(val) { state.libFilter = val; showLibSpinner(); renderLibrary(true); };
         window.updateLibSort = function(val) {
             state.libSort = val;
             localStorage.setItem('lootradar_lib_sort', val);
+            showLibSpinner();
             renderLibrary(true);
         };
         window.updateLibView = function(val) {
@@ -4744,6 +4745,7 @@
                     ? 'ph-fill ph-list-bullets text-green-500 dark:text-green-400 text-lg group-hover:scale-110 transition-transform'
                     : 'ph-fill ph-squares-four text-green-500 dark:text-green-400 text-lg group-hover:scale-110 transition-transform';
             }
+            showLibSpinner();
             renderLibrary(true);
         };
 
@@ -5007,6 +5009,16 @@
 
             // 🔄 If library filters changed, re-evaluate the scroll button
             setTimeout(() => window.updateScrollButtonState(), 50);
+            hideLibSpinner();
+        }
+
+        function showLibSpinner() {
+            const s = document.getElementById('lib-loading-spinner');
+            if (s) { s.classList.remove('hidden'); s.classList.add('flex'); }
+        }
+        function hideLibSpinner() {
+            const s = document.getElementById('lib-loading-spinner');
+            if (s) s.classList.add('hidden');
         }
 
         

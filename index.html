@@ -1984,7 +1984,7 @@
             if (countEl) countEl.textContent = getUnclaimedCount();
         }
 
-        // Close dropdown when clicking outside
+        // Close dropdown when clicking outside or scrolling
         document.addEventListener('click', (e) => {
             const panel = document.getElementById('feed-filter-panel');
             const btn = document.getElementById('feed-filter-btn');
@@ -1993,6 +1993,10 @@
                 panel.classList.add('hidden');
             }
         });
+        window.addEventListener('scroll', () => {
+            const panel = document.getElementById('feed-filter-panel');
+            if (panel && !panel.classList.contains('hidden')) panel.classList.add('hidden');
+        }, { passive: true });
 
         function toggleLibrary() {
           const modal = document.getElementById('library-modal');

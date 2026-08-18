@@ -1993,10 +1993,13 @@
                 panel.classList.add('hidden');
             }
         });
-        window.addEventListener('scroll', () => {
-            const panel = document.getElementById('feed-filter-panel');
-            if (panel && !panel.classList.contains('hidden')) panel.classList.add('hidden');
-        }, { passive: true });
+        const appContainer = document.getElementById('app-container');
+        if (appContainer) {
+            appContainer.addEventListener('scroll', () => {
+                const panel = document.getElementById('feed-filter-panel');
+                if (panel && !panel.classList.contains('hidden')) panel.classList.add('hidden');
+            }, { passive: true });
+        }
 
         function toggleLibrary() {
           const modal = document.getElementById('library-modal');

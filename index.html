@@ -299,7 +299,7 @@
                     </button>
                 </div>
                 <!-- Filter Dropdown Panel -->
-                <div id="feed-filter-panel" class="hidden fixed z-50 bg-white dark:bg-dark-card rounded-2xl shadow-2xl border border-light-border dark:border-gray-700 p-4 min-w-[200px]">
+                <div id="feed-filter-panel" class="fixed z-50 bg-white dark:bg-dark-card rounded-2xl shadow-2xl border border-light-border dark:border-gray-700 p-4 min-w-[200px] opacity-0 scale-95 pointer-events-none origin-top-right transition-all duration-200 ease-out">
                     <div class="flex items-center justify-between mb-3">
                         <h4 class="ff-title text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">Feed Filters</h4>
                         <button onclick="toggleFeedFilter()" class="p-1 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
@@ -1942,8 +1942,8 @@
             const btn = document.getElementById('feed-filter-btn');
             if (!panel || !btn) return;
 
-            const isHidden = panel.classList.contains('hidden');
-            if (isHidden) {
+            const isOpen = panel.classList.contains('opacity-100');
+            if (!isOpen) {
                 const t = i18n[state.lang];
                 // Position panel below the button
                 const btnRect = btn.getBoundingClientRect();
@@ -1953,15 +1953,26 @@
                 panel.querySelector('.ff-title').textContent = t.feedFilters || 'Feed Filters';
                 panel.querySelector('.ff-label').textContent = t.unclaimedOnly || 'Unclaimed Only';
                 panel.querySelector('.ff-desc').textContent = t.hideClaimedDeleted || 'Hide claimed & deleted items';
-                panel.classList.remove('hidden');
                 // Update checkbox state and count
                 const cb = document.getElementById('feed-filter-unclaimed');
                 if (cb) cb.checked = state.showUnclaimedOnly;
                 const countEl = document.getElementById('feed-filter-unclaimed-count');
                 if (countEl) countEl.textContent = getUnclaimedCount();
+                // Animate open
+                requestAnimationFrame(() => {
+                    panel.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
+                    panel.classList.add('opacity-100', 'scale-100');
+                });
             } else {
-                panel.classList.add('hidden');
+                closeFeedFilter();
             }
+        }
+
+        function closeFeedFilter() {
+            const panel = document.getElementById('feed-filter-panel');
+            if (!panel) return;
+            panel.classList.remove('opacity-100', 'scale-100');
+            panel.classList.add('opacity-0', 'scale-95', 'pointer-events-none');
         }
 
         function toggleUnclaimedFilter(checked) {
@@ -1989,15 +2000,15 @@
             const panel = document.getElementById('feed-filter-panel');
             const btn = document.getElementById('feed-filter-btn');
             if (!panel || !btn) return;
-            if (!panel.classList.contains('hidden') && !panel.contains(e.target) && !btn.contains(e.target)) {
-                panel.classList.add('hidden');
+            if (panel.classList.contains('opacity-100') && !panel.contains(e.target) && !btn.contains(e.target)) {
+                closeFeedFilter();
             }
         });
         const appContainer = document.getElementById('app-container');
         if (appContainer) {
             appContainer.addEventListener('scroll', () => {
                 const panel = document.getElementById('feed-filter-panel');
-                if (panel && !panel.classList.contains('hidden')) panel.classList.add('hidden');
+                if (panel && panel.classList.contains('opacity-100')) closeFeedFilter();
             }, { passive: true });
         }
 

@@ -222,6 +222,15 @@
         .chart-in-view .chart-path { stroke-dashoffset: 0; }
         /* Price histogram bars grow in width */
         .hist-bar { transition: width 1s cubic-bezier(0.2, 1, 0.4, 1); }
+        /* Heatmap cells pop in with a left→right wave */
+        .heat-cell { opacity: 0; transform: scale(0.3); transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .chart-in-view .heat-cell { opacity: 1; transform: scale(1); }
+        /* Top 10 rows slide in with a stagger */
+        .top10-row { opacity: 0; transform: translateX(-14px); transition: opacity 0.45s ease, transform 0.45s cubic-bezier(0.2, 1, 0.4, 1); }
+        .chart-in-view .top10-row { opacity: 1; transform: translateX(0); }
+        /* Trend growth badges fade in after the odometers start */
+        .trend-badge { opacity: 0; transition: opacity 0.6s ease 0.7s; }
+        .chart-in-view .trend-badge { opacity: 1; }
         .pie-segment {
             stroke-dasharray: 0 100;
             transition: stroke-dasharray 1.5s cubic-bezier(0.2, 1, 0.4, 1), opacity 0.2s ease;
@@ -2732,7 +2741,7 @@
                     const pct = (count / totalRemovals) * 100;
                     const label = reasonLabels[reason] || reason;
                     const color = reasonColors[reason] || '#6b7280';
-                    removalPieHtml += `<circle class="cursor-pointer hover:opacity-75" style="pointer-events: painted;" cx="21" cy="21" r="15.91549430918954" fill="none" stroke="${color}" stroke-width="6" stroke-dasharray="${pct} ${100 - pct}" stroke-dashoffset="${-removalOffset}" onclick="updateRemovalCenter(${count}, '${label.replace(/'/g, "\\'")}')" onmouseenter="updateRemovalCenter(${count}, '${label.replace(/'/g, "\\'")}')"></circle>`;
+                    removalPieHtml += `<circle class="pie-segment cursor-pointer hover:opacity-75" style="pointer-events: painted;" cx="21" cy="21" r="15.91549430918954" fill="none" stroke="${color}" stroke-width="6" stroke-dashoffset="${-removalOffset}" data-target-dash="${pct} ${100 - pct}" onclick="updateRemovalCenter(${count}, '${label.replace(/'/g, "\\'")}')" onmouseenter="updateRemovalCenter(${count}, '${label.replace(/'/g, "\\'")}')"></circle>`;
                     removalLegendHtml += `
                         <div class="flex items-center justify-between w-full gap-2 p-1.5 -mx-1.5 rounded-lg cursor-pointer hover:bg-light-surface dark:hover:bg-gray-800/50 transition-colors" onclick="updateRemovalCenter(${count}, '${label.replace(/'/g, "\\'")}')" onmouseenter="updateRemovalCenter(${count}, '${label.replace(/'/g, "\\'")}')">
                             <div class="flex items-center gap-2 min-w-0">
@@ -2777,7 +2786,7 @@
                     else if (intensity > 0.5) bgColor = 'bg-green-500';
                     else if (intensity > 0.25) bgColor = 'bg-green-400';
                     else if (intensity > 0) bgColor = 'bg-green-300';
-                    heatmapHtml += `<div class="w-3 h-3 ${bgColor} rounded-sm" title="${count} claims"></div>`;
+                    heatmapHtml += `<div class="heat-cell w-3 h-3 ${bgColor} rounded-sm" style="transition-delay: ${hour * 14}ms" title="${count} claims"></div>`;
                 }
             }
             heatmapHtml += '</div>';
@@ -2812,7 +2821,7 @@
                     else if (intensity > 0.5) bgColor = 'bg-purple-500';
                     else if (intensity > 0.25) bgColor = 'bg-blue-400';
                     else if (intensity > 0) bgColor = 'bg-blue-300';
-                    releaseHeatmapHtml += `<div class="w-3 h-3 ${bgColor} rounded-sm" title="${count} releases"></div>`;
+                    releaseHeatmapHtml += `<div class="heat-cell w-3 h-3 ${bgColor} rounded-sm" style="transition-delay: ${hour * 14}ms" title="${count} releases"></div>`;
                 }
             }
             releaseHeatmapHtml += '</div>';
@@ -2825,7 +2834,7 @@
                 const title = g.title || 'Unknown';
                 const platform = g.platforms || 'PC';
                 return `
-                    <div class="flex items-center gap-3 text-xs py-1.5 ${i < sortedByValue.length - 1 ? 'border-b border-gray-100 dark:border-gray-800' : ''}">
+                    <div class="top10-row flex items-center gap-3 text-xs py-1.5 ${i < sortedByValue.length - 1 ? 'border-b border-gray-100 dark:border-gray-800' : ''}" style="transition-delay: ${i * 60}ms">
                         <span class="text-[10px] font-bold text-gray-400 w-4">${i + 1}</span>
                         <span class="font-bold text-gray-700 dark:text-gray-300 flex-1 truncate" title="${title}">${title}</span>
                         <span class="text-[10px] font-bold text-gray-500 bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded">${platform}</span>
@@ -2900,16 +2909,16 @@
                             <div class="text-[10px] font-bold text-gray-400 uppercase mb-2 text-center">${t.trendGames || 'Games'}</div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="text-center">
-                                    <div class="text-2xl font-black text-gray-500">${lastYearCount}</div>
+                                    <div id="trend-ly-count" class="trend-odo text-2xl font-black text-gray-500" data-odo-value="${lastYearCount}" data-odo-currency="0">0</div>
                                     <div class="text-[10px] font-bold text-gray-400 uppercase">${lastYear}</div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="text-2xl font-black text-blue-500">${thisYearCount}</div>
+                                    <div id="trend-ty-count" class="trend-odo text-2xl font-black text-blue-500" data-odo-value="${thisYearCount}" data-odo-currency="0">0</div>
                                     <div class="text-[10px] font-bold text-gray-400 uppercase">${currentYear}</div>
                                 </div>
                             </div>
                             <div class="mt-2 text-center">
-                                <span class="text-xs font-bold ${getTrendColor(countGrowth)}">
+                                <span class="trend-badge text-xs font-bold ${getTrendColor(countGrowth)}">
                                     ${getTrendArrow(countGrowth)} ${Math.abs(countGrowth)}% ${getTrendLabel(countGrowth, t)}
                                 </span>
                             </div>
@@ -2919,16 +2928,16 @@
                             <div class="text-[10px] font-bold text-gray-400 uppercase mb-2 text-center">${t.trendSavings || 'Savings'}</div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="text-center">
-                                    <div class="text-2xl font-black text-gray-500">${formatMoney(lastYearSavings)}</div>
+                                    <div id="trend-ly-saved" class="trend-odo text-2xl font-black text-gray-500" data-odo-value="${lastYearSavings}" data-odo-currency="1">0</div>
                                     <div class="text-[10px] font-bold text-gray-400 uppercase">${lastYear}</div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="text-2xl font-black text-green-500">${formatMoney(thisYearSavings)}</div>
+                                    <div id="trend-ty-saved" class="trend-odo text-2xl font-black text-green-500" data-odo-value="${thisYearSavings}" data-odo-currency="1">0</div>
                                     <div class="text-[10px] font-bold text-gray-400 uppercase">${currentYear}</div>
                                 </div>
                             </div>
                             <div class="mt-2 text-center">
-                                <span class="text-xs font-bold ${getTrendColor(savingsGrowth)}">
+                                <span class="trend-badge text-xs font-bold ${getTrendColor(savingsGrowth)}">
                                     ${getTrendArrow(savingsGrowth)} ${Math.abs(savingsGrowth)}% ${getTrendLabel(savingsGrowth, t)}
                                 </span>
                             </div>
@@ -2968,16 +2977,16 @@
                             <div class="text-[10px] font-bold text-gray-400 uppercase mb-2 text-center">${t.trendGames || 'Games'}</div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="text-center">
-                                    <div class="text-2xl font-black text-gray-500">${prevMonthCount}</div>
+                                    <div id="trend-ly-count" class="trend-odo text-2xl font-black text-gray-500" data-odo-value="${prevMonthCount}" data-odo-currency="0">0</div>
                                     <div class="text-[10px] font-bold text-gray-400 uppercase">${t.prevMonth || 'Last Month'}</div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="text-2xl font-black text-blue-500">${thisMonthCount}</div>
+                                    <div id="trend-ty-count" class="trend-odo text-2xl font-black text-blue-500" data-odo-value="${thisMonthCount}" data-odo-currency="0">0</div>
                                     <div class="text-[10px] font-bold text-gray-400 uppercase">${t.thisMonth || 'This Month'}</div>
                                 </div>
                             </div>
                             <div class="mt-2 text-center">
-                                <span class="text-xs font-bold ${getTrendColor(countGrowth)}">
+                                <span class="trend-badge text-xs font-bold ${getTrendColor(countGrowth)}">
                                     ${getTrendArrow(countGrowth)} ${Math.abs(countGrowth)}% ${getTrendLabel(countGrowth, t)}
                                 </span>
                             </div>
@@ -2987,16 +2996,16 @@
                             <div class="text-[10px] font-bold text-gray-400 uppercase mb-2 text-center">${t.trendSavings || 'Savings'}</div>
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="text-center">
-                                    <div class="text-2xl font-black text-gray-500">${formatMoney(prevMonthSavings)}</div>
+                                    <div id="trend-ly-saved" class="trend-odo text-2xl font-black text-gray-500" data-odo-value="${prevMonthSavings}" data-odo-currency="1">0</div>
                                     <div class="text-[10px] font-bold text-gray-400 uppercase">${t.prevMonth || 'Last Month'}</div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="text-2xl font-black text-green-500">${formatMoney(thisMonthSavings)}</div>
+                                    <div id="trend-ty-saved" class="trend-odo text-2xl font-black text-green-500" data-odo-value="${thisMonthSavings}" data-odo-currency="1">0</div>
                                     <div class="text-[10px] font-bold text-gray-400 uppercase">${t.thisMonth || 'This Month'}</div>
                                 </div>
                             </div>
                             <div class="mt-2 text-center">
-                                <span class="text-xs font-bold ${getTrendColor(savingsGrowth)}">
+                                <span class="trend-badge text-xs font-bold ${getTrendColor(savingsGrowth)}">
                                     ${getTrendArrow(savingsGrowth)} ${Math.abs(savingsGrowth)}% ${getTrendLabel(savingsGrowth, t)}
                                 </span>
                             </div>
@@ -4698,6 +4707,14 @@
                 panel.querySelectorAll('.hist-bar').forEach(hb => {
                     const target = hb.getAttribute('data-target-width');
                     if (target) hb.style.width = target;
+                });
+                // Roll trend comparison numbers (odometer)
+                panel.querySelectorAll('.trend-odo').forEach(odo => {
+                    if (odo.getAttribute('data-odo-done')) return;
+                    odo.setAttribute('data-odo-done', '1');
+                    const val = parseFloat(odo.getAttribute('data-odo-value')) || 0;
+                    const isCur = odo.getAttribute('data-odo-currency') === '1';
+                    if (odo.id) animateOdometer(odo.id, val, isCur);
                 });
             };
 

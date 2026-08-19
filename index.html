@@ -4711,7 +4711,12 @@
 
             window.statsChartIO = new IntersectionObserver((entries) => {
                 entries.forEach(entry => {
-                    if (entry.isIntersecting) {
+                    // Animate when visible, OR if the user already scrolled past
+                    // the panel (fast flick / scrollbar drag) so no chart is
+                    // left stuck at 0% when they scroll back up.
+                    const rootTop = entry.rootBounds ? entry.rootBounds.top : 0;
+                    const scrolledPast = entry.boundingClientRect.top < rootTop;
+                    if (entry.isIntersecting || scrolledPast) {
                         animatePanel(entry.target);
                         window.statsChartIO.unobserve(entry.target);
                     }

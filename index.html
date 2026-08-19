@@ -2137,15 +2137,18 @@
           const container = document.getElementById('stats-container');
 
           if (modal.classList.contains('hidden')) {
-            // Start from the top every time so the scroll-reveal
-            // animations play from the beginning
-            const scrollArea = modal.querySelector('.library-scroll-area');
-            if (scrollArea) scrollArea.scrollTop = 0;
-
             // 1. Unhide and render charts at 0%
             modal.classList.remove('hidden');
             modal.classList.add('flex');
             renderStats();
+
+            // Start from the top every time so the scroll-reveal
+            // animations play from the beginning. Must run AFTER the
+            // modal is unhidden — scrollTop is a no-op on display:none
+            // elements, so a pre-unhide reset silently fails and the
+            // old scroll position survives the reopen.
+            const scrollArea = modal.querySelector('.library-scroll-area');
+            if (scrollArea) scrollArea.scrollTop = 0;
             
             // 2. Slide in
             void modal.offsetWidth;

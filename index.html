@@ -2179,6 +2179,12 @@
 
             // Reset scroll-triggered animation state (replays on next open)
             document.querySelectorAll('.chart-in-view').forEach(p => p.classList.remove('chart-in-view'));
+
+            // Detach the scroll sweep so it can't fire while the modal is hidden
+            if (window.statsScrollSweep) {
+                window.removeEventListener('scroll', window.statsScrollSweep, true);
+                window.statsScrollSweep = null;
+            }
             
             const pies = document.querySelectorAll('.pie-segment');
             pies.forEach(pie => pie.style.strokeDasharray = '0 100');
@@ -4686,15 +4692,23 @@
             const container = document.getElementById('stats-container');
             if (!container) return;
 
-            // Find the scrollable ancestor of the stats container
-            let scrollRoot = null;
-            let el = container.parentElement;
-            while (el && el !== document.documentElement) {
-                const oy = getComputedStyle(el).overflowY;
-                if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight) { scrollRoot = el; break; }
-                el = el.parentElement;
+            // Resolve the scroll root deterministically: the analytics modal's
+            // own scroll area. The generic ancestor walk is only a fallback —
+            // at modal-open time its `scrollHeight > clientHeight` check can
+            // race the layout and silently fall through to the page scroller,
+            // which never scrolls (the modal scrolls internally), leaving a
+            // dead listener behind.
+            const modal = document.getElementById('stats-modal');
+            let scrollRoot = modal ? modal.querySelector('.library-scroll-area') : null;
+            if (!scrollRoot) {
+                let el = container.parentElement;
+                while (el && el !== document.documentElement) {
+                    const oy = getComputedStyle(el).overflowY;
+                    if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight) { scrollRoot = el; break; }
+                    el = el.parentElement;
+                }
+                if (!scrollRoot) scrollRoot = document.scrollingElement || document.documentElement;
             }
-            if (!scrollRoot) scrollRoot = document.scrollingElement || document.documentElement;
 
             const animatePanel = (panel) => {
                 panel.classList.add('chart-in-view');
@@ -4740,24 +4754,30 @@
                 });
                 // All done → stop listening
                 if (pendingPanels().length === 0 && window.statsScrollSweep) {
-                    scrollRoot.removeEventListener('scroll', window.statsScrollSweep);
+                    window.removeEventListener('scroll', window.statsScrollSweep, true);
                     window.statsScrollSweep = null;
                 }
             };
 
             // Remove any listener left over from a previous open
             if (window.statsScrollSweep) {
-                scrollRoot.removeEventListener('scroll', window.statsScrollSweep);
+                window.removeEventListener('scroll', window.statsScrollSweep, true);
                 window.statsScrollSweep = null;
             }
 
+            // Scroll events don't bubble, so we listen on window in the
+            // capture phase — this fires for the modal's internal scroll
+            // area no matter what, and makes the sweep independent of
+            // which element was detected as the scroller.
             let ticking = false;
             window.statsScrollSweep = function() {
                 if (ticking) return;
                 ticking = true;
-                requestAnimationFrame(() => { sweep(); ticking = false; });
+                requestAnimationFrame(() => {
+                    try { sweep(); } finally { ticking = false; }
+                });
             };
-            scrollRoot.addEventListener('scroll', window.statsScrollSweep, { passive: true });
+            window.addEventListener('scroll', window.statsScrollSweep, { capture: true, passive: true });
 
             // Initial sweep: panels already visible animate right away
             sweep();

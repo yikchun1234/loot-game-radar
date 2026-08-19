@@ -213,13 +213,15 @@
         .bar-item[data-visible="true"] .chart-bar { filter: brightness(1.2) saturate(1.3); }
         /* Radar chart pop-in animation */
         .radar-shape { transform: scale(0); transform-box: view-box; transform-origin: 50% 50%; transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s; }
-        .stats-active .radar-shape { transform: scale(1); }
+        .chart-in-view .radar-shape { transform: scale(1); }
         .chart-path { 
             stroke-dasharray: 2000; 
             stroke-dashoffset: 2000; 
             transition: stroke-dashoffset 2s cubic-bezier(0.2, 1, 0.4, 1); 
         }
-        .stats-active .chart-path { stroke-dashoffset: 0; }
+        .chart-in-view .chart-path { stroke-dashoffset: 0; }
+        /* Price histogram bars grow in width */
+        .hist-bar { transition: width 1s cubic-bezier(0.2, 1, 0.4, 1); }
         .pie-segment {
             stroke-dasharray: 0 100;
             transition: stroke-dasharray 1.5s cubic-bezier(0.2, 1, 0.4, 1), opacity 0.2s ease;
@@ -2139,17 +2141,9 @@
             setTimeout(() => {
                 container.classList.add('stats-active');
 
-                // Animate Bar Charts
-                const bars = document.querySelectorAll('.chart-bar');
-                bars.forEach(bar => {
-                    bar.style.height = bar.getAttribute('data-target-height');
-                });
-
-                // Animate Pie Chart Segments
-                const pies = document.querySelectorAll('.pie-segment');
-                pies.forEach(pie => {
-                    pie.style.strokeDasharray = pie.getAttribute('data-target-dash');
-                });
+                // Scroll-triggered animations: each chart panel animates
+                // only when it scrolls into view (IntersectionObserver)
+                initStatsScrollAnimations();
 
                 // Initialize bar chart scroll (auto-scroll to newest, show fade if needed)
                 initBarChartScroll();
@@ -2168,6 +2162,9 @@
             document.querySelectorAll('.bar-item').forEach(item => {
                 item.setAttribute('data-visible', 'false');
             });
+
+            // Reset scroll-triggered animation state (replays on next open)
+            document.querySelectorAll('.chart-in-view').forEach(p => p.classList.remove('chart-in-view'));
             
             const pies = document.querySelectorAll('.pie-segment');
             pies.forEach(pie => pie.style.strokeDasharray = '0 100');
@@ -2854,7 +2851,7 @@
                     <div class="flex items-center gap-3">
                         <span class="text-xs font-bold text-gray-500 w-16">${range}</span>
                         <div class="flex-1 h-6 bg-gray-200 dark:bg-gray-800 rounded-lg overflow-hidden">
-                            <div class="h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-end px-2 transition-all" style="width: ${widthPct}%">
+                            <div class="hist-bar h-full bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-end px-2" style="width: 0%" data-target-width="${widthPct}%">
                                 ${count > 0 ? `<span class="text-[10px] font-bold text-white">${count}</span>` : ''}
                             </div>
                         </div>
@@ -4664,6 +4661,71 @@
             const wealthTotal = document.getElementById('wealth-total-display');
             if(wealthTotal) wealthTotal.innerText = `$${state.totalSaved.toFixed(2)}`;
         };
+
+        // --- SCROLL-TRIGGERED CHART ANIMATIONS ---
+        // Each chart panel animates only when it scrolls into view,
+        // so users actually see every animation instead of missing the
+        // below-the-fold ones.
+        function initStatsScrollAnimations() {
+            const container = document.getElementById('stats-container');
+            if (!container) return;
+
+            // Find the scrollable ancestor of the stats container
+            let scrollRoot = null;
+            let el = container.parentElement;
+            while (el && el !== document.documentElement) {
+                const oy = getComputedStyle(el).overflowY;
+                if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight) { scrollRoot = el; break; }
+                el = el.parentElement;
+            }
+
+            const animatePanel = (panel) => {
+                panel.classList.add('chart-in-view');
+                // Grow vertical bars (activity / savings / speed distribution)
+                panel.querySelectorAll('.chart-bar').forEach(bar => {
+                    const target = bar.getAttribute('data-target-height');
+                    if (target) bar.style.height = target;
+                });
+                // Sweep pie/donut segments (platform donuts)
+                panel.querySelectorAll('.pie-segment').forEach(pie => {
+                    const target = pie.getAttribute('data-target-dash');
+                    if (target) pie.style.strokeDasharray = target;
+                });
+                // Grow horizontal histogram bars (price distribution)
+                panel.querySelectorAll('.hist-bar').forEach(hb => {
+                    const target = hb.getAttribute('data-target-width');
+                    if (target) hb.style.width = target;
+                });
+            };
+
+            const panels = container.querySelectorAll('.glass-panel');
+
+            // Fallback for very old browsers: animate everything at once
+            if (!('IntersectionObserver' in window)) {
+                panels.forEach(animatePanel);
+                return;
+            }
+
+            // Clean up any observer left over from a previous open
+            if (window.statsChartIO) { window.statsChartIO.disconnect(); }
+
+            window.statsChartIO = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animatePanel(entry.target);
+                        window.statsChartIO.unobserve(entry.target);
+                    }
+                });
+            }, {
+                root: scrollRoot,
+                // Panel must enter ~10% of the viewport height before firing,
+                // so the animation is clearly visible (not right at the edge)
+                rootMargin: '0px 0px -10% 0px',
+                threshold: 0
+            });
+
+            panels.forEach(p => window.statsChartIO.observe(p));
+        }
 
         // Update bar chart fade indicator based on scroll position
         window.updateBarChartFade = function() {

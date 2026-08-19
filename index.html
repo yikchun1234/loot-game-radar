@@ -211,6 +211,9 @@
         .bar-item[data-visible="true"]:not(.savings-bar-item) .bar-bg { box-shadow: 0 0 20px rgba(188, 19, 254, 0.6), 0 0 40px rgba(188, 19, 254, 0.3); }
         .bar-item.savings-bar-item[data-visible="true"] .bar-bg { box-shadow: 0 0 20px rgba(34, 197, 94, 0.6), 0 0 40px rgba(34, 197, 94, 0.3); }
         .bar-item[data-visible="true"] .chart-bar { filter: brightness(1.2) saturate(1.3); }
+        /* Radar chart pop-in animation */
+        .radar-shape { transform: scale(0); transform-box: view-box; transform-origin: 50% 50%; transition: transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s; }
+        .stats-active .radar-shape { transform: scale(1); }
         .chart-path { 
             stroke-dasharray: 2000; 
             stroke-dashoffset: 2000; 
@@ -1532,16 +1535,16 @@
         Object.assign(i18n.pt, { statsTitle: "Análise de Loot", statsEmpty: "Resgate jogos para gerar suas análises!", statsPlatform: "Loot por Plataforma", statsActivity: "Atividade (Mensal)", statsWealth: "Riqueza Total Gerada", statsGames: "Jogos", statsSaved: "Economizado", statsDate: "Data" });
 
         // New analytics i18n keys
-        Object.assign(i18n.en, { avgClaimValue: "Avg Claim Value", claimStreak: "Claim Streak", days: "days", maxStreak: "Max", claimHeatmap: "Claim Activity Heatmap", releaseHeatmap: "Release Time Heatmap", less: "Less", more: "More", top10Expensive: "Top 10 Most Valuable Claims", priceDistribution: "Price Distribution", trendComparison: "Trend Comparison", trendGrowth: "growth", trendSlight: "slight change", trendStable: "stable", trendDecline: "decline", trendGames: "Games", trendSavings: "Savings", thisMonth: "This Month", prevMonth: "Last Month", reactionTime: "Avg Reaction Time", reactionDesc: "publish → claim", bestHaul: "Best Haul Day", monthlySavings: "Monthly Savings", removalReasons: "Removal Reasons", removed: "removed", noRemovals: "No removed items yet." });
-        Object.assign(i18n['zh-CN'], { avgClaimValue: "平均领取价值", claimStreak: "连续领取", days: "天", maxStreak: "最长", claimHeatmap: "领取活动热力图", releaseHeatmap: "发布时间热力图", less: "少", more: "多", top10Expensive: "最有价值的 10 个领取", priceDistribution: "价格分布", trendComparison: "趋势对比", trendGrowth: "增长", trendSlight: "小幅变化", trendStable: "持平", trendDecline: "下降", trendGames: "游戏数量", trendSavings: "节省金额", thisMonth: "本月", prevMonth: "上月", reactionTime: "平均反应时间", reactionDesc: "发布 → 领取", bestHaul: "最佳收获日", monthlySavings: "每月节省", removalReasons: "移除原因", removed: "已移除", noRemovals: "还没有移除记录。" });
-        Object.assign(i18n['zh-TW'], { avgClaimValue: "平均領取價值", claimStreak: "連續領取", days: "天", maxStreak: "最長", claimHeatmap: "領取活動熱力圖", releaseHeatmap: "發布時間熱力圖", less: "少", more: "多", top10Expensive: "最有價值的 10 個領取", priceDistribution: "價格分佈", trendComparison: "趨勢對比", trendGrowth: "增長", trendSlight: "小幅變化", trendStable: "持平", trendDecline: "下降", trendGames: "遊戲數量", trendSavings: "節省金額", thisMonth: "本月", prevMonth: "上月", reactionTime: "平均反應時間", reactionDesc: "發布 → 領取", bestHaul: "最佳收穫日", monthlySavings: "每月節省", removalReasons: "移除原因", removed: "已移除", noRemovals: "還沒有移除記錄。" });
-        Object.assign(i18n.es, { avgClaimValue: "Valor Promedio", claimStreak: "Racha de Reclamos", days: "días", maxStreak: "Máx", claimHeatmap: "Mapa de Actividad", releaseHeatmap: "Mapa de Lanzamientos", less: "Menos", more: "Más", top10Expensive: "Top 10 Más Valiosos", priceDistribution: "Distribución de Precios", trendComparison: "Comparación de Tendencias", trendGrowth: "crecimiento", trendSlight: "cambio leve", trendStable: "estable", trendDecline: "descenso", trendGames: "Juegos", trendSavings: "Ahorros", thisMonth: "Este Mes", prevMonth: "Mes Pasado", reactionTime: "Tiempo de Reacción", reactionDesc: "publicación → reclamo", bestHaul: "Mejor Día", monthlySavings: "Ahorro Mensual", removalReasons: "Razones de Eliminación", removed: "eliminados", noRemovals: "Aún no hay eliminados." });
-        Object.assign(i18n.fr, { avgClaimValue: "Valeur Moyenne", claimStreak: "Série de Réclamations", days: "jours", maxStreak: "Max", claimHeatmap: "Carte d'Activité", releaseHeatmap: "Carte des Sorties", less: "Moins", more: "Plus", top10Expensive: "Top 10 Plus Valoureux", priceDistribution: "Distribution des Prix", trendComparison: "Comparaison des Tendances", trendGrowth: "croissance", trendSlight: "changement léger", trendStable: "stable", trendDecline: "baisse", trendGames: "Jeux", trendSavings: "Économies", thisMonth: "Ce Mois", prevMonth: "Mois Dernier", reactionTime: "Temps de Réaction", reactionDesc: "publication → réclamation", bestHaul: "Meilleur Jour", monthlySavings: "Économies Mensuelles", removalReasons: "Raisons de Retrait", removed: "retirés", noRemovals: "Pas encore d'éléments retirés." });
-        Object.assign(i18n.de, { avgClaimValue: "Durchschnittswert", claimStreak: "Claim-Serie", days: "Tage", maxStreak: "Max", claimHeatmap: "Aktivitäts-Heatmap", releaseHeatmap: "Release-Zeit Heatmap", less: "Weniger", more: "Mehr", top10Expensive: "Top 10 Wertvollste", priceDistribution: "Preisverteilung", trendComparison: "Trendvergleich", trendGrowth: "Wachstum", trendSlight: "leichte Änderung", trendStable: "stabil", trendDecline: "Rückgang", trendGames: "Spiele", trendSavings: "Ersparnis", thisMonth: "Dieser Monat", prevMonth: "Letzter Monat", reactionTime: "Reaktionszeit", reactionDesc: "Veröffentlichung → Claim", bestHaul: "Bester Tag", monthlySavings: "Monatliche Ersparnis", removalReasons: "Entfernungsgründe", removed: "entfernt", noRemovals: "Noch keine Entfernungen." });
-        Object.assign(i18n.ru, { avgClaimValue: "Средняя ценность", claimStreak: "Серия получений", days: "дней", maxStreak: "Макс", claimHeatmap: "Тепловая карта активности", releaseHeatmap: "Карта времени релизов", less: "Меньше", more: "Больше", top10Expensive: "Топ-10 самых ценных", priceDistribution: "Распределение цен", trendComparison: "Сравнение трендов", trendGrowth: "рост", trendSlight: "незначительное изменение", trendStable: "стабильно", trendDecline: "снижение", trendGames: "Игры", trendSavings: "Экономия", thisMonth: "Этот месяц", prevMonth: "Прошлый месяц", reactionTime: "Время Реакции", reactionDesc: "релиз → получение", bestHaul: "Лучший День", monthlySavings: "Экономия в Месяц", removalReasons: "Причины Удаления", removed: "удалено", noRemovals: "Пока нет удалений." });
-        Object.assign(i18n.ja, { avgClaimValue: "平均取得価値", claimStreak: "連続取得", days: "日", maxStreak: "最長", claimHeatmap: "取得アクティビティヒートマップ", releaseHeatmap: "リリース時間ヒートマップ", less: "少", more: "多", top10Expensive: "トップ10高価値", priceDistribution: "価格分布", trendComparison: "トレンド比較", trendGrowth: "成長", trendSlight: "微増", trendStable: "横ばい", trendDecline: "減少", trendGames: "ゲーム数", trendSavings: "節約額", thisMonth: "今月", prevMonth: "先月", reactionTime: "平均反応時間", reactionDesc: "公開 → 取得", bestHaul: "ベスト収穫日", monthlySavings: "月間節約額", removalReasons: "削除理由", removed: "削除済み", noRemovals: "まだ削除記録はありません。" });
-        Object.assign(i18n.ko, { avgClaimValue: "평균 획득 가치", claimStreak: "연속 획득", days: "일", maxStreak: "최대", claimHeatmap: "획득 활동 히트맵", releaseHeatmap: "출시 시간 히트맵", less: "적음", more: "많음", top10Expensive: "상위 10개 고가치", priceDistribution: "가격 분포", trendComparison: "트렌드 비교", trendGrowth: "성장", trendSlight: "소폭 변화", trendStable: "안정", trendDecline: "감소", trendGames: "게임", trendSavings: "절약", thisMonth: "이번 달", prevMonth: "지난달", reactionTime: "평균 반응 시간", reactionDesc: "공개 → 획득", bestHaul: "최고 수확일", monthlySavings: "월간 절약", removalReasons: "삭제 사유", removed: "삭제됨", noRemovals: "아직 삭제 기록이 없습니다." });
-        Object.assign(i18n.pt, { avgClaimValue: "Valor Médio", claimStreak: "Sequência de Resgates", days: "dias", maxStreak: "Máx", claimHeatmap: "Mapa de Atividade", releaseHeatmap: "Mapa de Lançamentos", less: "Menos", more: "Mais", top10Expensive: "Top 10 Mais Valiosos", priceDistribution: "Distribuição de Preços", trendComparison: "Comparação de Tendências", trendGrowth: "crescimento", trendSlight: "mudança leve", trendStable: "estável", trendDecline: "declínio", trendGames: "Jogos", trendSavings: "Economia", thisMonth: "Este Mês", prevMonth: "Mês Passado", reactionTime: "Tempo de Reação", reactionDesc: "publicação → resgate", bestHaul: "Melhor Dia", monthlySavings: "Economia Mensal", removalReasons: "Razões de Remoção", removed: "removidos", noRemovals: "Ainda não há remoções." });
+        Object.assign(i18n.en, { avgClaimValue: "Avg Claim Value", claimStreak: "Claim Streak", days: "days", maxStreak: "Max", claimHeatmap: "Claim Activity Heatmap", releaseHeatmap: "Release Time Heatmap", less: "Less", more: "More", top10Expensive: "Top 10 Most Valuable Claims", priceDistribution: "Price Distribution", trendComparison: "Trend Comparison", trendGrowth: "growth", trendSlight: "slight change", trendStable: "stable", trendDecline: "decline", trendGames: "Games", trendSavings: "Savings", thisMonth: "This Month", prevMonth: "Last Month", reactionTime: "Avg Reaction Time", reactionDesc: "publish → claim", bestHaul: "Best Haul Day", monthlySavings: "Monthly Savings", removalReasons: "Removal Reasons", removed: "removed", noRemovals: "No removed items yet.", gamerProfile: "Gamer Profile", profileSpeed: "Speed", profileValue: "Value", profileConsistency: "Consistency", profileDiversity: "Diversity", profileVolume: "Volume", speedDistribution: "Claim Speed", speedBucket1: "< 1 hour", speedBucket2: "1-24 hours", speedBucket3: "1-3 days", speedBucket4: "3+ days" });
+        Object.assign(i18n['zh-CN'], { avgClaimValue: "平均领取价值", claimStreak: "连续领取", days: "天", maxStreak: "最长", claimHeatmap: "领取活动热力图", releaseHeatmap: "发布时间热力图", less: "少", more: "多", top10Expensive: "最有价值的 10 个领取", priceDistribution: "价格分布", trendComparison: "趋势对比", trendGrowth: "增长", trendSlight: "小幅变化", trendStable: "持平", trendDecline: "下降", trendGames: "游戏数量", trendSavings: "节省金额", thisMonth: "本月", prevMonth: "上月", reactionTime: "平均反应时间", reactionDesc: "发布 → 领取", bestHaul: "最佳收获日", monthlySavings: "每月节省", removalReasons: "移除原因", removed: "已移除", noRemovals: "还没有移除记录。", gamerProfile: "玩家画像", profileSpeed: "速度", profileValue: "价值", profileConsistency: "规律性", profileDiversity: "多样性", profileVolume: "数量", speedDistribution: "领取速度", speedBucket1: "1小时内", speedBucket2: "1-24小时", speedBucket3: "1-3天", speedBucket4: "3天以上" });
+        Object.assign(i18n['zh-TW'], { avgClaimValue: "平均領取價值", claimStreak: "連續領取", days: "天", maxStreak: "最長", claimHeatmap: "領取活動熱力圖", releaseHeatmap: "發布時間熱力圖", less: "少", more: "多", top10Expensive: "最有價值的 10 個領取", priceDistribution: "價格分佈", trendComparison: "趨勢對比", trendGrowth: "增長", trendSlight: "小幅變化", trendStable: "持平", trendDecline: "下降", trendGames: "遊戲數量", trendSavings: "節省金額", thisMonth: "本月", prevMonth: "上月", reactionTime: "平均反應時間", reactionDesc: "發布 → 領取", bestHaul: "最佳收穫日", monthlySavings: "每月節省", removalReasons: "移除原因", removed: "已移除", noRemovals: "還沒有移除記錄。", gamerProfile: "玩家輪廓", profileSpeed: "速度", profileValue: "價值", profileConsistency: "規律性", profileDiversity: "多樣性", profileVolume: "數量", speedDistribution: "領取速度", speedBucket1: "< 1 小時", speedBucket2: "1-24 小時", speedBucket3: "1-3 天", speedBucket4: "3+ 天" });
+        Object.assign(i18n.es, { avgClaimValue: "Valor Promedio", claimStreak: "Racha de Reclamos", days: "días", maxStreak: "Máx", claimHeatmap: "Mapa de Actividad", releaseHeatmap: "Mapa de Lanzamientos", less: "Menos", more: "Más", top10Expensive: "Top 10 Más Valiosos", priceDistribution: "Distribución de Precios", trendComparison: "Comparación de Tendencias", trendGrowth: "crecimiento", trendSlight: "cambio leve", trendStable: "estable", trendDecline: "descenso", trendGames: "Juegos", trendSavings: "Ahorros", thisMonth: "Este Mes", prevMonth: "Mes Pasado", reactionTime: "Tiempo de Reacción", reactionDesc: "publicación → reclamo", bestHaul: "Mejor Día", monthlySavings: "Ahorro Mensual", removalReasons: "Razones de Eliminación", removed: "eliminados", noRemovals: "Aún no hay eliminados.", gamerProfile: "Perfil del Jugador", profileSpeed: "Velocidad", profileValue: "Valor", profileConsistency: "Constancia", profileDiversity: "Diversidad", profileVolume: "Volumen", speedDistribution: "Velocidad de Reclamo", speedBucket1: "< 1 hora", speedBucket2: "1-24 horas", speedBucket3: "1-3 días", speedBucket4: "3+ días" });
+        Object.assign(i18n.fr, { avgClaimValue: "Valeur Moyenne", claimStreak: "Série de Réclamations", days: "jours", maxStreak: "Max", claimHeatmap: "Carte d'Activité", releaseHeatmap: "Carte des Sorties", less: "Moins", more: "Plus", top10Expensive: "Top 10 Plus Valoureux", priceDistribution: "Distribution des Prix", trendComparison: "Comparaison des Tendances", trendGrowth: "croissance", trendSlight: "changement léger", trendStable: "stable", trendDecline: "baisse", trendGames: "Jeux", trendSavings: "Économies", thisMonth: "Ce Mois", prevMonth: "Mois Dernier", reactionTime: "Temps de Réaction", reactionDesc: "publication → réclamation", bestHaul: "Meilleur Jour", monthlySavings: "Économies Mensuelles", removalReasons: "Raisons de Retrait", removed: "retirés", noRemovals: "Pas encore d'éléments retirés.", gamerProfile: "Profil du Joueur", profileSpeed: "Vitesse", profileValue: "Valeur", profileConsistency: "Régularité", profileDiversity: "Diversité", profileVolume: "Volume", speedDistribution: "Vitesse de Réclamation", speedBucket1: "< 1 heure", speedBucket2: "1-24 heures", speedBucket3: "1-3 jours", speedBucket4: "3+ jours" });
+        Object.assign(i18n.de, { avgClaimValue: "Durchschnittswert", claimStreak: "Claim-Serie", days: "Tage", maxStreak: "Max", claimHeatmap: "Aktivitäts-Heatmap", releaseHeatmap: "Release-Zeit Heatmap", less: "Weniger", more: "Mehr", top10Expensive: "Top 10 Wertvollste", priceDistribution: "Preisverteilung", trendComparison: "Trendvergleich", trendGrowth: "Wachstum", trendSlight: "leichte Änderung", trendStable: "stabil", trendDecline: "Rückgang", trendGames: "Spiele", trendSavings: "Ersparnis", thisMonth: "Dieser Monat", prevMonth: "Letzter Monat", reactionTime: "Reaktionszeit", reactionDesc: "Veröffentlichung → Claim", bestHaul: "Bester Tag", monthlySavings: "Monatliche Ersparnis", removalReasons: "Entfernungsgründe", removed: "entfernt", noRemovals: "Noch keine Entfernungen.", gamerProfile: "Spielerprofil", profileSpeed: "Tempo", profileValue: "Wert", profileConsistency: "Beständigkeit", profileDiversity: "Vielfalt", profileVolume: "Menge", speedDistribution: "Claim-Tempo", speedBucket1: "< 1 Stunde", speedBucket2: "1-24 Stunden", speedBucket3: "1-3 Tage", speedBucket4: "3+ Tage" });
+        Object.assign(i18n.ru, { avgClaimValue: "Средняя ценность", claimStreak: "Серия получений", days: "дней", maxStreak: "Макс", claimHeatmap: "Тепловая карта активности", releaseHeatmap: "Карта времени релизов", less: "Меньше", more: "Больше", top10Expensive: "Топ-10 самых ценных", priceDistribution: "Распределение цен", trendComparison: "Сравнение трендов", trendGrowth: "рост", trendSlight: "незначительное изменение", trendStable: "стабильно", trendDecline: "снижение", trendGames: "Игры", trendSavings: "Экономия", thisMonth: "Этот месяц", prevMonth: "Прошлый месяц", reactionTime: "Время Реакции", reactionDesc: "релиз → получение", bestHaul: "Лучший День", monthlySavings: "Экономия в Месяц", removalReasons: "Причины Удаления", removed: "удалено", noRemovals: "Пока нет удалений.", gamerProfile: "Профиль Игрока", profileSpeed: "Скорость", profileValue: "Ценность", profileConsistency: "Постоянство", profileDiversity: "Разнообразие", profileVolume: "Объём", speedDistribution: "Скорость Получения", speedBucket1: "< 1 часа", speedBucket2: "1-24 часа", speedBucket3: "1-3 дня", speedBucket4: "3+ дней" });
+        Object.assign(i18n.ja, { avgClaimValue: "平均取得価値", claimStreak: "連続取得", days: "日", maxStreak: "最長", claimHeatmap: "取得アクティビティヒートマップ", releaseHeatmap: "リリース時間ヒートマップ", less: "少", more: "多", top10Expensive: "トップ10高価値", priceDistribution: "価格分布", trendComparison: "トレンド比較", trendGrowth: "成長", trendSlight: "微増", trendStable: "横ばい", trendDecline: "減少", trendGames: "ゲーム数", trendSavings: "節約額", thisMonth: "今月", prevMonth: "先月", reactionTime: "平均反応時間", reactionDesc: "公開 → 取得", bestHaul: "ベスト収穫日", monthlySavings: "月間節約額", removalReasons: "削除理由", removed: "削除済み", noRemovals: "まだ削除記録はありません。", gamerProfile: "ゲーマー像", profileSpeed: "スピード", profileValue: "価値", profileConsistency: "安定性", profileDiversity: "多様性", profileVolume: "ボリューム", speedDistribution: "取得速度", speedBucket1: "< 1時間", speedBucket2: "1-24時間", speedBucket3: "1-3日", speedBucket4: "3日以上" });
+        Object.assign(i18n.ko, { avgClaimValue: "평균 획득 가치", claimStreak: "연속 획득", days: "일", maxStreak: "최대", claimHeatmap: "획득 활동 히트맵", releaseHeatmap: "출시 시간 히트맵", less: "적음", more: "많음", top10Expensive: "상위 10개 고가치", priceDistribution: "가격 분포", trendComparison: "트렌드 비교", trendGrowth: "성장", trendSlight: "소폭 변화", trendStable: "안정", trendDecline: "감소", trendGames: "게임", trendSavings: "절약", thisMonth: "이번 달", prevMonth: "지난달", reactionTime: "평균 반응 시간", reactionDesc: "공개 → 획득", bestHaul: "최고 수확일", monthlySavings: "월간 절약", removalReasons: "삭제 사유", removed: "삭제됨", noRemovals: "아직 삭제 기록이 없습니다.", gamerProfile: "게이머 프로필", profileSpeed: "속도", profileValue: "가치", profileConsistency: "꾸준함", profileDiversity: "다양성", profileVolume: "수량", speedDistribution: "수령 속도", speedBucket1: "< 1시간", speedBucket2: "1-24시간", speedBucket3: "1-3일", speedBucket4: "3일 이상" });
+        Object.assign(i18n.pt, { avgClaimValue: "Valor Médio", claimStreak: "Sequência de Resgates", days: "dias", maxStreak: "Máx", claimHeatmap: "Mapa de Atividade", releaseHeatmap: "Mapa de Lançamentos", less: "Menos", more: "Mais", top10Expensive: "Top 10 Mais Valiosos", priceDistribution: "Distribuição de Preços", trendComparison: "Comparação de Tendências", trendGrowth: "crescimento", trendSlight: "mudança leve", trendStable: "estável", trendDecline: "declínio", trendGames: "Jogos", trendSavings: "Economia", thisMonth: "Este Mês", prevMonth: "Mês Passado", reactionTime: "Tempo de Reação", reactionDesc: "publicação → resgate", bestHaul: "Melhor Dia", monthlySavings: "Economia Mensal", removalReasons: "Razões de Remoção", removed: "removidos", noRemovals: "Ainda não há remoções.", gamerProfile: "Perfil do Jogador", profileSpeed: "Velocidade", profileValue: "Valor", profileConsistency: "Constância", profileDiversity: "Diversidade", profileVolume: "Volume", speedDistribution: "Velocidade de Resgate", speedBucket1: "< 1 hora", speedBucket2: "1-24 horas", speedBucket3: "1-3 dias", speedBucket4: "3+ dias" });
         // ------------------------------------------
 
         // --- LOCAL STORAGE COMPRESSION HELPERS ---
@@ -2547,6 +2550,139 @@
                 else reactionDisplay = (hrs / 24).toFixed(1) + 'd';
             }
 
+            // --- NEW: Claim Speed Distribution (reaction time buckets) ---
+            const speedBuckets = [0, 0, 0, 0]; // <1h, 1-24h, 1-3d, 3d+
+            games.forEach(g => {
+                const pub = new Date(g.date);
+                const cl = new Date(g.claimed_date || g.date);
+                if (!isNaN(pub.getTime()) && !isNaN(cl.getTime())) {
+                    const diffH = (cl.getTime() - pub.getTime()) / 3600000;
+                    if (diffH >= 0) {
+                        if (diffH < 1) speedBuckets[0]++;
+                        else if (diffH < 24) speedBuckets[1]++;
+                        else if (diffH < 72) speedBuckets[2]++;
+                        else speedBuckets[3]++;
+                    }
+                }
+            });
+            const speedTotal = speedBuckets.reduce((s, v) => s + v, 0);
+            const maxSpeedBucket = Math.max(...speedBuckets, 1);
+            const speedBucketLabels = [t.speedBucket1 || '< 1 hour', t.speedBucket2 || '1-24 hours', t.speedBucket3 || '1-3 days', t.speedBucket4 || '3+ days'];
+            const speedBucketGrads = ['from-emerald-600 to-emerald-400', 'from-blue-600 to-blue-400', 'from-amber-600 to-amber-400', 'from-rose-600 to-rose-400'];
+            const speedBucketTexts = ['text-emerald-500', 'text-blue-500', 'text-amber-500', 'text-rose-500'];
+            const speedDistHtml = speedBuckets.map((cnt, i) => {
+                const pct = speedTotal > 0 ? Math.round((cnt / speedTotal) * 100) : 0;
+                const heightPct = (cnt / maxSpeedBucket) * 100;
+                return `
+                    <div class="flex flex-col items-center gap-2 flex-1 min-w-0">
+                        <span class="text-sm font-black ${speedBucketTexts[i]}">${cnt}<span class="text-[9px] font-bold text-gray-400 ml-1">(${pct}%)</span></span>
+                        <div class="w-full max-w-[40px] bg-gray-200 dark:bg-gray-800 rounded-t-lg flex items-end h-28 relative overflow-hidden">
+                            <div class="chart-bar w-full bg-gradient-to-t ${speedBucketGrads[i]} rounded-t-lg" style="height: 0%" data-target-height="${heightPct}%"></div>
+                        </div>
+                        <span class="text-[9px] font-bold text-gray-400 uppercase text-center leading-tight">${speedBucketLabels[i]}</span>
+                    </div>
+                `;
+            }).join('');
+
+            // --- NEW: Gamer Profile radar scores (0-100) ---
+            // Speed: from avg reaction time (piecewise linear over hours)
+            let speedScore = 0;
+            if (reactionCount > 0) {
+                const avgH = avgReactionMs / 3600000;
+                const sPts = [[0, 100], [1, 95], [6, 80], [24, 65], [72, 45], [168, 25], [720, 5]];
+                if (avgH <= sPts[0][0]) speedScore = sPts[0][1];
+                else if (avgH >= sPts[sPts.length - 1][0]) speedScore = sPts[sPts.length - 1][1];
+                else {
+                    for (let si = 0; si < sPts.length - 1; si++) {
+                        if (avgH >= sPts[si][0] && avgH <= sPts[si + 1][0]) {
+                            const ratio = (avgH - sPts[si][0]) / (sPts[si + 1][0] - sPts[si][0]);
+                            speedScore = sPts[si][1] + ratio * (sPts[si + 1][1] - sPts[si][1]);
+                            break;
+                        }
+                    }
+                }
+            }
+            speedScore = Math.round(speedScore);
+
+            // Value: from avg claim value (log scale, $50+ = 100)
+            const avgValForRadar = games.reduce((s, g) => s + (g.value || 0), 0) / games.length;
+            const valueScore = Math.round(Math.min(100, Math.log10(1 + avgValForRadar) / Math.log10(51) * 100));
+
+            // Consistency: share of active weeks between first and last claim (min 4-week window)
+            const radarClaimTimes = games.map(g => new Date(g.claimed_date || g.date).getTime()).filter(v => !isNaN(v)).sort((a, b) => a - b);
+            let consistencyScore = 0;
+            if (radarClaimTimes.length >= 2) {
+                const spanMs = Math.max(radarClaimTimes[radarClaimTimes.length - 1] - radarClaimTimes[0], 28 * 86400000);
+                const totalWeeks = Math.ceil(spanMs / (7 * 86400000));
+                const weekSet = new Set(radarClaimTimes.map(v => Math.floor(v / (7 * 86400000))));
+                consistencyScore = Math.round(Math.min(100, (weekSet.size / totalWeeks) * 100));
+            } else if (radarClaimTimes.length === 1) {
+                consistencyScore = 20;
+            }
+
+            // Diversity: broad groups (PC/Console/Mobile) + distinct platform labels
+            const broadGroups = new Set();
+            const platLabelSet = new Set();
+            games.forEach(g => {
+                const rawP = (g.platforms || 'PC').toLowerCase();
+                let lbl;
+                if (rawP.includes('epic')) lbl = 'Epic';
+                else if (rawP.includes('steam')) lbl = 'Steam';
+                else if (rawP.includes('gog')) lbl = 'GOG';
+                else if (rawP.includes('prime') || rawP.includes('amazon')) lbl = 'Prime';
+                else if (rawP.includes('ubisoft') || rawP.includes('uplay')) lbl = 'Ubisoft';
+                else if (rawP.includes('playstation') || rawP.includes('ps4') || rawP.includes('ps5')) lbl = 'PlayStation';
+                else if (rawP.includes('xbox')) lbl = 'Xbox';
+                else if (rawP.includes('switch') || rawP.includes('nintendo')) lbl = 'Nintendo';
+                else if (rawP.includes('android') || rawP.includes('ios')) lbl = 'Mobile';
+                else lbl = 'Other';
+                platLabelSet.add(lbl);
+                if (lbl === 'PlayStation' || lbl === 'Xbox' || lbl === 'Nintendo') broadGroups.add('console');
+                else if (lbl === 'Mobile') broadGroups.add('mobile');
+                else broadGroups.add('pc');
+            });
+            const diversityScore = Math.round(Math.min(100, (broadGroups.size / 3) * 60 + (platLabelSet.size / 10) * 40));
+
+            // Volume: log scale (200+ claims = 100)
+            const volumeScore = Math.round(Math.min(100, Math.log10(1 + games.length) / Math.log10(201) * 100));
+
+            // --- NEW: Build radar SVG ---
+            const radarAxes = [
+                { label: t.profileSpeed || 'Speed', score: speedScore },
+                { label: t.profileValue || 'Value', score: valueScore },
+                { label: t.profileConsistency || 'Consistency', score: consistencyScore },
+                { label: t.profileDiversity || 'Diversity', score: diversityScore },
+                { label: t.profileVolume || 'Volume', score: volumeScore }
+            ];
+            const rCx = 120, rCy = 100, rR = 55;
+            const radarPt = (i, radius) => {
+                const ang = (-90 + i * 72) * Math.PI / 180;
+                return [rCx + radius * Math.cos(ang), rCy + radius * Math.sin(ang)];
+            };
+            const radarRingsHtml = [0.25, 0.5, 0.75, 1].map(f =>
+                `<polygon points="${radarAxes.map((_, i) => radarPt(i, rR * f).map(v => v.toFixed(1)).join(',')).join(' ')}" fill="none" class="stroke-gray-200 dark:stroke-gray-700" stroke-width="1"></polygon>`
+            ).join('');
+            const radarSpokesHtml = radarAxes.map((_, i) => {
+                const pt = radarPt(i, rR);
+                return `<line x1="${rCx}" y1="${rCy}" x2="${pt[0].toFixed(1)}" y2="${pt[1].toFixed(1)}" class="stroke-gray-200 dark:stroke-gray-700" stroke-width="1"></line>`;
+            }).join('');
+            const radarDataPoints = radarAxes.map((a, i) => radarPt(i, rR * Math.max(a.score, 3) / 100).map(v => v.toFixed(1)).join(',')).join(' ');
+            const radarLabelsHtml = radarAxes.map((a, i) => {
+                const ang = (-90 + i * 72) * Math.PI / 180;
+                const lx = rCx + (rR + 14) * Math.cos(ang);
+                const ly = rCy + (rR + 14) * Math.sin(ang);
+                const anchor = Math.abs(Math.cos(ang)) < 0.35 ? 'middle' : (Math.cos(ang) > 0 ? 'start' : 'end');
+                const dy = Math.sin(ang) < -0.5 ? -6 : (Math.sin(ang) > 0.5 ? 8 : 2);
+                return `<text x="${lx.toFixed(1)}" y="${(ly + dy).toFixed(1)}" text-anchor="${anchor}" class="fill-gray-500 dark:fill-gray-400" style="font-size: 9px; font-weight: 700;">${a.label}<tspan x="${lx.toFixed(1)}" dy="11" class="fill-purple-500 dark:fill-purple-400" style="font-size: 10px; font-weight: 800;">${a.score}</tspan></text>`;
+            }).join('');
+            const radarSvgHtml = `
+                <svg viewBox="0 0 240 200" class="w-full max-w-[280px] mx-auto block">
+                    ${radarRingsHtml}
+                    ${radarSpokesHtml}
+                    <polygon class="radar-shape" points="${radarDataPoints}" fill="rgba(168, 85, 247, 0.25)" stroke="#a855f7" stroke-width="2" stroke-linejoin="round"></polygon>
+                    ${radarLabelsHtml}
+                </svg>`;
+
             // --- NEW: Best Haul Day (highest single-day claimed value) ---
             const haulByDay = {};
             games.forEach(g => {
@@ -3015,6 +3151,20 @@
                             <div class="text-2xl font-black text-green-500">${bestHaulDisplay}</div>
                             <div class="text-[9px] text-gray-400 mt-1">${bestHaulDateDisplay}</div>
                         </div>
+                    </div>
+
+                    <!-- NEW: Gamer Profile Radar + Claim Speed Distribution -->
+                    <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800">
+                        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">${t.gamerProfile || 'Gamer Profile'}</h3>
+                        ${radarSvgHtml}
+                    </div>
+
+                    <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800">
+                        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4">${t.speedDistribution || 'Claim Speed'}</h3>
+                        <div class="flex items-end justify-around gap-2 pt-1">
+                            ${speedDistHtml}
+                        </div>
+                        <div class="text-[9px] text-gray-400 text-center mt-3">${t.reactionDesc || 'publish → claim'}</div>
                     </div>
 
                     <!-- NEW: Claim Heatmap -->

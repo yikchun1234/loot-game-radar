@@ -314,6 +314,14 @@
                         </div>
                         <span id="feed-filter-unclaimed-count" class="text-xs font-bold text-orange-500 bg-orange-50 dark:bg-orange-900/20 px-2 py-0.5 rounded-full">0</span>
                     </label>
+                    <label class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors mt-2">
+                        <input type="checkbox" id="feed-filter-expiring" onchange="toggleExpiringFilter(this.checked)" class="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-red-500 focus:ring-red-500 dark:bg-gray-700">
+                        <div class="flex-1">
+                            <p class="ff-label2 text-sm font-bold text-gray-700 dark:text-gray-200">Expiring Soon</p>
+                            <p class="ff-desc2 text-[10px] text-gray-400 dark:text-gray-500">Deals ending within 2 days</p>
+                        </div>
+                        <span id="feed-filter-expiring-count" class="text-xs font-bold text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded-full">0</span>
+                    </label>
                 </div>
             </div>
 
@@ -1120,7 +1128,7 @@
                 syncImportDataBtn: "Import Data",
                 syncExportInst: "Enter this PIN on your other device within 15 minutes.",
                 syncImportWarn: "Warning: Importing will permanently overwrite your current library and savings on this device.",
-                feedFilters: "Feed Filters", unclaimedOnly: "Unclaimed Only", hideClaimedDeleted: "Hide claimed & deleted items"
+                feedFilters: "Feed Filters", unclaimedOnly: "Unclaimed Only", hideClaimedDeleted: "Hide claimed & deleted items", expiringSoon: "Expiring Soon", expiringSoonDesc: "Deals ending within 2 days"
             },
             'zh-CN': {
                 title: "白嫖雷达", subtitle: "全网免费游戏限免实时追踪平台",
@@ -1160,7 +1168,7 @@
                 syncImportDataBtn: "导入数据",
                 syncExportInst: "请在15分钟内于另一台设备上输入此PIN码。",
                 syncImportWarn: "警告：导入操作将永久覆盖本设备上的当前游戏库和节省金额。",
-                feedFilters: "筛选条件", unclaimedOnly: "仅待领取", hideClaimedDeleted: "隐藏已领取和已删除项目"
+                feedFilters: "筛选条件", unclaimedOnly: "仅待领取", hideClaimedDeleted: "隐藏已领取和已删除项目", expiringSoon: "即将过期", expiringSoonDesc: "2 天内结束的活动"
             },
             'zh-TW': {
                 title: "白嫖雷達", subtitle: "全網免費遊戲限免實時追蹤平台",
@@ -1200,7 +1208,7 @@
                 syncImportDataBtn: "匯入資料",
                 syncExportInst: "請在15分鐘內於另一台裝置上輸入此PIN碼。",
                 syncImportWarn: "警告：匯入操作將永久覆蓋本裝置上的目前遊戲庫和節省金額。",
-                feedFilters: "篩選條件", unclaimedOnly: "僅待領取", hideClaimedDeleted: "隱藏已領取和已刪除項目"
+                feedFilters: "篩選條件", unclaimedOnly: "僅待領取", hideClaimedDeleted: "隱藏已領取和已刪除項目", expiringSoon: "即將過期", expiringSoonDesc: "2 天內結束的活動"
             },
             es: {
                 title: "RadarLoot", subtitle: "Rastreando juegos gratis en el multiverso", 
@@ -1242,7 +1250,7 @@
                 syncImportDataBtn: "Importar Datos",
                 syncExportInst: "Ingresa este PIN en tu otro dispositivo dentro de 15 minutos.",
                 syncImportWarn: "Advertencia: Importar sobrescribirá permanentemente tu biblioteca actual y ahorros en este dispositivo.",
-                feedFilters: "Filtros", unclaimedOnly: "Solo sin reclamar", hideClaimedDeleted: "Ocultar reclamados y eliminados"
+                feedFilters: "Filtros", unclaimedOnly: "Solo sin reclamar", hideClaimedDeleted: "Ocultar reclamados y eliminados", expiringSoon: "Por Expirar", expiringSoonDesc: "Ofertas que terminan en 2 días"
             },
             fr: {
                 title: "RadarButin", subtitle: "Suivi des jeux gratuits dans le multivers", 
@@ -1284,7 +1292,7 @@
                 syncImportDataBtn: "Importer les Données",
                 syncExportInst: "Saisissez ce PIN sur votre autre appareil dans les 15 minutes.",
                 syncImportWarn: "Avertissement : L'importation écrasera définitivement votre bibliothèque et vos économies sur cet appareil.",
-                feedFilters: "Filtres", unclaimedOnly: "Non réclamés uniquement", hideClaimedDeleted: "Masquer réclamés et supprimés"
+                feedFilters: "Filtres", unclaimedOnly: "Non réclamés uniquement", hideClaimedDeleted: "Masquer réclamés et supprimés", expiringSoon: "Expire Bientôt", expiringSoonDesc: "Offres se terminant sous 2 jours"
             },
             de: {
                 title: "LootRadar", subtitle: "Verfolgung kostenloser Spiele", 
@@ -1326,7 +1334,7 @@
                 syncImportDataBtn: "Daten Importieren",
                 syncExportInst: "Geben Sie diese PIN innerhalb von 15 Minuten auf Ihrem anderen Gerät ein.",
                 syncImportWarn: "Warnung: Beim Importieren werden Ihre aktuelle Bibliothek und Ihre Ersparnisse dauerhaft überschrieben.",
-                feedFilters: "Filter", unclaimedOnly: "Nur nicht eingelöst", hideClaimedDeleted: "Eingelöste & gelöschte ausblenden"
+                feedFilters: "Filter", unclaimedOnly: "Nur nicht eingelöst", hideClaimedDeleted: "Eingelöste & gelöschte ausblenden", expiringSoon: "Läuft Bald Ab", expiringSoonDesc: "Angebote enden in 2 Tagen"
             },
             ru: {
                 title: "РадарЛута", subtitle: "Отслеживание бесплатных игр", 
@@ -1368,7 +1376,7 @@
                 syncImportDataBtn: "Импорт Данных",
                 syncExportInst: "Введите этот PIN-код на другом устройстве в течение 15 минут.",
                 syncImportWarn: "Внимание: Импорт навсегда перезапишет вашу текущую библиотеку и сэкономленные средства на этом устройстве.",
-                feedFilters: "Фильтры", unclaimedOnly: "Только невостребованные", hideClaimedDeleted: "Скрыть востребованные и удалённые"
+                feedFilters: "Фильтры", unclaimedOnly: "Только невостребованные", hideClaimedDeleted: "Скрыть востребованные и удалённые", expiringSoon: "Скоро Истекает", expiringSoonDesc: "Предложения заканчиваются через 2 дня"
             },
             ja: {
                 title: "ルートレーダー", subtitle: "無料ゲームをリアルタイムで追跡", 
@@ -1410,7 +1418,7 @@
                 syncImportDataBtn: "データ入力",
                 syncExportInst: "15分以内に別のデバイスでこのPINを入力してください。",
                 syncImportWarn: "警告：インポートすると、このデバイスの現在のライブラリと節約額が完全に上書きされます。",
-                feedFilters: "フィルター", unclaimedOnly: "未取得のみ", hideClaimedDeleted: "取得済み・削除済みを非表示"
+                feedFilters: "フィルター", unclaimedOnly: "未取得のみ", hideClaimedDeleted: "取得済み・削除済みを非表示", expiringSoon: "まもなく終了", expiringSoonDesc: "2日以内に終了する案件"
             },
             ko: {
                 title: "루트 레이더", subtitle: "무료 게임 실시간 추적", 
@@ -1452,7 +1460,7 @@
                 syncImportDataBtn: "데이터 가져오기",
                 syncExportInst: "15분 이내에 다른 기기에 이 PIN을 입력하세요.",
                 syncImportWarn: "경고: 가져오기를 실행하면 이 기기의 현재 라이브러리와 절약액을 영구적으로 덮어씁니다.",
-                feedFilters: "필터", unclaimedOnly: "미청구만", hideClaimedDeleted: "청구됨 및 삭제된 항목 숨기기"
+                feedFilters: "필터", unclaimedOnly: "미청구만", hideClaimedDeleted: "청구됨 및 삭제된 항목 숨기기", expiringSoon: "곧 만료", expiringSoonDesc: "2일 내 종료 예정"
             },
             pt: {
                 title: "RadarLoot", subtitle: "Rastreando jogos grátis", 
@@ -1494,7 +1502,7 @@
                 syncImportDataBtn: "Importar Dados",
                 syncExportInst: "Insira este PIN no seu outro dispositivo em até 15 minutos.",
                 syncImportWarn: "Aviso: A importação substituirá permanentemente sua biblioteca atual e economia neste dispositivo.",
-                feedFilters: "Filtros", unclaimedOnly: "Somente não resgatados", hideClaimedDeleted: "Ocultar resgatados e excluídos"
+                feedFilters: "Filtros", unclaimedOnly: "Somente não resgatados", hideClaimedDeleted: "Ocultar resgatados e excluídos", expiringSoon: "Expirando em Breve", expiringSoonDesc: "Ofertas terminando em 2 dias"
             }
         };
 
@@ -1599,6 +1607,7 @@
           games: [],
           currentPlatform: 'All',
           showUnclaimedOnly: false, // Filter to show only unclaimed items
+          showExpiringOnly: false, // Filter to show deals expiring within 2 days
           isLoading: false,
           claimedGames: loadSafeStorage('lootradar_claimed_v2') || loadSafeStorage('lootradar_claimed') || {},
           totalSaved: parseFloat(localStorage.getItem('lootradar_saved_money')) || 0,
@@ -1919,6 +1928,19 @@
         }
 
         // === Feed Filter Dropdown ===
+        function isExpiringSoon(g) {
+            const end = g.end_date ? new Date(g.end_date) : null;
+            if (!end || isNaN(end.getTime())) return false;
+            const now = Date.now();
+            const inTwoDays = now + 2 * 86400000;
+            // Expiring within the next 2 days (and not already expired)
+            return end.getTime() >= now && end.getTime() <= inTwoDays;
+        }
+
+        function getExpiringCount() {
+            return state.games.filter(g => isExpiringSoon(g)).length;
+        }
+
         function getUnclaimedCount() {
             return state.games.filter(g => {
                 const normId = g.normalizedId || normalizeUrl(g.open_giveaway || g.id || '');
@@ -1953,11 +1975,17 @@
                 panel.querySelector('.ff-title').textContent = t.feedFilters || 'Feed Filters';
                 panel.querySelector('.ff-label').textContent = t.unclaimedOnly || 'Unclaimed Only';
                 panel.querySelector('.ff-desc').textContent = t.hideClaimedDeleted || 'Hide claimed & deleted items';
+                panel.querySelector('.ff-label2').textContent = t.expiringSoon || 'Expiring Soon';
+                panel.querySelector('.ff-desc2').textContent = t.expiringSoonDesc || 'Deals ending within 2 days';
                 // Update checkbox state and count
                 const cb = document.getElementById('feed-filter-unclaimed');
                 if (cb) cb.checked = state.showUnclaimedOnly;
                 const countEl = document.getElementById('feed-filter-unclaimed-count');
                 if (countEl) countEl.textContent = getUnclaimedCount();
+                const cbExp = document.getElementById('feed-filter-expiring');
+                if (cbExp) cbExp.checked = state.showExpiringOnly;
+                const countExp = document.getElementById('feed-filter-expiring-count');
+                if (countExp) countExp.textContent = getExpiringCount();
                 // Animate open
                 requestAnimationFrame(() => {
                     panel.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
@@ -1981,18 +2009,28 @@
             renderGames();
         }
 
+        function toggleExpiringFilter(checked) {
+            state.showExpiringOnly = !!checked;
+            updateFeedFilterUI();
+            renderGames();
+        }
+
         function updateFeedFilterUI() {
             const badge = document.getElementById('feed-filter-badge');
             if (badge) {
-                if (state.showUnclaimedOnly) badge.classList.remove('hidden');
+                if (state.showUnclaimedOnly || state.showExpiringOnly) badge.classList.remove('hidden');
                 else badge.classList.add('hidden');
             }
-            // Keep checkbox in sync
+            // Keep checkboxes in sync
             const cb = document.getElementById('feed-filter-unclaimed');
             if (cb) cb.checked = state.showUnclaimedOnly;
-            // Update count
+            const cbExp = document.getElementById('feed-filter-expiring');
+            if (cbExp) cbExp.checked = state.showExpiringOnly;
+            // Update counts
             const countEl = document.getElementById('feed-filter-unclaimed-count');
             if (countEl) countEl.textContent = getUnclaimedCount();
+            const countExp = document.getElementById('feed-filter-expiring-count');
+            if (countExp) countExp.textContent = getExpiringCount();
         }
 
         // Close dropdown when clicking outside or scrolling
@@ -5329,6 +5367,11 @@
                     }
                     return true;
                 });
+            }
+
+            // Apply Expiring Soon filter (end_date within 2 days)
+            if (state.showExpiringOnly) {
+                filteredGames = filteredGames.filter(g => isExpiringSoon(g));
             }
 
             if (filteredGames.length === 0) {

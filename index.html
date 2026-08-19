@@ -4665,7 +4665,9 @@
         // --- SCROLL-TRIGGERED CHART ANIMATIONS ---
         // Each chart panel animates only when it scrolls into view,
         // so users actually see every animation instead of missing the
-        // below-the-fold ones.
+        // below-the-fold ones. A scroll sweep (rAF-throttled) is used
+        // instead of IntersectionObserver so panels skipped by a fast
+        // flick / scrollbar drag are still marked as animated.
         function initStatsScrollAnimations() {
             const container = document.getElementById('stats-container');
             if (!container) return;
@@ -4678,6 +4680,7 @@
                 if ((oy === 'auto' || oy === 'scroll') && el.scrollHeight > el.clientHeight) { scrollRoot = el; break; }
                 el = el.parentElement;
             }
+            if (!scrollRoot) scrollRoot = document.scrollingElement || document.documentElement;
 
             const animatePanel = (panel) => {
                 panel.classList.add('chart-in-view');
@@ -4698,38 +4701,44 @@
                 });
             };
 
-            const panels = container.querySelectorAll('.glass-panel');
-
             // Fallback for very old browsers: animate everything at once
-            if (!('IntersectionObserver' in window)) {
-                panels.forEach(animatePanel);
+            if (!window.requestAnimationFrame) {
+                container.querySelectorAll('.glass-panel').forEach(animatePanel);
                 return;
             }
 
-            // Clean up any observer left over from a previous open
-            if (window.statsChartIO) { window.statsChartIO.disconnect(); }
+            const pendingPanels = () => Array.from(container.querySelectorAll('.glass-panel:not(.chart-in-view)'));
 
-            window.statsChartIO = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    // Animate when visible, OR if the user already scrolled past
-                    // the panel (fast flick / scrollbar drag) so no chart is
-                    // left stuck at 0% when they scroll back up.
-                    const rootTop = entry.rootBounds ? entry.rootBounds.top : 0;
-                    const scrolledPast = entry.boundingClientRect.top < rootTop;
-                    if (entry.isIntersecting || scrolledPast) {
-                        animatePanel(entry.target);
-                        window.statsChartIO.unobserve(entry.target);
-                    }
+            // Animate panels that are visible OR already scrolled past
+            const sweep = () => {
+                const rootRect = scrollRoot.getBoundingClientRect();
+                const triggerLine = rootRect.bottom - rootRect.height * 0.1;
+                pendingPanels().forEach(panel => {
+                    if (panel.getBoundingClientRect().top < triggerLine) animatePanel(panel);
                 });
-            }, {
-                root: scrollRoot,
-                // Panel must enter ~10% of the viewport height before firing,
-                // so the animation is clearly visible (not right at the edge)
-                rootMargin: '0px 0px -10% 0px',
-                threshold: 0
-            });
+                // All done → stop listening
+                if (pendingPanels().length === 0 && window.statsScrollSweep) {
+                    scrollRoot.removeEventListener('scroll', window.statsScrollSweep);
+                    window.statsScrollSweep = null;
+                }
+            };
 
-            panels.forEach(p => window.statsChartIO.observe(p));
+            // Remove any listener left over from a previous open
+            if (window.statsScrollSweep) {
+                scrollRoot.removeEventListener('scroll', window.statsScrollSweep);
+                window.statsScrollSweep = null;
+            }
+
+            let ticking = false;
+            window.statsScrollSweep = function() {
+                if (ticking) return;
+                ticking = true;
+                requestAnimationFrame(() => { sweep(); ticking = false; });
+            };
+            scrollRoot.addEventListener('scroll', window.statsScrollSweep, { passive: true });
+
+            // Initial sweep: panels already visible animate right away
+            sweep();
         }
 
         // Update bar chart fade indicator based on scroll position

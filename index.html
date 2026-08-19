@@ -2149,6 +2149,7 @@
 
                 // Initialize bar chart scroll (auto-scroll to newest, show fade if needed)
                 initBarChartScroll();
+                initSavingsBarScroll();
             }, 300);
             
           } else {
@@ -2565,7 +2566,7 @@
                 if (!monthSavings[key]) monthSavings[key] = { label, total: 0 };
                 monthSavings[key].total += (g.value || 0);
             });
-            const savingsMonths = Object.values(monthSavings);
+            const savingsMonths = Object.entries(monthSavings).sort((a, b) => a[0].localeCompare(b[0])).map(e => e[1]);
             const maxSavingsBar = Math.max(...savingsMonths.map(m => m.total), 1);
             let savingsBarsHtml = savingsMonths.map(m => {
                 const heightPct = (m.total / maxSavingsBar) * 100;
@@ -2597,9 +2598,9 @@
                     const pct = (count / totalRemovals) * 100;
                     const label = reasonLabels[reason] || reason;
                     const color = reasonColors[reason] || '#6b7280';
-                    removalPieHtml += `<circle cx="21" cy="21" r="15.91549430918954" fill="none" stroke="${color}" stroke-width="6" stroke-dasharray="${pct} ${100 - pct}" stroke-dashoffset="${-removalOffset}"></circle>`;
+                    removalPieHtml += `<circle class="cursor-pointer hover:opacity-75" style="pointer-events: painted;" cx="21" cy="21" r="15.91549430918954" fill="none" stroke="${color}" stroke-width="6" stroke-dasharray="${pct} ${100 - pct}" stroke-dashoffset="${-removalOffset}" onclick="updateRemovalCenter(${count}, '${label.replace(/'/g, "\\'")}')" onmouseenter="updateRemovalCenter(${count}, '${label.replace(/'/g, "\\'")}')"></circle>`;
                     removalLegendHtml += `
-                        <div class="flex items-center justify-between w-full gap-2 p-1.5 -mx-1.5 rounded-lg">
+                        <div class="flex items-center justify-between w-full gap-2 p-1.5 -mx-1.5 rounded-lg cursor-pointer hover:bg-light-surface dark:hover:bg-gray-800/50 transition-colors" onclick="updateRemovalCenter(${count}, '${label.replace(/'/g, "\\'")}')" onmouseenter="updateRemovalCenter(${count}, '${label.replace(/'/g, "\\'")}')">
                             <div class="flex items-center gap-2 min-w-0">
                                 <div class="w-3 h-3 rounded-full shrink-0" style="background-color: ${color}"></div>
                                 <span class="text-xs font-bold dark:text-gray-300 truncate max-w-[100px]" title="${label}">${label}</span>
@@ -2926,7 +2927,10 @@
                     <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 flex flex-col">
                         <h3 class="w-full text-left text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4">${t.monthlySavings || 'Monthly Savings'}</h3>
                         <div class="flex-1 flex items-end mt-auto relative">
-                            <div class="flex items-end gap-2 overflow-x-auto w-full pb-2" style="scroll-behavior: smooth; scrollbar-width: thin;">
+                            <!-- Left fade indicator (shown when scrollable) -->
+                            <div id="savings-bar-fade" class="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-white dark:from-dark-card to-transparent z-10 pointer-events-none opacity-0 transition-opacity duration-300"></div>
+                            <!-- Scrollable bar container (auto-scroll to newest) -->
+                            <div id="savings-bar-scroll" class="flex items-end gap-2 overflow-x-auto w-full pb-2" onscroll="updateSavingsBarFade()" style="scroll-behavior: smooth; scrollbar-width: thin;">
                                 ${savingsBarsHtml}
                             </div>
                         </div>
@@ -2942,9 +2946,9 @@
                                     <circle cx="21" cy="21" r="15.91549430918954" fill="none" stroke="rgba(128,128,128,0.2)" stroke-width="6"></circle>
                                     ${removalPieHtml}
                                 </svg>
-                                <div class="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                    <span class="text-2xl font-black dark:text-white">${totalRemovals}</span>
-                                    <span class="text-[9px] font-bold text-gray-500 uppercase">${t.removed || 'removed'}</span>
+                                <div id="removal-center-content" class="absolute inset-0 flex flex-col items-center justify-center transition-all duration-200 ease-in-out pointer-events-none">
+                                    <span id="removal-center-count" class="text-2xl font-black dark:text-white">${totalRemovals}</span>
+                                    <span id="removal-center-label" class="text-[9px] font-bold text-gray-500 uppercase truncate max-w-[80px] px-2 text-center">${t.removed || 'removed'}</span>
                                 </div>
                             </div>
                             <div class="flex flex-col gap-3 justify-center w-full max-w-[160px]">
@@ -4554,6 +4558,61 @@
                 }
             });
         }
+
+        // --- MONTHLY SAVINGS BAR: fade + auto-scroll (mirrors activity bar) ---
+        window.updateSavingsBarFade = function() {
+            const sc = document.getElementById('savings-bar-scroll');
+            const fade = document.getElementById('savings-bar-fade');
+            if (!sc || !fade) return;
+            fade.style.opacity = sc.scrollLeft > 10 ? '1' : '0';
+        };
+        function initSavingsBarScroll() {
+            const sc = document.getElementById('savings-bar-scroll');
+            if (!sc) return;
+            // Auto-scroll to show newest months (right side)
+            sc.scrollLeft = sc.scrollWidth;
+            setTimeout(() => window.updateSavingsBarFade(), 100);
+            sc.addEventListener('click', function(e) {
+                const barItem = e.target.closest('.bar-item');
+                if (!barItem) return;
+                const isVisible = barItem.getAttribute('data-visible') === 'true';
+                sc.querySelectorAll('.bar-item').forEach(item => item.setAttribute('data-visible', 'false'));
+                if (!isVisible) barItem.setAttribute('data-visible', 'true');
+            });
+        }
+
+        // --- REMOVAL REASONS DONUT: center interaction (mirrors platform donut) ---
+        window.updateRemovalCenter = function(count, label) {
+            const countEl = document.getElementById('removal-center-count');
+            const labelEl = document.getElementById('removal-center-label');
+            const contentEl = document.getElementById('removal-center-content');
+            if (!countEl || !labelEl || !contentEl) return;
+
+            clearTimeout(window.rmSwapTimeout);
+            clearTimeout(window.rmResetTimeout);
+            clearTimeout(window.rmRestoreTimeout);
+
+            contentEl.style.opacity = '0';
+            contentEl.style.transform = 'scale(0.8)';
+
+            window.rmSwapTimeout = setTimeout(() => {
+                countEl.innerText = count;
+                labelEl.innerText = label;
+                contentEl.style.opacity = '1';
+                contentEl.style.transform = 'scale(1)';
+            }, 200);
+
+            window.rmResetTimeout = setTimeout(() => {
+                contentEl.style.opacity = '0';
+                contentEl.style.transform = 'scale(0.8)';
+                window.rmRestoreTimeout = setTimeout(() => {
+                    countEl.innerText = (state.deletedHistory || []).length;
+                    labelEl.innerText = i18n[state.lang].removed || 'removed';
+                    contentEl.style.opacity = '1';
+                    contentEl.style.transform = 'scale(1)';
+                }, 200);
+            }, 2000);
+        };
                 
         function toggleDisclaimer() {
             const modal = document.getElementById('disclaimer-modal');

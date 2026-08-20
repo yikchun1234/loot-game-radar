@@ -2149,6 +2149,10 @@
             // old scroll position survives the reopen.
             const scrollArea = modal.querySelector('.library-scroll-area');
             if (scrollArea) scrollArea.scrollTop = 0;
+
+            // The scroll-to-top button belongs to the feed/library screens —
+            // hide it while analytics is on top
+            if (window.updateScrollButtonState) window.updateScrollButtonState();
             
             // 2. Slide in
             void modal.offsetWidth;
@@ -2195,6 +2199,8 @@
             setTimeout(() => {
               modal.classList.add('hidden');
               modal.classList.remove('flex');
+              // Analytics fully closed — restore the button's normal state
+              if (window.updateScrollButtonState) window.updateScrollButtonState();
             }, 300);
           }
         }
@@ -2569,6 +2575,13 @@
                 else if (hrs < 48) reactionDisplay = hrs.toFixed(1) + 'h';
                 else reactionDisplay = (hrs / 24).toFixed(1) + 'd';
             }
+            // Odometer version: roll the number, keep the unit static
+            let reactionOdoHtml = reactionDisplay;
+            if (reactionDisplay !== '-') {
+                const rUnit = reactionDisplay.slice(-1);
+                const rNum = parseFloat(reactionDisplay);
+                reactionOdoHtml = `<span id="stat-odo-reaction" class="stat-odo" data-odo-value="${rNum}" data-odo-currency="0">0</span><span class="text-sm text-gray-400 ml-1">${rUnit}</span>`;
+            }
 
             // --- NEW: Claim Speed Distribution (reaction time buckets) ---
             const speedBuckets = [0, 0, 0, 0]; // <1h, 1-24h, 1-3d, 3d+
@@ -2713,6 +2726,11 @@
             Object.entries(haulByDay).forEach(([k, v]) => { if (v > bestHaulValue) { bestHaulValue = v; bestHaulDate = k; } });
             const bestHaulDisplay = bestHaulDate ? formatCompact(bestHaulValue) : '-';
             const bestHaulDateDisplay = bestHaulDate ? new Date(bestHaulDate).toLocaleDateString(localeStr, { month: 'short', day: 'numeric' }) : '-';
+            // Odometer version of the haul value (full $ notation so the
+            // rolling digits end exactly on the displayed number)
+            const bestHaulOdoHtml = bestHaulDate
+                ? `<span id="stat-odo-haul" class="stat-odo" data-odo-value="${bestHaulValue}" data-odo-currency="1">$${bestHaulValue.toFixed(2)}</span>`
+                : bestHaulDisplay;
 
             // --- NEW: Monthly Savings Bar Data ---
             const monthSavings = {};
@@ -3118,7 +3136,7 @@
                         <div class="flex justify-between items-start mb-4 relative z-10">
                             <div>
                                 <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">${t.statsWealth}</h3>
-                                <p class="text-4xl font-black text-green-500 tracking-wide transition-all" id="wealth-total-display">$${state.totalSaved.toFixed(2)}</p>
+                                <p class="text-4xl font-black text-green-500 tracking-wide transition-all stat-odo" id="wealth-total-display" data-odo-value="${state.totalSaved}" data-odo-currency="1">$${state.totalSaved.toFixed(2)}</p>
                             </div>
                         </div>
                         
@@ -3154,21 +3172,21 @@
                     <div class="grid grid-cols-2 gap-4 lg:col-span-2">
                         <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800 text-center">
                             <div class="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">${t.avgClaimValue || 'Avg Claim Value'}</div>
-                            <div class="text-2xl font-black text-blue-500">${avgClaimDisplay}</div>
+                            <div class="text-2xl font-black text-blue-500 stat-odo" id="stat-odo-avg" data-odo-value="${avgClaimValue}" data-odo-currency="1">$${avgClaimValue.toFixed(2)}</div>
                         </div>
                         <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800 text-center">
                             <div class="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">${t.claimStreak || 'Claim Streak'}</div>
-                            <div class="text-2xl font-black text-purple-500">${currentStreak} <span class="text-sm text-gray-400">${t.days || 'days'}</span></div>
+                            <div class="text-2xl font-black text-purple-500"><span id="stat-odo-streak" class="stat-odo" data-odo-value="${currentStreak}" data-odo-currency="0">0</span> <span class="text-sm text-gray-400">${t.days || 'days'}</span></div>
                             <div class="text-[9px] text-gray-400 mt-1">${t.maxStreak || 'Max'}: ${maxStreak} ${t.days || 'days'}</div>
                         </div>
                         <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800 text-center">
                             <div class="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">${t.reactionTime || 'Avg Reaction Time'}</div>
-                            <div class="text-2xl font-black text-orange-500">${reactionDisplay}</div>
+                            <div class="text-2xl font-black text-orange-500">${reactionOdoHtml}</div>
                             <div class="text-[9px] text-gray-400 mt-1">${t.reactionDesc || 'publish → claim'}</div>
                         </div>
                         <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800 text-center">
                             <div class="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">${t.bestHaul || 'Best Haul Day'}</div>
-                            <div class="text-2xl font-black text-green-500">${bestHaulDisplay}</div>
+                            <div class="text-2xl font-black text-green-500">${bestHaulOdoHtml}</div>
                             <div class="text-[9px] text-gray-400 mt-1">${bestHaulDateDisplay}</div>
                         </div>
                     </div>
@@ -4730,8 +4748,8 @@
                     const target = hb.getAttribute('data-target-width');
                     if (target) hb.style.width = target;
                 });
-                // Roll trend comparison numbers (odometer)
-                panel.querySelectorAll('.trend-odo').forEach(odo => {
+                // Roll numbers (odometer): trend comparison + wealth/stat cards
+                panel.querySelectorAll('.trend-odo, .stat-odo').forEach(odo => {
                     if (odo.getAttribute('data-odo-done')) return;
                     odo.setAttribute('data-odo-done', '1');
                     const val = parseFloat(odo.getAttribute('data-odo-value')) || 0;
@@ -5663,10 +5681,10 @@
             const odoWrapper = document.createElement('div');
             odoWrapper.className = 'odometer-container';
 
-            // Split into integers and decimals based on whether it's money or a game count
-            const [intPartStr, decPartStr] = isCurrency 
-                ? parseFloat(value).toFixed(2).split('.') 
-                : [parseInt(value).toString(), null];
+            // Split into integers and decimals based on whether it's money or a game count.
+            // Non-currency values keep their own decimals (e.g. reaction time "5.2" h)
+            const valStr = isCurrency ? parseFloat(value).toFixed(2) : String(parseFloat(value));
+            const [intPartStr, decPartStr] = valStr.split('.');
 
             const numDigits = intPartStr.length;
 
@@ -5699,8 +5717,8 @@
                 }, 50);
             }
 
-            // Add the decimals back on if it's money
-            if (isCurrency && decPartStr) {
+            // Add the decimals back on (money always has 2, other values keep their own)
+            if (decPartStr) {
                 const decDiv = document.createElement('div');
                 decDiv.className = 'odometer-static';
                 decDiv.innerHTML = '.' + decPartStr;
@@ -6288,11 +6306,16 @@
         window.updateScrollButtonState = function() {
           const libraryModal = document.getElementById('library-modal');
           const settingsModal = document.getElementById('settings-modal');
+          const statsModal = document.getElementById('stats-modal');
           const scrollTopBtn = document.getElementById('scroll-to-top-btn');
           if (!scrollTopBtn) return;
 
-          // Hide scroll-to-top button when Settings modal is open
-          if (settingsModal && !settingsModal.classList.contains('translate-x-full')) {
+          // Hide scroll-to-top button when Settings modal is open, and while
+          // Loot Analytics is open — the button belongs to the feed/library
+          // screens only; leaving it over the analytics overlay lets users
+          // scroll the main page by accident while reading their stats
+          if ((settingsModal && !settingsModal.classList.contains('translate-x-full')) ||
+              (statsModal && !statsModal.classList.contains('hidden'))) {
             scrollTopBtn.classList.add('opacity-0', 'translate-y-4', 'scale-90', 'pointer-events-none');
             scrollTopBtn.classList.remove('opacity-100', 'translate-y-0', 'scale-100');
             return;

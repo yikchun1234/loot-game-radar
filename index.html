@@ -220,6 +220,22 @@
             transition: stroke-dashoffset 2s cubic-bezier(0.2, 1, 0.4, 1); 
         }
         .chart-in-view .chart-path { stroke-dashoffset: 0; }
+        /* Lifetime Wealth line: stroke draws in left→right. pathLength="1"
+           normalizes the path so the draw works at ANY data length. */
+        .wealth-line {
+            stroke-dasharray: 1;
+            stroke-dashoffset: 1;
+            transition: stroke-dashoffset 2.2s cubic-bezier(0.2, 1, 0.4, 1);
+        }
+        .chart-in-view .wealth-line { stroke-dashoffset: 0; }
+        /* Lifetime Wealth gradient fill: wipes in left→right behind the line */
+        .wealth-clip-rect {
+            transform: scaleX(0);
+            transform-box: view-box;
+            transform-origin: 0 0;
+            transition: transform 2.2s cubic-bezier(0.2, 1, 0.4, 1);
+        }
+        .chart-in-view .wealth-clip-rect { transform: scaleX(1); }
         /* Price histogram bars grow in width */
         .hist-bar { transition: width 1s cubic-bezier(0.2, 1, 0.4, 1); }
         /* Heatmap cells pop in with a left→right wave */
@@ -3142,14 +3158,19 @@
                         
                         <div class="relative h-48 w-full z-10 flex flex-col mt-auto group cursor-crosshair" onmousemove="handleChartHover(event)" onmouseleave="hideChartHover()" ontouchmove="handleChartHover(event)" ontouchend="hideChartHover()">
                             <svg viewBox="0 0 1000 200" preserveAspectRatio="none" class="absolute inset-0 w-full h-full overflow-visible drop-shadow-[0_0_12px_rgba(16,185,129,0.6)]">
-                                <path class="chart-path" d="${pathString}" fill="none" stroke="#10b981" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
-                                <path class="chart-path opacity-20" d="${pathString} L 1000,200 L 0,200 Z" fill="url(#greenGradient)" stroke="none"></path>
                                 <defs>
                                     <linearGradient id="greenGradient" x1="0" x2="0" y1="0" y2="1">
                                         <stop offset="0%" stop-color="#10b981" />
                                         <stop offset="100%" stop-color="transparent" />
                                     </linearGradient>
+                                    <clipPath id="wealthClip">
+                                        <rect class="wealth-clip-rect" x="0" y="0" width="1000" height="200"></rect>
+                                    </clipPath>
                                 </defs>
+                                <g clip-path="url(#wealthClip)">
+                                    <path d="${pathString} L 1000,200 L 0,200 Z" fill="url(#greenGradient)" opacity="0.2" stroke="none"></path>
+                                </g>
+                                <path class="wealth-line" pathLength="1" d="${pathString}" fill="none" stroke="#10b981" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
                             </svg>
         
                             <div id="chart-scrubber" class="absolute top-0 bottom-0 w-px bg-green-500 opacity-0 transition-opacity duration-200 pointer-events-none z-20" style="left: 50%;">

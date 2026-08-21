@@ -1944,6 +1944,8 @@
             function init() {
               // Migrate old normalized IDs to full URLs (fix broken links)
               migrateNormalizedIds();
+              // Merge epic:+gp: pairs of the same game already in the library
+              migrateCrossSourceDuplicates();
 
               applyTheme();
               updateLanguageUI();
@@ -4447,6 +4449,7 @@
 
                             // Run migration to fix any normalized IDs
                             migrateNormalizedIds();
+                            migrateCrossSourceDuplicates();
 
                             // Refresh all UI
                             updateWalletUI();
@@ -5336,6 +5339,81 @@
                 state.claimedGames = cg;
                 saveSafeStorage('lootradar_claimed_v2', cg);
                 console.log(`Migration: deduplicated ${keysToRemove.length} claimed_games entries`);
+            }
+        }
+
+        // ---------------------------------------------------------------
+        // Cross-source duplicate cleanup (Epic store API vs GamerPower)
+        // The same Epic giveaway can arrive from TWO sources with different
+        // URLs (epic:slug from the Epic store API, gp:slug from GamerPower),
+        // so URL-based dedup can't merge them and users could claim both.
+        // This merges such pairs in the library: keeps the higher-value
+        // entry and removes the other (adjusting totalSaved).
+        // ---------------------------------------------------------------
+        function cleanTitleForDedupe(t) {
+            return (t || '').toLowerCase()
+                .replace(/\(epic games?\)/g, '')
+                .replace(/giveaway/g, '')
+                .replace(/[^a-z0-9]+/g, ' ')
+                .trim();
+        }
+        function sameGameTitle(a, b) {
+            if (!a || !b) return false;
+            if (a === b) return true;
+            const short = a.length <= b.length ? a : b;
+            const long = a.length <= b.length ? b : a;
+            if (short.length < 4) return false;
+            const idx = long.indexOf(short);
+            if (idx === -1) return false;
+            // word-boundary containment check
+            const before = idx === 0 ? ' ' : long[idx - 1];
+            const after = idx + short.length >= long.length ? ' ' : long[idx + short.length];
+            return before === ' ' && after === ' ';
+        }
+        function migrateCrossSourceDuplicates() {
+            const cg = state.claimedGames || {};
+            const entries = Object.entries(cg).filter(([, g]) => g && typeof g === 'object');
+            const merged = [];
+            for (let i = 0; i < entries.length; i++) {
+                const [keyA, gameA] = entries[i];
+                if (!cg[keyA]) continue; // already merged in this pass
+                const idA = gameA.normalizedId || keyA;
+                for (let j = i + 1; j < entries.length; j++) {
+                    const [keyB, gameB] = entries[j];
+                    if (!cg[keyB]) continue;
+                    const idB = gameB.normalizedId || keyB;
+                    // Identify the epic:/gp: pair (order doesn't matter)
+                    let epicKey = null, epicGame = null, gpKey = null, gpGame = null;
+                    if (idA.startsWith('epic:') && idB.startsWith('gp:')) { epicKey = keyA; epicGame = gameA; gpKey = keyB; gpGame = gameB; }
+                    else if (idB.startsWith('epic:') && idA.startsWith('gp:')) { epicKey = keyB; epicGame = gameB; gpKey = keyA; gpGame = gameA; }
+                    if (!epicKey) continue; // only merge epic + gp pairs
+                    if (!sameGameTitle(cleanTitleForDedupe(epicGame.title), cleanTitleForDedupe(gpGame.title))) continue;
+
+                    // Same game claimed from both sources.
+                    // KEEP the epic: entry — after the feed-level fix, the game card
+                    // in the feed is the Epic-store one (epic:slug), so the library
+                    // entry must match it or the card would look unclaimed again.
+                    const epicValue = parseFloat(epicGame.value) || 0;
+                    const gpValue = parseFloat(gpGame.value) || 0;
+                    if (gpValue > epicValue) {
+                        epicGame.value = gpValue;           // take the real price
+                        epicGame.worth = gpGame.worth;      // e.g. "$24.99" instead of "Free"
+                    }
+                    if ((gpGame.platforms || '').toLowerCase().includes('epic games store')) {
+                        epicGame.platforms = gpGame.platforms; // richer platform label
+                    }
+                    delete cg[gpKey];
+                    // totalSaved counted BOTH values; the kept entry now holds the
+                    // max of the two, so subtract the smaller one
+                    state.totalSaved = Math.max(0, state.totalSaved - Math.min(epicValue, gpValue));
+                    merged.push({ kept: epicKey, removed: gpKey, title: epicGame.title });
+                }
+            }
+            if (merged.length > 0) {
+                state.claimedGames = cg;
+                saveSafeStorage('lootradar_claimed_v2', cg);
+                localStorage.setItem('lootradar_saved_money', state.totalSaved.toString());
+                console.log(`Migration: merged ${merged.length} cross-source duplicate(s) (epic + gp):`, merged);
             }
         }
 
@@ -6403,7 +6481,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.20.1';
+        window.BUILD_VERSION = '2026.08.21.1';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

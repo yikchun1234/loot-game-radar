@@ -256,6 +256,9 @@ async function fetchEpicFreeGames() {
           })
         );
       })
+      // Need a usable store slug — skip entries that have none (would build
+      // broken links like store.epicgames.com/product/undefined)
+      .filter((e) => e.productSlug || e.slug || e.offerMappings?.[0]?.pageSlug)
       .map((e) => {
         const activePromo = e.promotions.promotionalOffers
           .flatMap((p) => p.promotionalOffers)
@@ -263,6 +266,7 @@ async function fetchEpicFreeGames() {
 
         const startDate = activePromo?.startDate || '';
         const endDate = activePromo?.endDate || '';
+        const storeSlug = e.productSlug || e.slug || e.offerMappings[0].pageSlug;
 
         return {
           title: e.title,
@@ -270,7 +274,7 @@ async function fetchEpicFreeGames() {
                  e.keyImages?.[0]?.url || '',
           worth: 'Free',
           platforms: 'PC',
-          open_giveaway: `https://store.epicgames.com/product/${e.productSlug || e.slug}`,
+          open_giveaway: `https://store.epicgames.com/product/${storeSlug}`,
           published_date: new Date(startDate).toISOString(),
           endDate: new Date(endDate).toISOString(),
           source: 'Epic Games',
@@ -329,8 +333,53 @@ async function fetchAllGames(params) {
     }
   });
 
+  // Cross-source merge: the Epic store API and GamerPower often list the SAME
+  // Epic giveaway, but their URLs differ (epic:slug vs gp:slug), so URL-based
+  // dedup above can't merge them and users would see two cards per game.
+  // Match by cleaned title; keep the Epic-direct entry (clean title + direct
+  // store link) and enrich it with GamerPower's real price (Epic says "Free").
+  const cleanTitle = (t) =>
+    (t || '')
+      .toLowerCase()
+      .replace(/\(epic games?\)/g, '')
+      .replace(/giveaway/g, '')
+      .replace(/[^a-z0-9]+/g, ' ')
+      .trim();
+
+  const deduped = Array.from(uniqueMap.values());
+  const epicDirectByTitle = new Map(); // cleanTitle -> entry from Epic store API
+  deduped.forEach((g) => {
+    if (g.source === 'Epic Games') epicDirectByTitle.set(cleanTitle(g.title), g);
+  });
+
+  const sameGame = (a, b) => {
+    if (!a || !b) return false;
+    const short = a.length <= b.length ? a : b;
+    const long = a.length <= b.length ? b : a;
+    return short.length >= 4 && long.includes(short);
+  };
+
+  const merged = deduped.filter((g) => {
+    const isGpEpicGiveaway =
+      (g.open_giveaway || '').includes('gamerpower.com') &&
+      (g.platforms || '').includes('Epic Games Store');
+    if (!isGpEpicGiveaway) return true;
+
+    const gTitle = cleanTitle(g.title);
+    const base = Array.from(epicDirectByTitle.entries()).find(([t]) =>
+      sameGame(t, gTitle)
+    )?.[1];
+    if (!base) return true; // no Epic-direct counterpart — keep GamerPower entry
+
+    // Same game already present from the Epic store API: enrich worth, drop this one
+    const baseValue = parseFloat(String(base.worth || '').replace(/[^0-9.]/g, ''));
+    const gpValue = parseFloat(String(g.worth || '').replace(/[^0-9.]/g, ''));
+    if ((!baseValue || isNaN(baseValue)) && gpValue > 0) base.worth = g.worth;
+    return false;
+  });
+
   // No sorting here - let frontend handle sorting
-  return Array.from(uniqueMap.values());
+  return merged;
 }
 
 /**

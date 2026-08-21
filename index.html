@@ -2933,19 +2933,22 @@
             }
 
             // Check if we have data from last year
-            const hasLastYearData = games.some(g => new Date(g.date).getFullYear() === lastYear);
+            // NOTE: use claimed_date (fallback date) — must match the Monthly Savings
+            // bar bucketing below so both views report identical month/year totals.
+            const gameClaimedDate = (g) => new Date(g.claimed_date || g.date);
+            const hasLastYearData = games.some(g => gameClaimedDate(g).getFullYear() === lastYear);
             let trendComparisonHtml = '';
 
             if (hasLastYearData) {
                 // Year-over-year comparison
-                const thisYearGames = games.filter(g => new Date(g.date).getFullYear() === currentYear);
-                const lastYearGames = games.filter(g => new Date(g.date).getFullYear() === lastYear);
+                const thisYearGames = games.filter(g => gameClaimedDate(g).getFullYear() === currentYear);
+                const lastYearGames = games.filter(g => gameClaimedDate(g).getFullYear() === lastYear);
                 const thisYearCount = thisYearGames.length;
                 const lastYearCount = lastYearGames.length;
                 const countGrowth = lastYearCount > 0 ? ((thisYearCount - lastYearCount) / lastYearCount * 100).toFixed(0) : 0;
 
-                const thisYearSavings = thisYearGames.reduce((sum, g) => sum + (parseFloat((g.worth || '0').replace(/[^0-9.]/g, '')) || 0), 0);
-                const lastYearSavings = lastYearGames.reduce((sum, g) => sum + (parseFloat((g.worth || '0').replace(/[^0-9.]/g, '')) || 0), 0);
+                const thisYearSavings = thisYearGames.reduce((sum, g) => sum + (g.value || 0), 0);
+                const lastYearSavings = lastYearGames.reduce((sum, g) => sum + (g.value || 0), 0);
                 const savingsGrowth = lastYearSavings > 0 ? ((thisYearSavings - lastYearSavings) / lastYearSavings * 100).toFixed(0) : 0;
 
                 const formatMoney = (v) => '$' + v.toFixed(2);
@@ -3000,11 +3003,11 @@
                 const currentMonthYear = currentMonth === 0 ? currentYear - 1 : currentYear;
 
                 const thisMonthGames = games.filter(g => {
-                    const d = new Date(g.date);
+                    const d = gameClaimedDate(g);
                     return d.getMonth() === currentMonth && d.getFullYear() === currentYear;
                 });
                 const prevMonthGames = games.filter(g => {
-                    const d = new Date(g.date);
+                    const d = gameClaimedDate(g);
                     return d.getMonth() === previousMonth && d.getFullYear() === currentMonthYear;
                 });
 
@@ -3012,8 +3015,8 @@
                 const prevMonthCount = prevMonthGames.length;
                 const countGrowth = prevMonthCount > 0 ? ((thisMonthCount - prevMonthCount) / prevMonthCount * 100).toFixed(0) : 0;
 
-                const thisMonthSavings = thisMonthGames.reduce((sum, g) => sum + (parseFloat((g.worth || '0').replace(/[^0-9.]/g, '')) || 0), 0);
-                const prevMonthSavings = prevMonthGames.reduce((sum, g) => sum + (parseFloat((g.worth || '0').replace(/[^0-9.]/g, '')) || 0), 0);
+                const thisMonthSavings = thisMonthGames.reduce((sum, g) => sum + (g.value || 0), 0);
+                const prevMonthSavings = prevMonthGames.reduce((sum, g) => sum + (g.value || 0), 0);
                 const savingsGrowth = prevMonthSavings > 0 ? ((thisMonthSavings - prevMonthSavings) / prevMonthSavings * 100).toFixed(0) : 0;
 
                 const formatMoney = (v) => '$' + v.toFixed(2);
@@ -6633,7 +6636,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.21.5';
+        window.BUILD_VERSION = '2026.08.21.6';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

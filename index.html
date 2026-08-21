@@ -5372,6 +5372,29 @@
         }
         function migrateCrossSourceDuplicates() {
             const cg = state.claimedGames || {};
+
+            // Upgrade legacy string entries ('gp:...') to {removed, kept} pairs so
+            // the claim-block lifts when the kept entry gets deleted. If the kept
+            // twin is already gone from the library, drop the block entirely.
+            const legacyIds = loadSafeStorage('lootradar_merged_xsrc_ids') || [];
+            let idsChanged = false;
+            for (let k = 0; k < legacyIds.length; k++) {
+                const m = legacyIds[k];
+                if (typeof m !== 'string') continue;
+                const slugTitle = cleanTitleForDedupe((m.startsWith('gp:') ? m.slice(3) : m).replace(/-/g, ' ').replace(/epic games/g, ''));
+                let keptKey = null;
+                for (const [key, game] of Object.entries(cg)) {
+                    if (!game || typeof game !== 'object') continue;
+                    const gid = game.normalizedId || key;
+                    if (!gid.startsWith('epic:')) continue;
+                    if (sameGameTitle(slugTitle, cleanTitleForDedupe(game.title))) { keptKey = key; break; }
+                }
+                if (keptKey) legacyIds[k] = { removed: m, kept: keptKey };
+                else legacyIds.splice(k, 1); // twin deleted → un-block
+                idsChanged = true;
+            }
+            if (idsChanged) saveSafeStorage('lootradar_merged_xsrc_ids', legacyIds);
+
             const entries = Object.entries(cg).filter(([, g]) => g && typeof g === 'object');
             const merged = [];
             for (let i = 0; i < entries.length; i++) {
@@ -5404,9 +5427,13 @@
                     }
                     delete cg[gpKey];
                     // Remember the removed ID so its feed card can't be claimed
-                    // again before the feed-level (worker) fix reaches the device
+                    // again while the kept epic entry is still in the library.
+                    // Stored as {removed, kept} so the block lifts automatically
+                    // if the user deletes the kept entry (restores their control).
                     const mergedIds = loadSafeStorage('lootradar_merged_xsrc_ids') || [];
-                    if (!mergedIds.includes(gpKey)) mergedIds.push(gpKey);
+                    if (!mergedIds.some(m => (typeof m === 'string' ? m === gpKey : m.removed === gpKey))) {
+                        mergedIds.push({ removed: gpKey, kept: epicKey });
+                    }
                     saveSafeStorage('lootradar_merged_xsrc_ids', mergedIds);
                     // totalSaved counted BOTH values; the kept entry now holds the
                     // max of the two, so subtract the smaller one
@@ -5431,7 +5458,9 @@
           // Check BOTH key formats (migration may have stored as full URL)
           const existingByKey = state.claimedGames[normalizedId];
           const existingByUrl = state.claimedGames[originalUrl];
-          const mergedAway = (loadSafeStorage('lootradar_merged_xsrc_ids') || []).includes(normalizedId);
+          // A merged-away ID counts as claimed only while its kept twin is still in the library
+          const mergedAway = (loadSafeStorage('lootradar_merged_xsrc_ids') || []).some(m =>
+              typeof m === 'string' ? m === normalizedId : (m.removed === normalizedId && !!state.claimedGames[m.kept]));
           const alreadyClaimed = !!existingByKey || !!existingByUrl || mergedAway;
           const isLegacySave = typeof (existingByKey || existingByUrl) === 'boolean';
 
@@ -5962,8 +5991,12 @@
 
             const now = new Date().getTime();
 
-            // IDs merged away by the cross-source dedupe also count as claimed
-            const mergedXsrcIds = loadSafeStorage('lootradar_merged_xsrc_ids') || [];
+            // IDs merged away by the cross-source dedupe also count as claimed —
+            // but only while their kept twin is still in the library (so deleting
+            // the kept entry un-blocks the card again)
+            const mergedXsrcList = loadSafeStorage('lootradar_merged_xsrc_ids') || [];
+            const isMergedAwayId = (normId) => mergedXsrcList.some(m =>
+                typeof m === 'string' ? m === normId : (m.removed === normId && !!state.claimedGames[m.kept]));
 
             // 🚀 PERFORMANCE FIX: Create a Fragment to hold everything in memory first
             const fragment = document.createDocumentFragment();
@@ -5974,7 +6007,7 @@
                 // Check if claimed - try BOTH normalized ID and full URL (migration may have changed keys)
                 const gameNormalizedId = game.normalizedId || normalizeUrl(game.open_giveaway || game.id);
                 const gameFullUrl = game.open_giveaway || '';
-                const isClaimed = !!state.claimedGames[gameNormalizedId] || !!state.claimedGames[gameFullUrl] || mergedXsrcIds.includes(gameNormalizedId);
+                const isClaimed = !!state.claimedGames[gameNormalizedId] || !!state.claimedGames[gameFullUrl] || isMergedAwayId(gameNormalizedId);
 
                 // Check if the game was previously deleted by searching history backwards (gets the most recent reason)
                 // Match by normalizedId regardless of source — same item = same status
@@ -6490,7 +6523,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.21.2';
+        window.BUILD_VERSION = '2026.08.21.3';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

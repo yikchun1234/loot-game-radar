@@ -31,18 +31,18 @@
 ---
 
 ### ✨ Features
-* 🌍 **Universal Tracking:** Automatically scrapes and aggregates free game deals from Steam, Epic Games, Prime Gaming, GOG, Ubisoft, iOS, Android, and Consoles. Powered by **Cloudflare Worker API** with multi-source data: **AppSales** (Android) + **CheapCharts** (iOS) + **NewMobileLife RSS** (iOS free apps) + **GamerPower** (PC). Features **URL normalization & ID-based deduplication** (converts full store URLs to short IDs like `gplay:com.example.app`, `ios:id123`, `gp:slug`) with persistent publish date tracking across data sources!
+* 🌍 **Universal Tracking:** Automatically scrapes and aggregates free game deals from Steam, Epic Games, Prime Gaming, GOG, Ubisoft, iOS, Android, and Consoles. Powered by **Cloudflare Worker API** with multi-source data: **AppSales** (Android) + **CheapCharts** (iOS) + **NewMobileLife RSS** (iOS free apps) + **Epic Games Store API** + **GamerPower** (PC). Features **URL normalization & ID-based deduplication** (converts full store URLs to short IDs like `gplay:com.example.app`, `ios:id123`, `epic:slug`, `gp:slug`) with persistent publish date tracking across data sources — plus **cross-source duplicate merging**: when the same Epic giveaway appears from both the Epic Store API and GamerPower, the entries are merged into one card automatically (feed, library, and re-claim protection included)!
 * 💰 **My Loot Library & Wallet:** Keep a permanent record of every game you claim. The app automatically calculates your **Total Lifetime Savings**. Manage your library with precision by removing expired, failed, or paywalled games (featuring custom visual UI states) to keep your financial stats 100% accurate, with full support to reclaim them later! Features **Grid/List View toggle**, **clickable cards** (link directly to store pages), **collapsible dropdowns** on mobile for space-saving, and smart sort options including **Date: Recently Claimed** (default), **Date: Oldest Claimed**, **Date: Newest/Oldest Deal**, **Price**, and **Name A-Z/Z-A**. Delete reasons include expired, failed, paywall, not interested, and duplicate — with **duplicate items** instantly removed without history tracking.
-* 📊 **Loot Analytics Dashboard:** A zero-dependency, 100% Vanilla JS and SVG-powered statistics dashboard. Features: interactive **Donut Charts** for platform & value breakdowns, **scrollable Monthly Activity Bar Chart** with **tap-to-reveal animations**, **Claim Timeline Heatmap** (GitHub-style), **Top 10 Most Valuable Claims**, **Price Distribution Histogram**, **Savings Forecast** line chart, **Average Claim Value & Claim Streak** stat cards, **Monthly Trend Comparison**, and a Robinhood-style **Wealth Growth Line Chart** with an interactive date scrubber.
+* 📊 **Loot Analytics Dashboard:** A zero-dependency, 100% Vanilla JS and SVG-powered statistics dashboard. Features: interactive **Donut Charts** for platform breakdown & removal reasons, **scrollable Monthly Activity Bar Chart** with **tap-to-reveal animations**, **Monthly Savings Bar**, **Claim Activity & Release Time Heatmaps** (GitHub-style), **Top 10 Most Valuable Claims**, **Price Distribution Histogram**, **Savings Forecast** line chart, stat cards (**Average Claim Value, Claim Streak, Claim Reaction Time, Best Haul Day**), **Gamer Profile Radar**, **Claim Speed Distribution**, **Monthly Trend Comparison** (year-over-year or month-over-month, bucketed by claim date), and a Robinhood-style **Wealth Growth Line Chart** with an interactive date scrubber.
 * ⚙️ **Settings Panel:** Unified settings hub with **QR Code sharing** (scan to share app with friends), **Language selector**, **Theme toggle** (Light/Dark), and **Device Sync** controls. Features native Web Share API support on mobile for one-tap sharing.
 * 🗜️ **Extreme Storage Optimization:** Utilizes **LZ-String UTF-16 Compression** directly on local storage, shrinking save data by up to 90%. This bypasses standard 5MB browser limits, allowing users to effortlessly store over **100,000+ items** locally. Features seamless background "Auto-Healing" to upgrade legacy V1 saves without data loss.
 * ☁️ **Cloud Sync (PIN Transfer):** Securely migrate your claimed games library, deleted item history, and total savings to another device in seconds using a 15-minute 5-digit PIN (Powered by Cloudflare Workers & highly-compressed payloads).
-* 📱 **Native App Experience & Fluid UI:** Fully installable as a PWA on iOS and Android. Features mobile-native interactions like **Pull-to-Refresh**, context-aware **Scroll-to-Top**, and desktop-optimized **Mouse Drag-to-Scroll** navigation. Wrapped in a slick glassmorphism UI with flawless Z-index sliding animations. **Collapsible dropdown filters** on mobile save screen space while maintaining easy access.
+* 📱 **Native App Experience & Fluid UI:** Fully installable as a PWA on iOS and Android. Features mobile-native interactions like **Pull-to-Refresh**, context-aware **Scroll-to-Top**, and desktop-optimized **Mouse Drag-to-Scroll** navigation. Wrapped in a slick glassmorphism UI with flawless Z-index sliding animations. **Collapsible dropdown filters** on mobile save screen space while maintaining easy access. A built-in **new-version notifier** checks `version.txt` in the background and shows a tap-to-update toast, so installed PWA users always pick up fresh deploys.
 * 🌐 **International Support (10 Languages):** Fully localized in English, 简体中文, 繁體中文, Español, Français, Deutsch, Русский, 日本語, 한국어, and Português (Including dynamic translations for all charts, analytics, and delete reasons).
 * 🛡️ **Advanced Security:** Built-in Domain Lockdown and Anti-Debugger/Inspect Element blockers to prevent unauthorized scraping or cloning of the app.
 * 🌓 **Dynamic Theming:** Seamless Light and Dark mode toggling.
 * ⚡ **Lightning Fast Performance:** Highly optimized DOM rendering uses Document Fragments, **Pre-rendered Modals** (zero layout recalculation on open), **CSS Grid-based animations** with cubic-bezier easing, and decoupled CSS transitions to instantly load, filter, and render hundreds of games with zero layout thrashing or lag. **Loading spinners** during library setup provide smooth feedback.
-* 🛠️ **Hidden Developer Mode:** Tap the "Loot Analytics" title 5 times to reveal 5 tabs of debugging tools with **collapsible sections** (chevron toggle, smooth CSS Grid animation): **Data Debugging** (Storage Analyzer with key descriptions + compression stats, Data Health Report, Duplicates Detector with CONVERT/MERGE orphan handling), **Performance** (Render Metrics, Network Log), **Testing** (Data Simulator, Manual Refresh), **Data Management** (Comprehensive Export/Import, Clear Selective Data with clear labels), and **Error Tracking** (Error Log with stack traces). Perfect for troubleshooting and monitoring data flow.
+* 🛠️ **Hidden Developer Mode:** Tap the "Loot Analytics" title 5 times to reveal 5 tabs of debugging tools with **collapsible sections** (chevron toggle, smooth CSS Grid animation): **Data Debugging** (Storage Analyzer with key descriptions + compression stats, Data Health Report, Duplicates Detector with CONVERT/MERGE orphan handling, Current Feed Order + Deleted History diagnostics), **Performance** (Render Metrics, Network Log), **Testing** (Data Simulator, Manual Refresh), **Data Management** (Comprehensive Export/Import, Clear Selective Data with clear labels), and **Error Tracking** (Error Log with stack traces). Every data table is **click-to-sortable** on any column, and the **All Tracked Apps** table shows status, normalized ID, deal date, **track date**, and **claimed date** for every entry ever seen. Perfect for troubleshooting and monitoring data flow.
 
 ---
 
@@ -83,7 +83,7 @@ If you want to fork and host your own version of LootRadar, follow these steps:
 
 #### 1. Deploy the Loot API Worker
 
-The frontend requires a Cloudflare Worker to aggregate game data from multiple sources (Reddit, AppSales, CheapCharts, GamerPower).
+The frontend requires a Cloudflare Worker to aggregate game data from multiple sources (Epic Games Store API, AppSales, CheapCharts, NewMobileLife, GamerPower).
 
 ```bash
 # Clone your fork
@@ -124,7 +124,19 @@ const allowedDomains = [
 ];
 ```
 
-#### 4. (Optional) Cloud Sync - Remove if Not Needed
+#### 4. Update the Version Notifier (or remove it)
+
+The app checks `version.txt` on GitHub to notify installed PWA users of new releases. The URL points to the original repo:
+
+```javascript
+// Search for VERSION_URL in index.html:
+const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
+
+// Point it at your own fork (and keep version.txt in sync with window.BUILD_VERSION on every deploy):
+const VERSION_URL = 'https://raw.githubusercontent.com/YOUR_USERNAME/loot-game-radar/main/version.txt';
+```
+
+#### 5. (Optional) Cloud Sync - Remove if Not Needed
 
 The Cloud Sync feature uses a separate Worker (`cloud-sync-api.yikchun1234.workers.dev`). If you don't need device-to-device sync:
 
@@ -150,7 +162,7 @@ The Cloud Sync feature uses a separate Worker (`cloud-sync-api.yikchun1234.worke
 
 If you want to implement your own Cloud Sync, you'll need a key-value store (Cloudflare KV, Redis, etc.) to store the PIN data temporarily.
 
-#### 5. Deploy Frontend
+#### 6. Deploy Frontend
 
 You can host `index.html` on:
 - **GitHub Pages** (free)
@@ -175,13 +187,14 @@ flowchart LR
         direction TB
         A["📱 AppSales"]
         C["🍎 CheapCharts"]
+        E["🎯 Epic Store API"]
         G["🎮 GamerPower"]
         N["📰 NewMobileLife"]
     end
 
     subgraph Frontend["🖥️ Frontend (index.html)"]
         direction TB
-        D["🔄 ID Deduplication"]
+        D["🔄 ID Dedup + Cross-Source Merge"]
         S["📊 Sort: Date → Price"]
         L["🗜️ LZ-String Compress"]
         D --> S --> L
@@ -206,7 +219,7 @@ flowchart LR
 
 ### ⚖️ Disclaimer
 
-Games are fetched via third-party APIs and community web scraping (AppSales.net, CheapCharts, NewMobileLife, GamerPower). Offers are time-limited. Always verify that the final price on the store page is "Free" or "0.00" before confirming any purchase. LootRadar is an independent tracker and is not affiliated with Steam, Epic Games, Apple, Google, or other listed platforms.
+Games are fetched via third-party APIs and community web scraping (Epic Games Store API, AppSales.net, CheapCharts, NewMobileLife, GamerPower). Offers are time-limited. Always verify that the final price on the store page is "Free" or "0.00" before confirming any purchase. LootRadar is an independent tracker and is not affiliated with Steam, Epic Games, Apple, Google, or other listed platforms.
 
 ---
 

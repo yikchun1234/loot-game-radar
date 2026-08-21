@@ -3433,10 +3433,10 @@
                     }
 
                     return `<tr class="border-b border-gray-100 dark:border-gray-800">
-                        <td class="py-1 pr-2 text-[10px] text-gray-400">#${i+1}</td>
+                        <td class="py-1 pr-2 text-[10px] text-gray-400" data-sort-value="${i+1}">#${i+1}</td>
                         <td class="py-1 pr-2 text-[10px] font-bold dark:text-gray-200 max-w-[150px] truncate" title="${g.title || ''}">${shortTitle}</td>
                         <td class="py-1 pr-2 text-[10px] text-purple-500">${g.platforms || '-'}</td>
-                        <td class="py-1 pr-2 text-[10px] font-mono ${pDate && !isNaN(pDate.getTime()) ? 'text-gray-600 dark:text-gray-300' : 'text-red-500 font-bold'}">${dateStr}</td>
+                        <td class="py-1 pr-2 text-[10px] font-mono ${pDate && !isNaN(pDate.getTime()) ? 'text-gray-600 dark:text-gray-300' : 'text-red-500 font-bold'}" data-sort-value="${pDate && !isNaN(pDate.getTime()) ? pDate.getTime() : ''}">${dateStr}</td>
                         <td class="py-1 pr-2 text-[10px] text-gray-400">${g.source || '-'}</td>
                         <td class="py-1 pr-2 text-[10px] font-mono text-blue-500 max-w-[120px] truncate" title="${g.normalizedId || ''}">${(g.normalizedId || '').length > 20 ? (g.normalizedId || '').substring(0, 20) + '...' : (g.normalizedId || '-')}</td>
                         <td class="py-1 px-2 text-[10px] font-bold whitespace-nowrap"><span class="px-1.5 py-0.5 rounded ${statusClass}">${statusLabel}</span></td>
@@ -3447,10 +3447,10 @@
                         <table class="w-full text-left">
                             <thead>
                                 <tr class="border-b border-gray-200 dark:border-gray-700">
-                                    <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">#</th>
+                                    <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase" data-sort-type="num">#</th>
                                     <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Title</th>
                                     <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Platform</th>
-                                    <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Published Date</th>
+                                    <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase" data-sort-type="date">Published Date</th>
                                     <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Source</th>
                                     <th class="py-1.5 pr-2 text-[10px] font-bold text-blue-500 uppercase">Normalized ID</th>
                                     <th class="py-1.5 px-2 text-[10px] font-bold text-gray-500 uppercase">Status</th>
@@ -3459,7 +3459,8 @@
                             <tbody>${feedRows}</tbody>
                         </table>
                     </div>
-                    <div class="mt-2 text-[10px] text-gray-400">${state.games.length} games in feed • Sorted by: date desc → price desc → title A-Z • Status from localStorage comparison</div>`;
+                    <div class="mt-2 text-[10px] text-gray-400">${state.games.length} games in feed • Default sort: date desc → price desc → title A-Z • Click any column header to sort • Status from localStorage comparison</div>`;
+                makeDevTableSortable(feedDebugEl.querySelector('table'));
             }
 
             // --- Deleted History Match Diagnostic ---
@@ -3524,7 +3525,7 @@
                     const rows = matches.map(m => {
                         const colorCls = reasonColors[m.reason] || 'bg-gray-100 text-gray-600';
                         return `<tr class="border-b border-gray-100 dark:border-gray-800">
-                            <td class="py-1 pr-1 text-[10px] text-gray-400">#${m.feedIdx}</td>
+                            <td class="py-1 pr-1 text-[10px] text-gray-400" data-sort-value="${m.feedIdx}">#${m.feedIdx}</td>
                             <td class="py-1 pr-1 text-[10px] font-bold dark:text-gray-200 max-w-[100px] truncate" title="${m.title}">${m.title}</td>
                             <td class="py-1 pr-1 text-[10px] text-purple-500">${m.source}</td>
                             <td class="py-1 pr-1 text-[10px] font-mono text-blue-500 max-w-[100px] truncate" title="${m.normId}">${m.normId}</td>
@@ -3539,7 +3540,7 @@
                             <table class="w-full text-left">
                                 <thead>
                                     <tr class="border-b border-gray-200 dark:border-gray-700">
-                                        <th class="py-1 pr-1 text-[10px] font-bold text-gray-500">#</th>
+                                        <th class="py-1 pr-1 text-[10px] font-bold text-gray-500" data-sort-type="num">#</th>
                                         <th class="py-1 pr-1 text-[10px] font-bold text-gray-500">Feed Item</th>
                                         <th class="py-1 pr-1 text-[10px] font-bold text-gray-500">Src</th>
                                         <th class="py-1 pr-1 text-[10px] font-bold text-blue-500">NormID</th>
@@ -3551,6 +3552,7 @@
                                 <tbody>${rows}</tbody>
                             </table>
                         </div>`;
+                    makeDevTableSortable(deletedMatchEl.querySelector('table'));
                 }
             }
 
@@ -3650,13 +3652,28 @@
                 const shortOriginalUrl = originalUrl.length > 30 ? originalUrl.substring(0, 30) + '...' : originalUrl;
                 const shortNormalizedId = normalizedId.length > 25 ? normalizedId.substring(0, 25) + '...' : normalizedId;
 
+                // Track Date = when this app was first recorded in publish_dates (createdAt; reddit entries only have updatedAt)
+                const trackDateRaw = info.createdAt || info.updatedAt || '';
+                const trackDateParsed = trackDateRaw ? new Date(trackDateRaw) : null;
+                const trackDate = trackDateParsed && !isNaN(trackDateParsed.getTime()) ? trackDateParsed.toLocaleDateString() : '-';
+                const trackDateSort = trackDateParsed && !isNaN(trackDateParsed.getTime()) ? trackDateParsed.getTime() : '';
+
+                // Claimed Date = when the user claimed it ('-' when not claimed)
+                const claimedDateRaw = claimed && claimed.claimed_date ? claimed.claimed_date : '';
+                const claimedDateParsed = claimedDateRaw ? new Date(claimedDateRaw) : null;
+                const claimedDate = claimedDateParsed && !isNaN(claimedDateParsed.getTime()) ? claimedDateParsed.toLocaleString() : '-';
+                const claimedDateSort = claimedDateParsed && !isNaN(claimedDateParsed.getTime()) ? claimedDateParsed.getTime() : '';
+                const dealDateSort = info.date && !isNaN(new Date(info.date).getTime()) ? new Date(info.date).getTime() : '';
+
                 return `
                     <tr class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
                         <td class="py-1.5 pr-2">${statusBadge}</td>
                         <td class="py-1.5 pr-2 text-[10px] font-bold dark:text-gray-200 max-w-[120px] truncate" title="${title}">${shortTitle}</td>
                         <td class="py-1.5 pr-2 font-mono text-[10px] text-gray-500 dark:text-gray-400 max-w-[120px] truncate" title="${originalUrl}">${shortOriginalUrl}</td>
                         <td class="py-1.5 pr-2 font-mono text-[10px] text-blue-500 max-w-[100px] truncate" title="${normalizedId}">${shortNormalizedId}</td>
-                        <td class="py-1.5 pr-2 text-[10px] text-gray-500">${date}</td>
+                        <td class="py-1.5 pr-2 text-[10px] text-gray-500" data-sort-value="${dealDateSort}">${date}</td>
+                        <td class="py-1.5 pr-2 text-[10px] text-gray-500" data-sort-value="${trackDateSort}">${trackDate}</td>
+                        <td class="py-1.5 pr-2 text-[10px] ${claimedDate === '-' ? 'text-gray-400' : 'text-green-500 font-bold'}" data-sort-value="${claimedDateSort}">${claimedDate}</td>
                         <td class="py-1.5 text-[10px] text-gray-400">${source}</td>
                     </tr>`;
             }).join('');
@@ -3666,25 +3683,30 @@
             const trackedOnly = allUrls.length - claimedCount - deletedCount;
 
             appsTable.innerHTML = `
-                <table class="w-full text-left">
-                    <thead>
-                        <tr class="border-b border-gray-200 dark:border-gray-700">
-                            <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Status</th>
-                            <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Title</th>
-                            <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Original URL</th>
-                            <th class="py-1.5 pr-2 text-[10px] font-bold text-blue-500 uppercase">Normalized ID</th>
-                            <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Date</th>
-                            <th class="py-1.5 text-[10px] font-bold text-gray-500 uppercase">Source</th>
-                        </tr>
-                    </thead>
-                    <tbody>${appRows || '<tr><td colspan="6" class="py-2 text-xs text-gray-400">No tracked apps found</td></tr>'}</tbody>
-                </table>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead>
+                            <tr class="border-b border-gray-200 dark:border-gray-700">
+                                <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Status</th>
+                                <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Title</th>
+                                <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Original URL</th>
+                                <th class="py-1.5 pr-2 text-[10px] font-bold text-blue-500 uppercase">Normalized ID</th>
+                                <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase" data-sort-type="date">Deal Date</th>
+                                <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase" data-sort-type="date">Track Date</th>
+                                <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase" data-sort-type="date">Claimed Date</th>
+                                <th class="py-1.5 text-[10px] font-bold text-gray-500 uppercase">Source</th>
+                            </tr>
+                        </thead>
+                        <tbody>${appRows || '<tr><td colspan="8" class="py-2 text-xs text-gray-400">No tracked apps found</td></tr>'}</tbody>
+                    </table>
+                </div>
                 <div class="flex gap-4 mt-3 text-[10px]">
                     <span class="text-green-500 font-bold">${claimedCount} claimed</span>
                     <span class="text-orange-500 font-bold">${deletedCount} deleted</span>
                     <span class="text-gray-400 font-bold">${trackedOnly} tracked only</span>
-                    <span class="text-gray-500">| ${allUrls.length} total</span>
+                    <span class="text-gray-500">| ${allUrls.length} total • Click any column header to sort</span>
                 </div>`;
+            makeDevTableSortable(appsTable.querySelector('table'));
         }
 
         // ===== DEVELOPER MODE: Tab Switching =====
@@ -3713,6 +3735,64 @@
             const isCollapsed = section.dataset.collapsed === 'true';
             section.dataset.collapsed = isCollapsed ? 'false' : 'true';
         };
+
+        // ===== DEVELOPER MODE: Sortable Tables =====
+        // Makes every header cell of a dev table clickable to sort rows.
+        // - th[data-sort-type]: 'text' (default) | 'num' | 'date' (num/date expect a numeric data-sort-value, e.g. epoch ms)
+        // - td[data-sort-value]: raw value used for sorting (falls back to textContent)
+        // - empty values ('' or '-') always sort to the bottom regardless of direction
+        function makeDevTableSortable(tableEl) {
+            if (!tableEl || tableEl.dataset.sortInit === '1') return;
+            const thead = tableEl.querySelector('thead');
+            const tbody = tableEl.querySelector('tbody');
+            if (!thead || !tbody) return;
+            tableEl.dataset.sortInit = '1';
+            const headers = Array.from(thead.querySelectorAll('th'));
+            headers.forEach((th, colIdx) => {
+                th.style.cursor = 'pointer';
+                th.classList.add('select-none', 'whitespace-nowrap');
+                th.title = 'Click to sort';
+                const arrow = document.createElement('span');
+                arrow.className = 'dev-sort-arrow ml-0.5 text-gray-300 dark:text-gray-600';
+                arrow.textContent = '↕';
+                th.appendChild(arrow);
+                th.addEventListener('click', () => {
+                    const type = th.dataset.sortType || 'text';
+                    const dir = th.dataset.sortDir === 'asc' ? 'desc' : 'asc';
+                    headers.forEach(h => {
+                        delete h.dataset.sortDir;
+                        const a = h.querySelector('.dev-sort-arrow');
+                        if (a) { a.textContent = '↕'; a.className = 'dev-sort-arrow ml-0.5 text-gray-300 dark:text-gray-600'; }
+                    });
+                    th.dataset.sortDir = dir;
+                    arrow.textContent = dir === 'asc' ? '↑' : '↓';
+                    arrow.className = 'dev-sort-arrow ml-0.5 text-yellow-500 font-bold';
+                    const allRows = Array.from(tbody.querySelectorAll('tr'));
+                    const rows = allRows.filter(r => !r.querySelector('td[colspan]'));
+                    const colspanRows = allRows.filter(r => r.querySelector('td[colspan]'));
+                    rows.sort((ra, rb) => {
+                        const ca = ra.children[colIdx];
+                        const cb = rb.children[colIdx];
+                        const va = ca ? (ca.dataset.sortValue !== undefined ? ca.dataset.sortValue : (ca.textContent || '').trim()) : '';
+                        const vb = cb ? (cb.dataset.sortValue !== undefined ? cb.dataset.sortValue : (cb.textContent || '').trim()) : '';
+                        const ea = va === '' || va === '-';
+                        const eb = vb === '' || vb === '-';
+                        if (ea && eb) return 0;
+                        if (ea) return 1;
+                        if (eb) return -1;
+                        let cmp = 0;
+                        if (type === 'num' || type === 'date') {
+                            cmp = (parseFloat(va) || 0) - (parseFloat(vb) || 0);
+                        } else {
+                            cmp = String(va).localeCompare(String(vb), undefined, { numeric: true, sensitivity: 'base' });
+                        }
+                        return dir === 'asc' ? cmp : -cmp;
+                    });
+                    rows.forEach(r => tbody.appendChild(r));
+                    colspanRows.forEach(r => tbody.appendChild(r)); // keep empty-state row at the bottom
+                });
+            });
+        }
 
         // ===== DEVELOPER MODE: Data Health Report =====
         window.runDataHealthCheck = function() {
@@ -4184,7 +4264,6 @@
                 const uncompressedStr = uncompressedSize > 1024 ? (uncompressedSize / 1024).toFixed(1) + ' KB' : uncompressedSize + ' B';
                 const ratio = uncompressedSize > 0 ? ((1 - compressedSize / uncompressedSize) * 100).toFixed(0) : 0;
 
-                const barWidth = Math.min(100, (compressedSize / 50000) * 100);
                 const itemCount = getItemCount(key);
 
                 rows += `
@@ -4198,9 +4277,6 @@
                         <div class="flex items-center gap-3 text-[10px] text-gray-400">
                             <span class="flex-1">${isCompressed ? `Raw: ${uncompressedStr} → Stored: ${compressedStr}` : `Not compressed: ${compressedStr}`}</span>
                             <span class="w-20 text-right text-green-500 font-bold">${isCompressed ? `-${ratio}%` : ''}</span>
-                        </div>
-                        <div class="h-2 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden mt-1">
-                            <div class="h-full bg-gradient-to-r from-blue-500 to-purple-500 rounded-full transition-all" style="width: ${barWidth}%"></div>
                         </div>
                     </div>`;
             });
@@ -4614,8 +4690,8 @@
 
             // Build text output
             let lines = [];
-            lines.push('STATUS | TITLE | URL | DATE | SOURCE');
-            lines.push('---|---|---|---|---');
+            lines.push('STATUS | TITLE | URL | DEAL DATE | TRACK DATE | CLAIMED DATE | SOURCE');
+            lines.push('---|---|---|---|---|---|---');
 
             allUrls.forEach(url => {
                 const info = publishDates[url] || {};
@@ -4629,8 +4705,11 @@
                 const title = claimed ? (claimed.title || '-') : (deleted ? (deleted.title || '-') : '-');
                 const date = info.date ? new Date(info.date).toLocaleDateString() : '-';
                 const source = info.source || '-';
+                const trackRaw = info.createdAt || info.updatedAt || '';
+                const trackDate = trackRaw ? new Date(trackRaw).toLocaleDateString() : '-';
+                const claimedDate = claimed && claimed.claimed_date ? new Date(claimed.claimed_date).toLocaleString() : '-';
 
-                lines.push(`${status} | ${title} | ${url} | ${date} | ${source}`);
+                lines.push(`${status} | ${title} | ${url} | ${date} | ${trackDate} | ${claimedDate} | ${source}`);
             });
 
             lines.push('');
@@ -6554,7 +6633,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.21.4';
+        window.BUILD_VERSION = '2026.08.21.5';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

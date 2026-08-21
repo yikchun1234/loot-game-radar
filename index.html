@@ -5403,6 +5403,11 @@
                         epicGame.platforms = gpGame.platforms; // richer platform label
                     }
                     delete cg[gpKey];
+                    // Remember the removed ID so its feed card can't be claimed
+                    // again before the feed-level (worker) fix reaches the device
+                    const mergedIds = loadSafeStorage('lootradar_merged_xsrc_ids') || [];
+                    if (!mergedIds.includes(gpKey)) mergedIds.push(gpKey);
+                    saveSafeStorage('lootradar_merged_xsrc_ids', mergedIds);
                     // totalSaved counted BOTH values; the kept entry now holds the
                     // max of the two, so subtract the smaller one
                     state.totalSaved = Math.max(0, state.totalSaved - Math.min(epicValue, gpValue));
@@ -5426,7 +5431,8 @@
           // Check BOTH key formats (migration may have stored as full URL)
           const existingByKey = state.claimedGames[normalizedId];
           const existingByUrl = state.claimedGames[originalUrl];
-          const alreadyClaimed = !!existingByKey || !!existingByUrl;
+          const mergedAway = (loadSafeStorage('lootradar_merged_xsrc_ids') || []).includes(normalizedId);
+          const alreadyClaimed = !!existingByKey || !!existingByUrl || mergedAway;
           const isLegacySave = typeof (existingByKey || existingByUrl) === 'boolean';
 
           // Determine the actual key used in storage
@@ -5956,16 +5962,19 @@
 
             const now = new Date().getTime();
 
+            // IDs merged away by the cross-source dedupe also count as claimed
+            const mergedXsrcIds = loadSafeStorage('lootradar_merged_xsrc_ids') || [];
+
             // 🚀 PERFORMANCE FIX: Create a Fragment to hold everything in memory first
             const fragment = document.createDocumentFragment();
-            
+
             filteredGames.forEach((game, index) => {
                 const isNew = (now - new Date(game.published_date).getTime()) < 172800000;
                 const pIcon = getPlatformIconHtml(game);
                 // Check if claimed - try BOTH normalized ID and full URL (migration may have changed keys)
                 const gameNormalizedId = game.normalizedId || normalizeUrl(game.open_giveaway || game.id);
                 const gameFullUrl = game.open_giveaway || '';
-                const isClaimed = !!state.claimedGames[gameNormalizedId] || !!state.claimedGames[gameFullUrl];
+                const isClaimed = !!state.claimedGames[gameNormalizedId] || !!state.claimedGames[gameFullUrl] || mergedXsrcIds.includes(gameNormalizedId);
 
                 // Check if the game was previously deleted by searching history backwards (gets the most recent reason)
                 // Match by normalizedId regardless of source — same item = same status
@@ -6481,7 +6490,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.21.1';
+        window.BUILD_VERSION = '2026.08.21.2';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

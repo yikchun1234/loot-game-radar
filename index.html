@@ -5075,6 +5075,14 @@
 
                 allGames = Array.from(uniqueMap.values());
 
+                // Cross-source merge (same logic as the Worker): the Epic store
+                // API and GamerPower often list the SAME Epic giveaway with
+                // different URLs (epic:slug vs gp:slug). The frontend ALSO
+                // fetches GamerPower directly above (redundancy), which
+                // re-introduces the GamerPower copy the Worker already merged
+                // away — so run the merge here too.
+                allGames = mergeCrossSourceFeedGames(allGames);
+
                 // Process each game for publish date logic
                 let dateLog = [];
                 allGames.forEach(game => {
@@ -5369,6 +5377,29 @@
             const before = idx === 0 ? ' ' : long[idx - 1];
             const after = idx + short.length >= long.length ? ' ' : long[idx + short.length];
             return before === ' ' && after === ' ';
+        }
+        // Feed-level twin of the Worker's cross-source merge: for each
+        // GamerPower Epic giveaway that title-matches an Epic-store entry,
+        // keep the Epic-store entry (direct link + clean title), enrich its
+        // worth with the real GamerPower price, and drop the GamerPower copy.
+        function mergeCrossSourceFeedGames(games) {
+            const epicDirect = games
+                .filter(g => g.source === 'Epic Games')
+                .map(g => ({ title: cleanTitleForDedupe(g.title), game: g }));
+            if (epicDirect.length === 0) return games;
+            return games.filter(g => {
+                const isGpEpicGiveaway =
+                    (g.open_giveaway || '').includes('gamerpower.com') &&
+                    (g.platforms || '').includes('Epic Games Store');
+                if (!isGpEpicGiveaway) return true;
+                const match = epicDirect.find(e => sameGameTitle(e.title, cleanTitleForDedupe(g.title)));
+                if (!match) return true; // no Epic-store counterpart — keep
+                const base = match.game;
+                const baseValue = parseFloat(String(base.worth || '').replace(/[^0-9.]/g, ''));
+                const gpValue = parseFloat(String(g.worth || '').replace(/[^0-9.]/g, ''));
+                if ((!baseValue || isNaN(baseValue)) && gpValue > 0) base.worth = g.worth;
+                return false; // drop the duplicate GamerPower copy
+            });
         }
         function migrateCrossSourceDuplicates() {
             const cg = state.claimedGames || {};
@@ -6523,7 +6554,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.21.3';
+        window.BUILD_VERSION = '2026.08.21.4';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

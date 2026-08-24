@@ -2399,7 +2399,11 @@
             }
         
             // --- DATA AGGREGATION ---
-            games.sort((a,b) => new Date(a.date) - new Date(b.date));
+            // Canonical analytics date = when the user CLAIMED the game (fallback: deal date).
+            // Every "per month" / timeline chart in this dashboard must use this so the
+            // numbers tally across Looting Activity, Monthly Savings and Trend Comparison.
+            const gameClaimedDate = (g) => new Date(g.claimed_date || g.date);
+            games.sort((a,b) => gameClaimedDate(a) - gameClaimedDate(b));
         
             // 1. Platform Pie Chart Data
             const platCounts = {};
@@ -2505,19 +2509,19 @@
                 window.lootChartData.push({
                     xPct: xPct,
                     value: cumulativeValue.toFixed(2),
-                    date: new Date(g.date).toLocaleDateString(localeStr, { month: 'short', day: 'numeric', year: '2-digit' })
+                    date: gameClaimedDate(g).toLocaleDateString(localeStr, { month: 'short', day: 'numeric', year: '2-digit' })
                 });
             });
             const pathString = linePoints.length > 0 ? `M 0,200 L ${linePoints.join(' L ')}` : '';
-            
-            const startDate = games.length > 0 ? new Date(games[0].date).toLocaleDateString(localeStr, { month: 'short', year: 'numeric' }) : '';
-            const midDate = games.length > 2 ? new Date(games[Math.floor(games.length/2)].date).toLocaleDateString(localeStr, { month: 'short', year: 'numeric' }) : '';
-            const endDate = games.length > 0 ? new Date(games[games.length-1].date).toLocaleDateString(localeStr, { month: 'short', year: 'numeric' }) : '';
-        
+
+            const startDate = games.length > 0 ? gameClaimedDate(games[0]).toLocaleDateString(localeStr, { month: 'short', year: 'numeric' }) : '';
+            const midDate = games.length > 2 ? gameClaimedDate(games[Math.floor(games.length/2)]).toLocaleDateString(localeStr, { month: 'short', year: 'numeric' }) : '';
+            const endDate = games.length > 0 ? gameClaimedDate(games[games.length-1]).toLocaleDateString(localeStr, { month: 'short', year: 'numeric' }) : '';
+
             // 3. Activity Bar Chart Data
             const monthCounts = {};
             games.forEach(g => {
-                const d = new Date(g.date);
+                const d = gameClaimedDate(g);
                 const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
                 const label = d.toLocaleString(localeStr, { month: 'short', year: '2-digit' });
                 if(!monthCounts[key]) monthCounts[key] = { label, count: 0 };
@@ -2932,10 +2936,8 @@
                 return t.trendDecline || 'decline';
             }
 
-            // Check if we have data from last year
-            // NOTE: use claimed_date (fallback date) — must match the Monthly Savings
-            // bar bucketing below so both views report identical month/year totals.
-            const gameClaimedDate = (g) => new Date(g.claimed_date || g.date);
+            // Check if we have data from last year (bucketed by claimed date — same
+            // definition as Looting Activity / Monthly Savings above so all tally)
             const hasLastYearData = games.some(g => gameClaimedDate(g).getFullYear() === lastYear);
             let trendComparisonHtml = '';
 
@@ -6636,7 +6638,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.21.6';
+        window.BUILD_VERSION = '2026.08.21.7';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

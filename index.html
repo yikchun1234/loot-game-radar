@@ -3608,8 +3608,15 @@
 
             // Build lookup maps
             const claimedGames = state.claimedGames || {};
+            // Index deleted entries by EVERY id format they carry (id / normalizedId /
+            // originalUrl) so the deleted status is found no matter which key space a
+            // tracked URL lives in — deleted status must never be lost
             const deletedMap = {};
-            deletedHistory.forEach(d => { deletedMap[d.id] = d; });
+            deletedHistory.forEach(d => {
+                if (d.id) deletedMap[d.id] = d;
+                if (d.normalizedId) deletedMap[d.normalizedId] = d;
+                if (d.originalUrl) deletedMap[d.originalUrl] = d;
+            });
 
             // Collect ALL URLs from all sources
             const allUrlsSet = new Set();
@@ -4697,8 +4704,13 @@
             } catch(e) {}
 
             const claimedGames = state.claimedGames || {};
+            // Index deleted entries by every id format they carry (see renderDevPanel)
             const deletedMap = {};
-            deletedHistory.forEach(d => { deletedMap[d.id] = d; });
+            deletedHistory.forEach(d => {
+                if (d.id) deletedMap[d.id] = d;
+                if (d.normalizedId) deletedMap[d.normalizedId] = d;
+                if (d.originalUrl) deletedMap[d.originalUrl] = d;
+            });
 
             // Collect all URLs
             const allUrlsSet = new Set();
@@ -5378,18 +5390,26 @@
                 console.log(`Migrated ${keysToFix.length} publish_dates keys from URLs to normalized IDs`);
             }
 
-            // Also migrate deleted_history
+            // Also migrate deleted_history: full-URL ids → normalized IDs, so they
+            // live in the SAME key space as publish_dates / claimed_games.
+            // (The old migration went the wrong way — denormalizing ids — which broke
+            // status lookups: deleted apps showed as TRACKED because the table queries
+            // by publish_dates key.) Deleted status must stay retrievable forever.
             const deletedHistory = loadSafeStorage('lootradar_deleted_history') || [];
             let deletedNeedsSave = false;
             deletedHistory.forEach(item => {
-                if (item.id && (item.id.startsWith('gplay:') || item.id.startsWith('ios:id') || item.id.startsWith('steam:') || item.id.startsWith('epic:') || item.id.startsWith('gog:'))) {
-                    item.id = denormalizeUrl(item.id);
-                    deletedNeedsSave = true;
+                if (item.id && (item.id.startsWith('http://') || item.id.startsWith('https://'))) {
+                    const norm = normalizeUrl(item.id);
+                    if (norm && norm !== item.id) {
+                        item.id = norm;
+                        deletedNeedsSave = true;
+                    }
                 }
             });
             if (deletedNeedsSave) {
                 saveSafeStorage('lootradar_deleted_history', deletedHistory);
-                console.log('Migrated deleted_history');
+                state.deletedHistory = deletedHistory;
+                console.log('Migrated deleted_history ids from URLs to normalized IDs');
             }
 
             // Remove ALL "duplicate" entries from deleted_history (no longer needed)
@@ -6652,7 +6672,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.26.2';
+        window.BUILD_VERSION = '2026.08.26.3';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

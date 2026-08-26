@@ -705,6 +705,9 @@
           <div class="border-t-2 border-dashed border-yellow-500/50 pt-6">
             <h3 class="text-sm font-bold text-yellow-500 uppercase tracking-widest mb-4 flex items-center gap-2">
               <i class="ph-fill ph-bug"></i> Developer Mode
+              <button onclick="refreshDevPanel(this)" title="Refresh Developer Mode data" class="ml-auto p-1.5 rounded-lg bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30 transition-colors">
+                <i class="ph-bold ph-arrows-clockwise text-sm"></i>
+              </button>
             </h3>
 
             <!-- Tab Navigation -->
@@ -3386,10 +3389,26 @@
             });
         });
 
+        // Refresh Developer Mode data without closing/reopening the panel.
+        // Re-pulls the library + deleted history + savings from storage, so claims
+        // or cleanups that happened while the panel was open are reflected.
+        window.refreshDevPanel = function(btn) {
+            const icon = btn && btn.querySelector ? btn.querySelector('i') : null;
+            if (icon) icon.classList.add('animate-spin');
+            try {
+                const freshClaimed = loadSafeStorage('lootradar_claimed_v2');
+                if (freshClaimed && typeof freshClaimed === 'object') state.claimedGames = freshClaimed;
+                state.deletedHistory = loadSafeStorage('lootradar_deleted_history') || [];
+                const saved = localStorage.getItem('lootradar_saved_money');
+                if (saved !== null && !isNaN(parseFloat(saved))) state.totalSaved = parseFloat(saved);
+            } catch(e) { logError('refreshDevPanel: ' + e.message, 'dev'); }
+            renderDevPanel();
+            if (icon) setTimeout(() => icon.classList.remove('animate-spin'), 500);
+        };
+
         function renderDevPanel() {
             // Update storage analyzer on panel open
             analyzeStorage();
-
             // --- Current Feed Order (debug sort) ---
             const feedDebugEl = document.getElementById('dev-feed-debug');
             if (feedDebugEl && state.games && state.games.length > 0) {
@@ -6672,7 +6691,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.26.3';
+        window.BUILD_VERSION = '2026.08.26.4';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

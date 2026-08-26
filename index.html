@@ -3941,7 +3941,7 @@
             // Duplicate groups (same normalizedId, multiple keys)
             let checkboxIdx = 0;
             if (dupGroups.length > 0) {
-                html += '<div class="text-[11px] font-bold text-orange-500 mb-2"><i class="ph-bold ph-warning mr-1"></i>Duplicate Groups — compare NOW vs BEFORE</div>';
+                html += '<div class="text-[11px] font-bold text-orange-500 mb-2"><i class="ph-bold ph-warning mr-1"></i>Duplicate Groups — compare NOW vs BEFORE <span class="text-gray-400 font-normal">(swipe ←→)</span></div>';
                 dupGroups.forEach(([normId, entries]) => {
                     const title = entries[0].game.title || 'Unknown';
                     const worth = entries[0].game.worth || 'Free';
@@ -3973,24 +3973,26 @@
                     const kKey = keepEntry.key;
                     const kImg = kg.image ? `<img src="${kg.image}" class="w-8 h-8 rounded object-cover flex-shrink-0" onerror="this.style.display='none'">` : '';
 
-                    html += `<div class="flex gap-3 mb-2">`;
+                    // Swipeable comparison row: first card = NOW (keep),
+                    // then one card per BEFORE entry. Fixed card width + snap
+                    // so users can swipe left/right to compare old vs new.
+                    html += `<div class="flex gap-3 mb-2 overflow-x-auto pb-1 snap-x" style="-webkit-overflow-scrolling: touch;">`;
 
-                    // Left: NOW
-                    html += `<div class="flex-1 p-2 bg-green-500/10 border border-green-500/30 rounded-lg">`;
+                    // Card 1: NOW
+                    html += `<div class="flex-shrink-0 w-[240px] snap-start p-2 bg-green-500/10 border border-green-500/30 rounded-lg">`;
                     html += `<div class="text-[10px] font-bold text-green-500 mb-1.5 flex items-center gap-1"><i class="ph-bold ph-check-circle"></i> NOW (Keep)</div>`;
                     html += `<div class="flex items-start gap-2">`;
                     html += kImg;
                     html += `<div class="min-w-0 flex-1">`;
                     html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Source:</span> ${kSource}</div>`;
                     html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Claimed:</span> ${kDateStr}</div>`;
-                    html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Key:</span> <span class="font-mono">${kKey.length > 35 ? kKey.substring(0, 35) + '...' : kKey}</span></div>`;
+                    html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Key:</span> <span class="font-mono break-all">${kKey}</span></div>`;
                     if (kg.open_giveaway && kg.open_giveaway !== kKey) {
-                        html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">URL:</span> <span class="font-mono">${kg.open_giveaway.length > 35 ? kg.open_giveaway.substring(0, 35) + '...' : kg.open_giveaway}</span></div>`;
+                        html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">URL:</span> <span class="font-mono break-all">${kg.open_giveaway}</span></div>`;
                     }
                     html += `</div></div></div>`;
 
-                    // Right: BEFORE (all older entries, each with checkbox)
-                    html += `<div class="flex-1 space-y-1.5">`;
+                    // Card 2..n: one swipe card per BEFORE entry (each with checkbox)
                     deleteEntries.forEach((entry, di) => {
                         const dg = entry.game;
                         const dDate = new Date(dg.claimed_date || dg.date || 0);
@@ -3999,7 +4001,7 @@
                         const dKey = entry.key;
                         const dImg = dg.image ? `<img src="${dg.image}" class="w-8 h-8 rounded object-cover flex-shrink-0" onerror="this.style.display='none'">` : '';
 
-                        html += `<div class="p-2 bg-red-500/10 border border-red-500/30 rounded-lg">`;
+                        html += `<div class="flex-shrink-0 w-[240px] snap-start p-2 bg-red-500/10 border border-red-500/30 rounded-lg">`;
                         html += `<div class="flex items-center justify-between mb-1">`;
                         html += `<div class="text-[10px] font-bold text-red-500 flex items-center gap-1"><i class="ph-bold ph-clock-countdown"></i> BEFORE #${di + 1}</div>`;
                         html += `<label class="flex items-center gap-1 cursor-pointer">`;
@@ -4011,15 +4013,14 @@
                         html += `<div class="min-w-0 flex-1">`;
                         html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Source:</span> ${dSource}</div>`;
                         html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Claimed:</span> ${dDateStr}</div>`;
-                        html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Key:</span> <span class="font-mono">${dKey.length > 30 ? dKey.substring(0, 30) + '...' : dKey}</span></div>`;
+                        html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Key:</span> <span class="font-mono break-all">${dKey}</span></div>`;
                         if (dg.open_giveaway && dg.open_giveaway !== dKey) {
-                            html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">URL:</span> <span class="font-mono">${dg.open_giveaway.length > 30 ? dg.open_giveaway.substring(0, 30) + '...' : dg.open_giveaway}</span></div>`;
+                            html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">URL:</span> <span class="font-mono break-all">${dg.open_giveaway}</span></div>`;
                         }
                         html += `</div></div></div>`;
                         checkboxIdx++;
                     });
-                    html += `</div>`; // close BEFORE column
-                    html += `</div>`; // close flex row
+                    html += `</div>`; // close swipe row
                     html += `</div>`; // close group
                 });
             }
@@ -6638,7 +6639,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.21.7';
+        window.BUILD_VERSION = '2026.08.21.8';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

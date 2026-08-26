@@ -3618,6 +3618,14 @@
             deletedHistory.forEach(d => { if (d.id) allUrlsSet.add(d.id); });
             const allUrls = Array.from(allUrlsSet);
 
+            // Title lookup for TRACKED-only entries: publish_dates stores no title,
+            // so borrow it from the live feed when the app is still listed there.
+            const feedTitleMap = {};
+            (state.games || []).forEach(g => {
+                const fid = g.normalizedId || normalizeUrl(g.open_giveaway || g.id || '');
+                if (fid && g.title && !feedTitleMap[fid]) feedTitleMap[fid] = g.title;
+            });
+
             const appRows = allUrls.map(url => {
                 const info = publishDates[url] || {};
                 const claimed = claimedGames[url];
@@ -3629,6 +3637,10 @@
                 if (claimed) {
                     originalUrl = claimed.open_giveaway || url;
                     normalizedId = claimed.normalizedId || url;
+                } else {
+                    // Tracked/deleted entries are keyed by normalized ID (gplay:, ios:id, ...)
+                    // — reconstruct the real store URL so the column shows an actual link
+                    originalUrl = denormalizeUrl(url);
                 }
 
                 // Determine status
@@ -3650,7 +3662,8 @@
                     statusBadge = '<span class="px-1.5 py-0.5 text-[10px] font-bold rounded bg-gray-500/20 text-gray-400">TRACKED</span>';
                 }
 
-                const title = claimed ? (claimed.title || '-') : (deleted ? (deleted.title || '-') : '-');
+                let title = claimed ? (claimed.title || '-') : (deleted ? (deleted.title || '-') : '-');
+                if (title === '-') title = feedTitleMap[normalizedId] || '-';
                 const shortTitle = title.length > 20 ? title.substring(0, 20) + '...' : title;
                 const date = info.date ? new Date(info.date).toLocaleDateString() : '-';
                 const source = info.source || '-';
@@ -3674,7 +3687,7 @@
                     <tr class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
                         <td class="py-1.5 pr-2">${statusBadge}</td>
                         <td class="py-1.5 pr-2 text-[10px] font-bold dark:text-gray-200 max-w-[120px] truncate" title="${title}">${shortTitle}</td>
-                        <td class="py-1.5 pr-2 font-mono text-[10px] text-gray-500 dark:text-gray-400 max-w-[120px] truncate" title="${originalUrl}">${shortOriginalUrl}</td>
+                        <td class="py-1.5 pr-2 font-mono text-[10px] max-w-[140px] truncate" title="${originalUrl}"><a href="${originalUrl}" target="_blank" rel="noopener" class="text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 underline decoration-dotted">${shortOriginalUrl}</a></td>
                         <td class="py-1.5 pr-2 font-mono text-[10px] text-blue-500 max-w-[100px] truncate" title="${normalizedId}">${shortNormalizedId}</td>
                         <td class="py-1.5 pr-2 text-[10px] text-gray-500" data-sort-value="${dealDateSort}">${date}</td>
                         <td class="py-1.5 pr-2 text-[10px] text-gray-500" data-sort-value="${trackDateSort}">${trackDate}</td>
@@ -6639,7 +6652,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.26.1';
+        window.BUILD_VERSION = '2026.08.26.2';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

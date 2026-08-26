@@ -1640,9 +1640,27 @@
         // 👆 END OF HEAL FUNCTION 👆
 
         // -----------------------------------------
-        
+
+        // Auto-detect the browser language for FIRST-TIME visitors (no saved
+        // preference yet) so the whole app — including the install prompt —
+        // appears in the user's own language without any extra UI step.
+        function detectBrowserLang() {
+            const supported = ['en', 'zh-CN', 'zh-TW', 'es', 'fr', 'de', 'ru', 'ja', 'ko', 'pt'];
+            const nav = (navigator.language || navigator.userLanguage || 'en').toLowerCase();
+            if (nav.indexOf('zh') === 0) {
+                // Traditional Chinese regions / scripts
+                if (nav.indexOf('tw') > -1 || nav.indexOf('hk') > -1 || nav.indexOf('mo') > -1 || nav.indexOf('hant') > -1) return 'zh-TW';
+                return 'zh-CN';
+            }
+            const base = nav.split('-')[0];
+            for (let i = 0; i < supported.length; i++) {
+                if (supported[i].toLowerCase() === base) return supported[i];
+            }
+            return 'en';
+        }
+
         let state = {
-          lang: localStorage.getItem('lang') || 'en',
+          lang: localStorage.getItem('lang') || detectBrowserLang(),
           theme: localStorage.getItem('theme') || 'dark',
           games: [],
           currentPlatform: 'All',
@@ -6757,7 +6775,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.26.8';
+        window.BUILD_VERSION = '2026.08.26.9';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

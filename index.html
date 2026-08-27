@@ -4297,16 +4297,19 @@
                 console.log('[Duplicates Detector] Unfixable URL-key entries:', unfixableUrlKeys.map(e => ({ key: e.key, title: e.game.title, normalizedId: e.game.normalizedId, open_giveaway: e.game.open_giveaway })));
             }
 
-            // Show delete button only if there are duplicate group checkboxes (not orphan checkboxes)
+            // Render FIRST, then decide button visibility. (Previously the checkbox
+            // count ran BEFORE innerHTML was replaced, so it counted the PREVIOUS
+            // render — the Delete button only appeared on the 2nd Detect click.)
+            report.innerHTML = html;
+
+            // Show delete button only if duplicate group checkboxes were generated
+            // in THIS render (checkboxIdx counts exactly the BEFORE-entry checkboxes)
             const deleteBtn = document.getElementById('dev-dup-delete-btn');
-            const dupCheckboxes = document.querySelectorAll('.dup-checkbox');
-            if (dupCheckboxes.length > 0) {
+            if (checkboxIdx > 0) {
                 deleteBtn.classList.remove('hidden');
             } else {
                 deleteBtn.classList.add('hidden');
             }
-
-            report.innerHTML = html;
         };
 
         // Convert URL-key entries to normalized ID keys (rename, not delete)
@@ -6865,7 +6868,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.26.10';
+        window.BUILD_VERSION = '2026.08.26.11';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

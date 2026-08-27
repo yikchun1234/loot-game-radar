@@ -777,6 +777,27 @@
                 </div></div>
               </div>
 
+              <!-- Same-Name Duplicates (All Tracked Apps) -->
+              <div class="dev-section glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800" data-collapsed="false">
+                <div class="flex items-center justify-between mb-3 cursor-pointer" onclick="toggleDevSection(this)">
+                  <h4 class="text-xs font-bold text-teal-500 dark:text-teal-400 uppercase tracking-widest">Same-Name Duplicates (All Tracked Apps)</h4>
+                  <div class="flex items-center gap-2">
+                    <div class="flex gap-2" onclick="event.stopPropagation()">
+                      <button onclick="detectTrackedDuplicates()" class="px-3 py-1 text-[10px] font-bold bg-teal-500/20 text-teal-500 hover:bg-teal-500/30 rounded-lg transition-colors">
+                        <i class="ph-bold ph-magnifying-glass"></i> Detect
+                      </button>
+                      <button onclick="deleteSelectedTrackedDuplicates()" id="dev-tdup-delete-btn" class="px-3 py-1 text-[10px] font-bold bg-red-500/20 text-red-500 hover:bg-red-500/30 rounded-lg transition-colors hidden">
+                        <i class="ph-bold ph-trash"></i> Delete Selected
+                      </button>
+                    </div>
+                    <i class="ph-bold ph-caret-down dev-section-toggle text-gray-400"></i>
+                  </div>
+                </div>
+                <div class="dev-section-body"><div>
+                  <div id="dev-tracked-dup-report" class="text-xs text-gray-600 dark:text-gray-400">Click "Detect" to group ALL tracked apps with the same name...</div>
+                </div></div>
+              </div>
+
               <!-- Storage Analyzer -->
               <div class="dev-section glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800" data-collapsed="false">
                 <div class="flex items-center justify-between mb-3 cursor-pointer" onclick="toggleDevSection(this)">
@@ -3872,52 +3893,7 @@
 
             // --- Step 2: permanent delete from all storages ---
             try {
-                let changedClaimed = false;
-
-                // 1. Claimed library — deduct its value from total savings
-                if (state.claimedGames && state.claimedGames[url]) {
-                    const g = state.claimedGames[url];
-                    if (g.value && !isNaN(g.value)) {
-                        state.totalSaved = Math.max(0, state.totalSaved - g.value);
-                    }
-                    delete state.claimedGames[url];
-                    changedClaimed = true;
-                }
-
-                // 2. Tracking history (publish_dates)
-                try {
-                    const raw = localStorage.getItem('lootradar_publish_dates');
-                    if (raw) {
-                        const dec = LZString.decompressFromUTF16(raw);
-                        const pd = dec ? JSON.parse(dec) : {};
-                        if (pd[url] !== undefined) {
-                            delete pd[url];
-                            saveSafeStorage('lootradar_publish_dates', pd);
-                        }
-                    }
-                } catch(e) { logError('deleteTrackedApp publish_dates: ' + e.message, 'dev'); }
-
-                // 3. Deleted history — remove every entry that matches in any id format
-                try {
-                    const rawDel = localStorage.getItem('lootradar_deleted_history');
-                    if (rawDel) {
-                        const dec = LZString.decompressFromUTF16(rawDel);
-                        let dh = dec ? JSON.parse(dec) : [];
-                        const norm = normalizeUrl(url);
-                        const full = denormalizeUrl(url);
-                        dh = dh.filter(d => {
-                            const ids = [d.id, d.normalizedId, d.originalUrl];
-                            return !(ids.indexOf(url) > -1 || ids.indexOf(norm) > -1 || ids.indexOf(full) > -1);
-                        });
-                        saveSafeStorage('lootradar_deleted_history', dh);
-                        state.deletedHistory = dh;
-                    }
-                } catch(e) { logError('deleteTrackedApp deleted_history: ' + e.message, 'dev'); }
-
-                if (changedClaimed) {
-                    saveSafeStorage('lootradar_claimed_v2', state.claimedGames);
-                    localStorage.setItem('lootradar_saved_money', state.totalSaved.toString());
-                }
+                permanentlyDeleteTrackedUrl(url);
 
                 // Refresh all UIs so the deletion shows up everywhere immediately
                 if (typeof updateWalletUI === 'function') updateWalletUI();
@@ -3928,6 +3904,60 @@
                 logError('deleteTrackedApp: ' + e.message, 'dev');
             }
         };
+
+        // Core permanent-delete used by BOTH the per-row trash button AND the
+        // same-name duplicates "Delete Selected" action. Removes the app from
+        // every record it lives in — claimed library (deducting its value from
+        // total savings), publish_dates tracking and deleted history. No undo.
+        function permanentlyDeleteTrackedUrl(url) {
+            let changedClaimed = false;
+
+            // 1. Claimed library — deduct its value from total savings
+            if (state.claimedGames && state.claimedGames[url]) {
+                const g = state.claimedGames[url];
+                if (g.value && !isNaN(g.value)) {
+                    state.totalSaved = Math.max(0, state.totalSaved - g.value);
+                }
+                delete state.claimedGames[url];
+                changedClaimed = true;
+            }
+
+            // 2. Tracking history (publish_dates)
+            try {
+                const raw = localStorage.getItem('lootradar_publish_dates');
+                if (raw) {
+                    const dec = LZString.decompressFromUTF16(raw);
+                    const pd = dec ? JSON.parse(dec) : {};
+                    if (pd[url] !== undefined) {
+                        delete pd[url];
+                        saveSafeStorage('lootradar_publish_dates', pd);
+                    }
+                }
+            } catch(e) { logError('permanentlyDeleteTrackedUrl publish_dates: ' + e.message, 'dev'); }
+
+            // 3. Deleted history — remove every entry that matches in any id format
+            try {
+                const rawDel = localStorage.getItem('lootradar_deleted_history');
+                if (rawDel) {
+                    const dec = LZString.decompressFromUTF16(rawDel);
+                    let dh = dec ? JSON.parse(dec) : [];
+                    const norm = normalizeUrl(url);
+                    const full = denormalizeUrl(url);
+                    dh = dh.filter(d => {
+                        const ids = [d.id, d.normalizedId, d.originalUrl];
+                        return !(ids.indexOf(url) > -1 || ids.indexOf(norm) > -1 || ids.indexOf(full) > -1);
+                    });
+                    saveSafeStorage('lootradar_deleted_history', dh);
+                    state.deletedHistory = dh;
+                }
+            } catch(e) { logError('permanentlyDeleteTrackedUrl deleted_history: ' + e.message, 'dev'); }
+
+            if (changedClaimed) {
+                saveSafeStorage('lootradar_claimed_v2', state.claimedGames);
+                localStorage.setItem('lootradar_saved_money', state.totalSaved.toString());
+            }
+            return changedClaimed;
+        }
 
         // ===== DEVELOPER MODE: Expand truncated cells =====
         // Title/ID cells are CSS-truncated to keep tables compact. Tap one to
@@ -4527,6 +4557,215 @@
 
             alert(`Deleted ${deletedCount} duplicate(s). Total savings updated.`);
             detectDuplicates(); // Re-run detection
+        };
+
+        // ===== DEVELOPER MODE: Same-Name Duplicates (All Tracked Apps) =====
+        // Groups ALL tracked apps (publish_dates + claimed + deleted history —
+        // the same union the All Tracked Apps table shows) by IDENTICAL title.
+        // This catches cross-source duplicates that key-based detection can't
+        // see (e.g. the same game tracked as both epic:slug and gp:slug).
+        window.detectTrackedDuplicates = function() {
+            const report = document.getElementById('dev-tracked-dup-report');
+            const deleteBtn = document.getElementById('dev-tdup-delete-btn');
+
+            // --- Collect the same union the All Tracked Apps table shows ---
+            let publishDates = {};
+            let deletedHistory = [];
+            try {
+                const raw = localStorage.getItem('lootradar_publish_dates');
+                if (raw) {
+                    const dec = LZString.decompressFromUTF16(raw);
+                    publishDates = dec ? JSON.parse(dec) : {};
+                }
+            } catch(e) {}
+            try {
+                const rawDel = localStorage.getItem('lootradar_deleted_history');
+                if (rawDel) {
+                    const dec = LZString.decompressFromUTF16(rawDel);
+                    deletedHistory = dec ? JSON.parse(dec) : [];
+                }
+            } catch(e) {}
+            const claimedGames = state.claimedGames || {};
+
+            const deletedMap = {};
+            deletedHistory.forEach(d => {
+                if (d.id) deletedMap[d.id] = d;
+                if (d.normalizedId) deletedMap[d.normalizedId] = d;
+                if (d.originalUrl) deletedMap[d.originalUrl] = d;
+            });
+
+            const allUrlsSet = new Set();
+            Object.keys(publishDates).forEach(u => allUrlsSet.add(u));
+            Object.keys(claimedGames).forEach(u => allUrlsSet.add(u));
+            deletedHistory.forEach(d => { if (d.id) allUrlsSet.add(d.id); });
+
+            // Title lookup for TRACKED-only entries (publish_dates stores no title)
+            const feedTitleMap = {};
+            (state.games || []).forEach(g => {
+                const fid = g.normalizedId || normalizeUrl(g.open_giveaway || g.id || '');
+                if (fid && g.title && !feedTitleMap[fid]) feedTitleMap[fid] = g.title;
+            });
+
+            // --- Resolve a title for every tracked URL and group by cleaned name ---
+            const groups = {};
+            let noTitleCount = 0;
+            Array.from(allUrlsSet).forEach(url => {
+                const claimed = claimedGames[url];
+                const deleted = deletedMap[url];
+                const info = publishDates[url] || {};
+                const normalizedId = claimed ? (claimed.normalizedId || url) : url;
+
+                let title = claimed ? (claimed.title || '') : (deleted ? (deleted.title || '') : '');
+                if (!title) title = feedTitleMap[normalizedId] || '';
+                const clean = (title || '').toLowerCase().replace(/\s+/g, ' ').trim();
+                if (!clean) { noTitleCount++; return; } // no title -> cannot group
+
+                if (!groups[clean]) groups[clean] = { title: title, entries: [] };
+                groups[clean].entries.push({
+                    url: url,
+                    normalizedId: normalizedId,
+                    originalUrl: claimed ? (claimed.open_giveaway || url) : denormalizeUrl(url),
+                    claimed: !!claimed,
+                    deleted: deleted || null,
+                    claimedDate: claimed && claimed.claimed_date && !isNaN(new Date(claimed.claimed_date).getTime()) ? new Date(claimed.claimed_date).getTime() : 0,
+                    dealDate: info.date && !isNaN(new Date(info.date).getTime()) ? new Date(info.date).getTime() : 0,
+                    trackDate: (info.createdAt || info.updatedAt) && !isNaN(new Date(info.createdAt || info.updatedAt).getTime()) ? new Date(info.createdAt || info.updatedAt).getTime() : 0,
+                    source: info.source || (claimed && claimed.source) || (deleted && deleted.source) || '-',
+                    image: claimed && claimed.image ? claimed.image : '',
+                    worth: claimed && claimed.worth ? claimed.worth : ''
+                });
+            });
+
+            const dupGroups = Object.entries(groups)
+                .filter(([, g]) => g.entries.length > 1)
+                .sort((a, b) => a[0].localeCompare(b[0]));
+
+            if (dupGroups.length === 0) {
+                deleteBtn.classList.add('hidden');
+                let okHtml = '<div class="p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-green-500 text-[11px] font-bold">';
+                okHtml += '<i class="ph-bold ph-check-circle mr-1"></i> No same-name duplicates found among ' + allUrlsSet.size + ' tracked apps.';
+                if (noTitleCount > 0) okHtml += ' <span class="text-gray-400 font-normal">(' + noTitleCount + ' entries have no title and were skipped)</span>';
+                okHtml += '</div>';
+                report.innerHTML = okHtml;
+                return;
+            }
+
+            const totalExtra = dupGroups.reduce((sum, [, g]) => sum + g.entries.length - 1, 0);
+            let html = '<div class="flex gap-3 mb-3 flex-wrap">';
+            html += `<span class="px-2 py-1 bg-teal-500/10 text-teal-500 rounded text-[10px] font-bold">${dupGroups.length} groups (${totalExtra} same-name entries)</span>`;
+            if (noTitleCount > 0) html += `<span class="px-2 py-1 bg-gray-500/10 text-gray-400 rounded text-[10px] font-bold">${noTitleCount} entries without title (skipped)</span>`;
+            html += '</div>';
+            html += '<div class="text-[10px] text-gray-400 mb-3">Grouped by identical name across ALL tracked apps (claimed + tracked + deleted). KEEP = the entry to keep — tick the others and Delete Selected to remove them permanently.</div>';
+
+            const fmtDate = ts => ts ? new Date(ts).toLocaleString() : '-';
+            const statusHtml = entry => {
+                if (entry.claimed) return '<span class="px-1.5 py-0.5 text-[9px] font-bold rounded bg-green-500/20 text-green-500">CLAIMED</span>';
+                if (entry.deleted) return `<span class="px-1.5 py-0.5 text-[9px] font-bold rounded bg-orange-500/20 text-orange-500">${(entry.deleted.reason || 'DELETED').toUpperCase()}</span>`;
+                return '<span class="px-1.5 py-0.5 text-[9px] font-bold rounded bg-gray-500/20 text-gray-400">TRACKED</span>';
+            };
+
+            let checkboxIdx = 0;
+            dupGroups.forEach(([cleanTitle, group]) => {
+                // Keep priority: claimed first (newest claimed_date wins), then
+                // tracked (oldest first), deleted entries last — so a claimed copy
+                // is never offered for deletion while a non-claimed twin exists
+                const sorted = [...group.entries].sort((a, b) => {
+                    if (a.claimed !== b.claimed) return a.claimed ? -1 : 1;
+                    if (a.claimed && b.claimed) return b.claimedDate - a.claimedDate;
+                    if (!!a.deleted !== !!b.deleted) return a.deleted ? 1 : -1;
+                    return (a.trackDate || a.dealDate) - (b.trackDate || b.dealDate);
+                });
+                const keep = sorted[0];
+                const extras = sorted.slice(1);
+
+                html += `<div class="mb-4 p-3 bg-teal-500/5 border border-teal-500/20 rounded-lg">`;
+                html += `<div class="flex items-center gap-2 mb-2">`;
+                html += `<span class="font-bold text-[12px] dark:text-gray-200">${group.title}</span>`;
+                html += `<span class="text-[10px] px-1.5 py-0.5 bg-teal-500/10 text-teal-500 rounded font-bold">${sorted.length} entries</span>`;
+                html += `</div>`;
+
+                // Swipeable comparison row, same layout as the claimed-library detector
+                html += `<div class="flex gap-3 mb-2 overflow-x-auto pb-1 snap-x" style="-webkit-overflow-scrolling: touch;">`;
+
+                // Card 1: KEEP (no checkbox, never deleted by this tool)
+                const kImg = keep.image ? `<img src="${keep.image}" class="w-8 h-8 rounded object-cover flex-shrink-0" onerror="this.style.display='none'">` : '';
+                html += `<div class="flex-shrink-0 w-[240px] snap-start p-2 bg-green-500/10 border border-green-500/30 rounded-lg">`;
+                html += `<div class="text-[10px] font-bold text-green-500 mb-1.5 flex items-center gap-1"><i class="ph-bold ph-check-circle"></i> KEEP ${statusHtml(keep)}</div>`;
+                html += `<div class="flex items-start gap-2">${kImg}<div class="min-w-0 flex-1">`;
+                html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Source:</span> ${keep.source}</div>`;
+                html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Deal:</span> ${fmtDate(keep.dealDate)}</div>`;
+                html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Tracked:</span> ${fmtDate(keep.trackDate)}</div>`;
+                if (keep.claimed) html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Claimed:</span> ${fmtDate(keep.claimedDate)}</div>`;
+                html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Key:</span> <span class="font-mono break-all">${keep.url}</span></div>`;
+                if (keep.originalUrl && keep.originalUrl !== keep.url) {
+                    html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">URL:</span> <span class="font-mono break-all">${keep.originalUrl}</span></div>`;
+                }
+                html += `</div></div></div>`;
+
+                // Card 2..n: one swipe card per same-name entry (each with checkbox)
+                extras.forEach((entry, di) => {
+                    const dImg = entry.image ? `<img src="${entry.image}" class="w-8 h-8 rounded object-cover flex-shrink-0" onerror="this.style.display='none'">` : '';
+                    html += `<div class="flex-shrink-0 w-[240px] snap-start p-2 bg-red-500/10 border border-red-500/30 rounded-lg">`;
+                    html += `<div class="flex items-center justify-between mb-1">`;
+                    html += `<div class="text-[10px] font-bold text-red-500 flex items-center gap-1"><i class="ph-bold ph-copy"></i> SAME NAME #${di + 1} ${statusHtml(entry)}</div>`;
+                    html += `<label class="flex items-center gap-1 cursor-pointer">`;
+                    html += `<span class="text-[9px] text-red-500 font-bold">Delete</span>`;
+                    html += `<input type="checkbox" class="tdup-checkbox" data-storage-key="${entry.url}" checked>`;
+                    html += `</label></div>`;
+                    html += `<div class="flex items-start gap-2">${dImg}<div class="min-w-0 flex-1">`;
+                    html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Source:</span> ${entry.source}</div>`;
+                    html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Deal:</span> ${fmtDate(entry.dealDate)}</div>`;
+                    html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Tracked:</span> ${fmtDate(entry.trackDate)}</div>`;
+                    if (entry.claimed) html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Claimed:</span> ${fmtDate(entry.claimedDate)}</div>`;
+                    html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Key:</span> <span class="font-mono break-all">${entry.url}</span></div>`;
+                    if (entry.originalUrl && entry.originalUrl !== entry.url) {
+                        html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">URL:</span> <span class="font-mono break-all">${entry.originalUrl}</span></div>`;
+                    }
+                    html += `</div></div></div>`;
+                    checkboxIdx++;
+                });
+                html += `</div>`; // close swipe row
+                html += `</div>`; // close group
+            });
+
+            // Render FIRST, then decide button visibility from THIS render's count
+            report.innerHTML = html;
+            if (checkboxIdx > 0) {
+                deleteBtn.classList.remove('hidden');
+            } else {
+                deleteBtn.classList.add('hidden');
+            }
+        };
+
+        // Permanently delete the ticked same-name entries (full tracked-app
+        // delete: claimed library + publish_dates + deleted history, same core
+        // as the per-row trash button in All Tracked Apps)
+        window.deleteSelectedTrackedDuplicates = function() {
+            const checkboxes = document.querySelectorAll('.tdup-checkbox:checked');
+            if (checkboxes.length === 0) {
+                alert('No items selected. Tick the checkboxes for entries you want to DELETE.');
+                return;
+            }
+            const keys = Array.from(checkboxes).map(cb => cb.dataset.storageKey);
+            if (!confirm(`Permanently delete ${keys.length} tracked app(s)?\n\nThey will be removed from your library, tracking history AND deleted history. This CANNOT be undone!`)) return;
+
+            let failed = 0;
+            keys.forEach(key => {
+                try {
+                    permanentlyDeleteTrackedUrl(key);
+                } catch(e) {
+                    failed++;
+                    logError('deleteSelectedTrackedDuplicates: ' + e.message, 'dev');
+                }
+            });
+
+            if (typeof updateWalletUI === 'function') updateWalletUI();
+            if (typeof renderLibrary === 'function') renderLibrary();
+            if (typeof renderGames === 'function') renderGames();
+            renderDevPanel();
+
+            alert(`Permanently deleted ${keys.length - failed} app(s).` + (failed > 0 ? ` (${failed} failed — check error log)` : ''));
+            detectTrackedDuplicates(); // Re-run to show updated state
         };
 
         // ===== DEVELOPER MODE: Storage Analyzer =====
@@ -6963,7 +7202,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.27.2';
+        window.BUILD_VERSION = '2026.08.27.3';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

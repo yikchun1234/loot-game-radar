@@ -711,7 +711,7 @@
           <div class="border-t-2 border-dashed border-yellow-500/50 pt-6">
             <h3 class="text-sm font-bold text-yellow-500 uppercase tracking-widest mb-4 flex items-center gap-2">
               <i class="ph-fill ph-bug"></i> Developer Mode
-              <button onclick="toggleAllDevTitles(this)" title="Show full titles / collapse" class="ml-auto p-1.5 rounded-lg bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30 transition-colors">
+              <button id="dev-expand-all-btn" onclick="toggleAllDevTitles(this)" title="Show full titles / collapse" class="ml-auto p-1.5 rounded-lg bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30 transition-colors">
                 <i class="ph-bold ph-text-aa text-sm"></i>
               </button>
               <button onclick="refreshDevPanel(this)" title="Refresh Developer Mode data" class="p-1.5 rounded-lg bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30 transition-colors">
@@ -3566,7 +3566,7 @@
                         </table>
                     </div>
                     <div class="mt-2 text-[10px] text-gray-400">${state.games.length} games in feed • Default sort: date desc → price desc → title A-Z • Click any column header to sort • Tap a truncated Title/ID to expand • Status from localStorage comparison</div>`;
-                makeDevTableSortable(feedDebugEl.querySelector('table'));
+                makeDevTableSortable(feedDebugEl.querySelector('table'), 'feed');
             }
 
             // --- Deleted History Match Diagnostic ---
@@ -3658,7 +3658,7 @@
                                 <tbody>${rows}</tbody>
                             </table>
                         </div>`;
-                    makeDevTableSortable(deletedMatchEl.querySelector('table'));
+                    makeDevTableSortable(deletedMatchEl.querySelector('table'), 'matches');
                 }
             }
 
@@ -3837,7 +3837,11 @@
                     <span class="text-gray-400 font-bold">${trackedOnly} tracked only</span>
                     <span class="text-gray-500">| ${allUrls.length} total • Click any column header to sort • Tap a truncated Title/ID to expand</span>
                 </div>`;
-            makeDevTableSortable(appsTable.querySelector('table'));
+            makeDevTableSortable(appsTable.querySelector('table'), 'apps');
+
+            // The tables above were rebuilt from scratch — put back the expand
+            // states (Aa) the user had before the re-render
+            restoreDevCellStates();
         }
 
         // ===== DEVELOPER MODE: Permanent delete from All Tracked Apps =====
@@ -3932,16 +3936,20 @@
             if (!td) return;
             // Let real links do their job: clicks on <a> navigate, not toggle
             if (e && e.target && e.target.closest && e.target.closest('a')) return;
+            if (!window._devExpandedTitles) window._devExpandedTitles = new Set();
+            const titleKey = td.getAttribute('title') || '';
             if (td.dataset.expanded === '1') {
                 td.dataset.expanded = '';
                 td.classList.add('truncate');
                 td.classList.remove('whitespace-normal', 'break-words');
                 td.style.maxWidth = '';
+                window._devExpandedTitles.delete(titleKey);
             } else {
                 td.dataset.expanded = '1';
                 td.classList.remove('truncate');
                 td.classList.add('whitespace-normal', 'break-words');
                 td.style.maxWidth = 'none';
+                window._devExpandedTitles.add(titleKey);
             }
         };
 
@@ -3962,6 +3970,27 @@
                 else btn.classList.remove('bg-yellow-500/60');
             }
         };
+
+        // Re-apply remembered UI state after a dev panel re-render (e.g. after
+        // a permanent delete rebuilds every table from scratch): expand every
+        // cell the user had expanded, and sync the global Aa button highlight.
+        function restoreDevCellStates() {
+            const titles = window._devExpandedTitles;
+            if (titles && titles.size) {
+                document.querySelectorAll('.dev-expand-cell').forEach(td => {
+                    if (td.dataset.expanded !== '1' && titles.has(td.getAttribute('title') || '')) {
+                        window.toggleDevCell(td);
+                    }
+                });
+            }
+            const btn = document.getElementById('dev-expand-all-btn');
+            if (btn) {
+                const cells = document.querySelectorAll('.dev-expand-cell');
+                const allExpanded = cells.length > 0 && Array.prototype.every.call(cells, td => td.dataset.expanded === '1');
+                if (allExpanded) btn.classList.add('bg-yellow-500/60');
+                else btn.classList.remove('bg-yellow-500/60');
+            }
+        }
 
         // ===== DEVELOPER MODE: Tab Switching =====
         window.switchDevTab = function(tabName) {
@@ -3995,7 +4024,7 @@
         // - th[data-sort-type]: 'text' (default) | 'num' | 'date' (num/date expect a numeric data-sort-value, e.g. epoch ms)
         // - td[data-sort-value]: raw value used for sorting (falls back to textContent)
         // - empty values ('' or '-') always sort to the bottom regardless of direction
-        function makeDevTableSortable(tableEl) {
+        function makeDevTableSortable(tableEl, sortId) {
             if (!tableEl || tableEl.dataset.sortInit === '1') return;
             const thead = tableEl.querySelector('thead');
             const tbody = tableEl.querySelector('tbody');
@@ -4011,41 +4040,63 @@
                 arrow.textContent = '↕';
                 th.appendChild(arrow);
                 th.addEventListener('click', () => {
-                    const type = th.dataset.sortType || 'text';
                     const dir = th.dataset.sortDir === 'asc' ? 'desc' : 'asc';
-                    headers.forEach(h => {
-                        delete h.dataset.sortDir;
-                        const a = h.querySelector('.dev-sort-arrow');
-                        if (a) { a.textContent = '↕'; a.className = 'dev-sort-arrow ml-0.5 text-gray-300 dark:text-gray-600'; }
-                    });
-                    th.dataset.sortDir = dir;
-                    arrow.textContent = dir === 'asc' ? '↑' : '↓';
-                    arrow.className = 'dev-sort-arrow ml-0.5 text-yellow-500 font-bold';
-                    const allRows = Array.from(tbody.querySelectorAll('tr'));
-                    const rows = allRows.filter(r => !r.querySelector('td[colspan]'));
-                    const colspanRows = allRows.filter(r => r.querySelector('td[colspan]'));
-                    rows.sort((ra, rb) => {
-                        const ca = ra.children[colIdx];
-                        const cb = rb.children[colIdx];
-                        const va = ca ? (ca.dataset.sortValue !== undefined ? ca.dataset.sortValue : (ca.textContent || '').trim()) : '';
-                        const vb = cb ? (cb.dataset.sortValue !== undefined ? cb.dataset.sortValue : (cb.textContent || '').trim()) : '';
-                        const ea = va === '' || va === '-';
-                        const eb = vb === '' || vb === '-';
-                        if (ea && eb) return 0;
-                        if (ea) return 1;
-                        if (eb) return -1;
-                        let cmp = 0;
-                        if (type === 'num' || type === 'date') {
-                            cmp = (parseFloat(va) || 0) - (parseFloat(vb) || 0);
-                        } else {
-                            cmp = String(va).localeCompare(String(vb), undefined, { numeric: true, sensitivity: 'base' });
-                        }
-                        return dir === 'asc' ? cmp : -cmp;
-                    });
-                    rows.forEach(r => tbody.appendChild(r));
-                    colspanRows.forEach(r => tbody.appendChild(r)); // keep empty-state row at the bottom
+                    applyDevTableSort(tableEl, colIdx, dir, sortId);
                 });
             });
+            // Re-apply the sort order remembered from before the last re-render
+            // (e.g. a permanent delete rebuilds the table in default order)
+            const remembered = (window._devSortState || {})[sortId];
+            if (remembered) applyDevTableSort(tableEl, remembered.col, remembered.dir, sortId);
+        }
+
+        // Applies a sort to a dev table and remembers it in _devSortState so
+        // the same order can be restored after the table is re-rendered.
+        function applyDevTableSort(tableEl, colIdx, dir, sortId) {
+            const tbody = tableEl.querySelector('tbody');
+            if (!tbody) return;
+            const headers = Array.from(tableEl.querySelectorAll('thead th'));
+            const th = headers[colIdx];
+            if (!th) return;
+            headers.forEach(h => {
+                delete h.dataset.sortDir;
+                const a = h.querySelector('.dev-sort-arrow');
+                if (a) { a.textContent = '↕'; a.className = 'dev-sort-arrow ml-0.5 text-gray-300 dark:text-gray-600'; }
+            });
+            th.dataset.sortDir = dir;
+            const arrow = th.querySelector('.dev-sort-arrow');
+            if (arrow) {
+                arrow.textContent = dir === 'asc' ? '↑' : '↓';
+                arrow.className = 'dev-sort-arrow ml-0.5 text-yellow-500 font-bold';
+            }
+            if (sortId) {
+                window._devSortState = window._devSortState || {};
+                window._devSortState[sortId] = { col: colIdx, dir: dir };
+            }
+            const type = th.dataset.sortType || 'text';
+            const allRows = Array.from(tbody.querySelectorAll('tr'));
+            const rows = allRows.filter(r => !r.querySelector('td[colspan]'));
+            const colspanRows = allRows.filter(r => r.querySelector('td[colspan]'));
+            rows.sort((ra, rb) => {
+                const ca = ra.children[colIdx];
+                const cb = rb.children[colIdx];
+                const va = ca ? (ca.dataset.sortValue !== undefined ? ca.dataset.sortValue : (ca.textContent || '').trim()) : '';
+                const vb = cb ? (cb.dataset.sortValue !== undefined ? cb.dataset.sortValue : (cb.textContent || '').trim()) : '';
+                const ea = va === '' || va === '-';
+                const eb = vb === '' || vb === '-';
+                if (ea && eb) return 0;
+                if (ea) return 1;
+                if (eb) return -1;
+                let cmp = 0;
+                if (type === 'num' || type === 'date') {
+                    cmp = (parseFloat(va) || 0) - (parseFloat(vb) || 0);
+                } else {
+                    cmp = String(va).localeCompare(String(vb), undefined, { numeric: true, sensitivity: 'base' });
+                }
+                return dir === 'asc' ? cmp : -cmp;
+            });
+            rows.forEach(r => tbody.appendChild(r));
+            colspanRows.forEach(r => tbody.appendChild(r)); // keep empty-state row at the bottom
         }
 
         // ===== DEVELOPER MODE: Data Health Report =====
@@ -4342,6 +4393,7 @@
             // count ran BEFORE innerHTML was replaced, so it counted the PREVIOUS
             // render — the Delete button only appeared on the 2nd Detect click.)
             report.innerHTML = html;
+            restoreDevCellStates();
 
             // Show delete button only if duplicate group checkboxes were generated
             // in THIS render (checkboxIdx counts exactly the BEFORE-entry checkboxes)
@@ -4546,6 +4598,7 @@
                     <span class="font-bold text-yellow-500 w-20 text-right">${totalStr}</span>
                 </div>`;
             report.innerHTML = rows;
+            restoreDevCellStates();
         }
 
         // ===== DEVELOPER MODE: Network Log =====
@@ -4586,6 +4639,7 @@
             });
             html += '</div>';
             logEl.innerHTML = html;
+            restoreDevCellStates();
         }
 
         window.clearNetworkLog = function() {
@@ -6909,7 +6963,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.27.1';
+        window.BUILD_VERSION = '2026.08.27.2';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

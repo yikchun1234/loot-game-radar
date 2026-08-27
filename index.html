@@ -711,7 +711,10 @@
           <div class="border-t-2 border-dashed border-yellow-500/50 pt-6">
             <h3 class="text-sm font-bold text-yellow-500 uppercase tracking-widest mb-4 flex items-center gap-2">
               <i class="ph-fill ph-bug"></i> Developer Mode
-              <button onclick="refreshDevPanel(this)" title="Refresh Developer Mode data" class="ml-auto p-1.5 rounded-lg bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30 transition-colors">
+              <button onclick="toggleAllDevTitles(this)" title="Show full titles / collapse" class="ml-auto p-1.5 rounded-lg bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30 transition-colors">
+                <i class="ph-bold ph-text-aa text-sm"></i>
+              </button>
+              <button onclick="refreshDevPanel(this)" title="Refresh Developer Mode data" class="p-1.5 rounded-lg bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30 transition-colors">
                 <i class="ph-bold ph-arrows-clockwise text-sm"></i>
               </button>
             </h3>
@@ -3599,7 +3602,7 @@
                                 normId: normId,
                                 matchField,
                                 reason: h.reason,
-                                histTitle: (h.title || '').substring(0, 30),
+                                histTitle: h.title || '',
                                 histId: hId.substring(0, 40),
                                 histNorm: hNorm.substring(0, 40),
                                 histUrl: (hUrl || '').substring(0, 60),
@@ -3631,10 +3634,10 @@
                             <td class="py-1 pr-1 text-[10px] text-gray-400" data-sort-value="${m.feedIdx}">#${m.feedIdx}</td>
                             <td onclick="toggleDevCell(this)" class="dev-expand-cell py-1 pr-1 text-[10px] font-bold dark:text-gray-200 max-w-[100px] truncate cursor-pointer" title="Tap to expand · ${m.title}">${m.title}</td>
                             <td class="py-1 pr-1 text-[10px] text-purple-500">${m.source}</td>
-                            <td class="py-1 pr-1 text-[10px] font-mono text-blue-500 max-w-[100px] truncate" title="${m.normId}">${m.normId}</td>
+                            <td onclick="toggleDevCell(this)" class="dev-expand-cell py-1 pr-1 text-[10px] font-mono text-blue-500 max-w-[100px] truncate cursor-pointer" title="Tap to expand · ${m.normId}">${m.normId}</td>
                             <td class="py-1 pr-1 text-[10px]"><span class="px-1 py-0.5 rounded ${colorCls} font-bold">${m.reason}</span></td>
                             <td class="py-1 pr-1 text-[10px] text-gray-500">${m.matchField}</td>
-                            <td class="py-1 pr-1 text-[10px] text-gray-400 max-w-[100px] truncate" title="Hist: ${m.histTitle}">🗑️ ${(m.histTitle || '?').substring(0, 20)} <span class="text-gray-300">[${m.histSource}]</span></td>
+                            <td onclick="toggleDevCell(this)" class="dev-expand-cell py-1 pr-1 text-[10px] text-gray-400 max-w-[100px] truncate cursor-pointer" title="Tap to expand · Hist: ${m.histTitle}">🗑️ ${m.histTitle || '?'} <span class="text-gray-300">[${m.histSource}]</span></td>
                         </tr>`;
                     }).join('');
                     deletedMatchEl.innerHTML = `
@@ -3796,7 +3799,7 @@
                         </td>
                         <td class="py-1.5 pr-2">${statusBadge}</td>
                         <td onclick="toggleDevCell(this)" class="dev-expand-cell py-1.5 pr-2 text-[10px] font-bold dark:text-gray-200 max-w-[120px] truncate cursor-pointer" title="Tap to expand · ${title}">${title}</td>
-                        <td class="py-1.5 pr-2 font-mono text-[10px] max-w-[140px] truncate" title="${originalUrl}"><a href="${originalUrl}" target="_blank" rel="noopener" class="text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 underline decoration-dotted">${shortOriginalUrl}</a></td>
+                        <td onclick="toggleDevCell(this, event)" class="dev-expand-cell py-1.5 pr-2 font-mono text-[10px] max-w-[140px] truncate cursor-pointer" title="Tap to expand · ${originalUrl}"><a href="${originalUrl}" target="_blank" rel="noopener" class="text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 underline decoration-dotted">${originalUrl}</a></td>
                         <td onclick="toggleDevCell(this)" class="dev-expand-cell py-1.5 pr-2 font-mono text-[10px] text-blue-500 max-w-[100px] truncate cursor-pointer" title="Tap to expand · ${normalizedId}">${normalizedId}</td>
                         <td class="py-1.5 pr-2 text-[10px] text-gray-500" data-sort-value="${dealDateSort}">${date}</td>
                         <td class="py-1.5 pr-2 text-[10px] text-gray-500" data-sort-value="${trackDateSort}">${trackDate}</td>
@@ -3925,8 +3928,10 @@
         // ===== DEVELOPER MODE: Expand truncated cells =====
         // Title/ID cells are CSS-truncated to keep tables compact. Tap one to
         // expand it and reveal the FULL text; tap again to collapse it back.
-        window.toggleDevCell = function(td) {
+        window.toggleDevCell = function(td, e) {
             if (!td) return;
+            // Let real links do their job: clicks on <a> navigate, not toggle
+            if (e && e.target && e.target.closest && e.target.closest('a')) return;
             if (td.dataset.expanded === '1') {
                 td.dataset.expanded = '';
                 td.classList.add('truncate');
@@ -3937,6 +3942,24 @@
                 td.classList.remove('truncate');
                 td.classList.add('whitespace-normal', 'break-words');
                 td.style.maxWidth = 'none';
+            }
+        };
+
+        // One-tap button (in the Developer Mode header) that expands EVERY
+        // truncated Title/ID cell at once — or collapses them all back.
+        window.toggleAllDevTitles = function(btn) {
+            const cells = document.querySelectorAll('.dev-expand-cell');
+            if (!cells.length) return;
+            const anyCollapsed = Array.prototype.some.call(cells, td => td.dataset.expanded !== '1');
+            Array.prototype.forEach.call(cells, td => {
+                const isExpanded = td.dataset.expanded === '1';
+                if ((anyCollapsed && !isExpanded) || (!anyCollapsed && isExpanded)) {
+                    window.toggleDevCell(td);
+                }
+            });
+            if (btn) {
+                if (anyCollapsed) btn.classList.add('bg-yellow-500/60');
+                else btn.classList.remove('bg-yellow-500/60');
             }
         };
 
@@ -4279,7 +4302,7 @@
                     html += `<span class="text-[10px] text-gray-400">${g.worth || 'Free'}</span>`;
                     html += `<span class="text-[10px] text-gray-500">${dateStr}</span>`;
                     html += `</div>`;
-                    html += `<div class="text-[10px] text-gray-500"><span class="text-red-400">From:</span> <span class="font-mono">${entry.key.length > 50 ? entry.key.substring(0, 50) + '...' : entry.key}</span></div>`;
+                    html += `<div class="text-[10px] text-gray-500"><span class="text-red-400">From:</span> <span onclick="toggleDevCell(this)" class="dev-expand-cell font-mono inline-block max-w-[200px] truncate align-bottom cursor-pointer" title="Tap to expand · ${entry.key}">${entry.key}</span></div>`;
                     html += `<div class="text-[10px] text-gray-500"><span class="text-green-400">To:</span> <span class="font-mono">${entry.normId}</span>`;
                     if (willMerge) html += ` <span class="text-amber-400">(already exists, will keep newer data)</span>`;
                     html += `</div>`;
@@ -4504,7 +4527,7 @@
                 rows += `
                     <div class="text-xs">
                         <div class="flex items-center gap-3 mb-0.5">
-                            <span class="font-mono font-bold text-gray-600 dark:text-gray-300 flex-1 truncate" title="${key}">${key}</span>
+                            <span onclick="toggleDevCell(this)" class="dev-expand-cell font-mono font-bold text-gray-600 dark:text-gray-300 flex-1 truncate cursor-pointer" title="Tap to expand · ${key}">${key}</span>
                             <span class="font-bold text-purple-500 w-24 text-right">${compressedStr}${isCompressed ? ' <i class="ph-bold ph-arrows-in-simple text-[8px]"></i>' : ''}</span>
                             <span class="text-gray-400 w-12 text-right">${itemCount} items</span>
                         </div>
@@ -4557,7 +4580,7 @@
                             <span class="font-bold ${statusColor}">${log.status}</span>
                             <span class="text-gray-400">${log.duration}ms</span>
                         </div>
-                        <div class="text-gray-500 truncate" title="${log.url}">${log.url}</div>
+                        <div onclick="toggleDevCell(this)" class="dev-expand-cell text-gray-500 truncate cursor-pointer" title="Tap to expand · ${log.url}">${log.url}</div>
                         <div class="text-gray-400">${(log.responseSize / 1024).toFixed(1)} KB • ${new Date(log.timestamp).toLocaleTimeString()}</div>
                     </div>`;
             });
@@ -6886,7 +6909,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.26.12';
+        window.BUILD_VERSION = '2026.08.27.1';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

@@ -3731,7 +3731,8 @@
                 if (fid && g.title && !feedTitleMap[fid]) feedTitleMap[fid] = g.title;
             });
 
-            const appRows = allUrls.map(url => {
+            window._trackedAppsUrls = allUrls; // expose for the per-row permanent-delete handler
+            const appRows = allUrls.map((url, idx) => {
                 const info = publishDates[url] || {};
                 const claimed = claimedGames[url];
                 const deleted = deletedMap[url];
@@ -3790,6 +3791,9 @@
 
                 return `
                     <tr class="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                        <td class="py-1.5 pr-1">
+                            <button onclick="deleteTrackedApp(${idx}, this)" title="Permanently delete this app" class="dev-del-btn text-red-400/70 hover:text-red-500 hover:bg-red-500/10 rounded-md p-1 transition-colors"><i class="ph-bold ph-trash text-[11px]"></i></button>
+                        </td>
                         <td class="py-1.5 pr-2">${statusBadge}</td>
                         <td class="py-1.5 pr-2 text-[10px] font-bold dark:text-gray-200 max-w-[120px] truncate" title="${title}">${shortTitle}</td>
                         <td class="py-1.5 pr-2 font-mono text-[10px] max-w-[140px] truncate" title="${originalUrl}"><a href="${originalUrl}" target="_blank" rel="noopener" class="text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 underline decoration-dotted">${shortOriginalUrl}</a></td>
@@ -3810,6 +3814,7 @@
                     <table class="w-full text-left">
                         <thead>
                             <tr class="border-b border-gray-200 dark:border-gray-700">
+                                <th class="py-1.5 pr-1 text-[10px] font-bold text-red-400 uppercase" title="Permanent delete">Del</th>
                                 <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Status</th>
                                 <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Title</th>
                                 <th class="py-1.5 pr-2 text-[10px] font-bold text-gray-500 uppercase">Original URL</th>
@@ -3820,7 +3825,7 @@
                                 <th class="py-1.5 text-[10px] font-bold text-gray-500 uppercase">Source</th>
                             </tr>
                         </thead>
-                        <tbody>${appRows || '<tr><td colspan="8" class="py-2 text-xs text-gray-400">No tracked apps found</td></tr>'}</tbody>
+                        <tbody>${appRows || '<tr><td colspan="9" class="py-2 text-xs text-gray-400">No tracked apps found</td></tr>'}</tbody>
                     </table>
                 </div>
                 <div class="flex gap-4 mt-3 text-[10px]">
@@ -3831,6 +3836,91 @@
                 </div>`;
             makeDevTableSortable(appsTable.querySelector('table'));
         }
+
+        // ===== DEVELOPER MODE: Permanent delete from All Tracked Apps =====
+        // Two-step button: 1st click ARMs (shows permanent-delete warning state),
+        // 2nd click within 3s really deletes the app from EVERY record it lives in
+        // (claimed library + publish_dates tracking + deleted history). No undo.
+        window.deleteTrackedApp = function(idx, btn) {
+            const urls = window._trackedAppsUrls || [];
+            const url = urls[idx];
+            if (!url) return;
+
+            // --- Step 1: arm the button and warn that this is permanent ---
+            if (!btn.dataset.armed) {
+                btn.dataset.armed = '1';
+                btn.innerHTML = '<i class="ph-bold ph-warning text-[11px]"></i>';
+                btn.title = 'PERMANENT DELETE — click again to remove forever (cannot be undone!)';
+                btn.classList.add('bg-red-500/30', 'text-red-500', 'animate-pulse');
+                setTimeout(() => {
+                    if (btn.dataset.armed) {
+                        delete btn.dataset.armed;
+                        btn.innerHTML = '<i class="ph-bold ph-trash text-[11px]"></i>';
+                        btn.title = 'Permanently delete this app';
+                        btn.classList.remove('bg-red-500/30', 'text-red-500', 'animate-pulse');
+                    }
+                }, 3000);
+                return;
+            }
+
+            // --- Step 2: permanent delete from all storages ---
+            try {
+                let changedClaimed = false;
+
+                // 1. Claimed library — deduct its value from total savings
+                if (state.claimedGames && state.claimedGames[url]) {
+                    const g = state.claimedGames[url];
+                    if (g.value && !isNaN(g.value)) {
+                        state.totalSaved = Math.max(0, state.totalSaved - g.value);
+                    }
+                    delete state.claimedGames[url];
+                    changedClaimed = true;
+                }
+
+                // 2. Tracking history (publish_dates)
+                try {
+                    const raw = localStorage.getItem('lootradar_publish_dates');
+                    if (raw) {
+                        const dec = LZString.decompressFromUTF16(raw);
+                        const pd = dec ? JSON.parse(dec) : {};
+                        if (pd[url] !== undefined) {
+                            delete pd[url];
+                            saveSafeStorage('lootradar_publish_dates', pd);
+                        }
+                    }
+                } catch(e) { logError('deleteTrackedApp publish_dates: ' + e.message, 'dev'); }
+
+                // 3. Deleted history — remove every entry that matches in any id format
+                try {
+                    const rawDel = localStorage.getItem('lootradar_deleted_history');
+                    if (rawDel) {
+                        const dec = LZString.decompressFromUTF16(rawDel);
+                        let dh = dec ? JSON.parse(dec) : [];
+                        const norm = normalizeUrl(url);
+                        const full = denormalizeUrl(url);
+                        dh = dh.filter(d => {
+                            const ids = [d.id, d.normalizedId, d.originalUrl];
+                            return !(ids.indexOf(url) > -1 || ids.indexOf(norm) > -1 || ids.indexOf(full) > -1);
+                        });
+                        saveSafeStorage('lootradar_deleted_history', dh);
+                        state.deletedHistory = dh;
+                    }
+                } catch(e) { logError('deleteTrackedApp deleted_history: ' + e.message, 'dev'); }
+
+                if (changedClaimed) {
+                    saveSafeStorage('lootradar_claimed_v2', state.claimedGames);
+                    localStorage.setItem('lootradar_saved_money', state.totalSaved.toString());
+                }
+
+                // Refresh all UIs so the deletion shows up everywhere immediately
+                if (typeof updateWalletUI === 'function') updateWalletUI();
+                if (typeof renderLibrary === 'function') renderLibrary();
+                if (typeof renderGames === 'function') renderGames();
+                renderDevPanel();
+            } catch(e) {
+                logError('deleteTrackedApp: ' + e.message, 'dev');
+            }
+        };
 
         // ===== DEVELOPER MODE: Tab Switching =====
         window.switchDevTab = function(tabName) {
@@ -6775,7 +6865,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.26.9';
+        window.BUILD_VERSION = '2026.08.26.10';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

@@ -4627,9 +4627,11 @@
                     originalUrl: claimed ? (claimed.open_giveaway || url) : denormalizeUrl(url),
                     claimed: !!claimed,
                     deleted: deleted || null,
-                    claimedDate: claimed && claimed.claimed_date && !isNaN(new Date(claimed.claimed_date).getTime()) ? new Date(claimed.claimed_date).getTime() : 0,
+                    claimedDate: claimed && claimed.claimed_date && !isNaN(new Date(claimed.claimed_date).getTime()) ? new Date(claimed.claimed_date).getTime()
+                        : (claimed && claimed.date && !isNaN(new Date(claimed.date).getTime()) ? new Date(claimed.date).getTime() : 0),
                     dealDate: info.date && !isNaN(new Date(info.date).getTime()) ? new Date(info.date).getTime() : 0,
                     trackDate: (info.createdAt || info.updatedAt) && !isNaN(new Date(info.createdAt || info.updatedAt).getTime()) ? new Date(info.createdAt || info.updatedAt).getTime() : 0,
+                    deletedDate: deleted && deleted.deletedAt && !isNaN(new Date(deleted.deletedAt).getTime()) ? new Date(deleted.deletedAt).getTime() : 0,
                     source: info.source || (claimed && claimed.source) || (deleted && deleted.source) || '-',
                     image: claimed && claimed.image ? claimed.image : '',
                     worth: claimed && claimed.worth ? claimed.worth : ''
@@ -4666,14 +4668,23 @@
 
             let checkboxIdx = 0;
             dupGroups.forEach(([cleanTitle, group]) => {
-                // Keep priority: claimed first (newest claimed_date wins), then
-                // tracked (oldest first), deleted entries last — so a claimed copy
-                // is never offered for deletion while a non-claimed twin exists
+                // KEEP priority (user rule): NEVER keep an empty record when a
+                // dated one exists — entries WITH a tracked/claimed/deal date
+                // outrank dateless ones; among dated, claimed first (newest
+                // claimed date), then tracked (oldest = original record),
+                // deleted last. If EVERY entry is empty (corrupted records),
+                // keep the one with the newest known timestamp.
+                const hasDate = e => !!(e.claimedDate || e.trackDate || e.dealDate);
+                const newestTs = e => Math.max(e.claimedDate, e.trackDate, e.dealDate, e.deletedDate);
                 const sorted = [...group.entries].sort((a, b) => {
-                    if (a.claimed !== b.claimed) return a.claimed ? -1 : 1;
-                    if (a.claimed && b.claimed) return b.claimedDate - a.claimedDate;
-                    if (!!a.deleted !== !!b.deleted) return a.deleted ? 1 : -1;
-                    return (a.trackDate || a.dealDate) - (b.trackDate || b.dealDate);
+                    if (hasDate(a) !== hasDate(b)) return hasDate(a) ? -1 : 1;
+                    if (hasDate(a)) {
+                        if (a.claimed !== b.claimed) return a.claimed ? -1 : 1;
+                        if (a.claimed && b.claimed) return b.claimedDate - a.claimedDate;
+                        if (!!a.deleted !== !!b.deleted) return a.deleted ? 1 : -1;
+                        return (a.trackDate || a.dealDate) - (b.trackDate || b.dealDate);
+                    }
+                    return newestTs(b) - newestTs(a); // all empty -> newest (best effort)
                 });
                 const keep = sorted[0];
                 const extras = sorted.slice(1);
@@ -4696,6 +4707,7 @@
                 html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Deal:</span> ${fmtDate(keep.dealDate)}</div>`;
                 html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Tracked:</span> ${fmtDate(keep.trackDate)}</div>`;
                 if (keep.claimed) html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Claimed:</span> ${fmtDate(keep.claimedDate)}</div>`;
+                if (keep.deleted) html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Deleted:</span> ${fmtDate(keep.deletedDate)}</div>`;
                 html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Key:</span> <span class="font-mono break-all">${keep.url}</span></div>`;
                 if (keep.originalUrl && keep.originalUrl !== keep.url) {
                     html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">URL:</span> <span class="font-mono break-all">${keep.originalUrl}</span></div>`;
@@ -4717,6 +4729,7 @@
                     html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Deal:</span> ${fmtDate(entry.dealDate)}</div>`;
                     html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Tracked:</span> ${fmtDate(entry.trackDate)}</div>`;
                     if (entry.claimed) html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Claimed:</span> ${fmtDate(entry.claimedDate)}</div>`;
+                    if (entry.deleted) html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Deleted:</span> ${fmtDate(entry.deletedDate)}</div>`;
                     html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Key:</span> <span class="font-mono break-all">${entry.url}</span></div>`;
                     if (entry.originalUrl && entry.originalUrl !== entry.url) {
                         html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">URL:</span> <span class="font-mono break-all">${entry.originalUrl}</span></div>`;
@@ -7202,7 +7215,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.27.3';
+        window.BUILD_VERSION = '2026.08.27.4';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

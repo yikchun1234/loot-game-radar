@@ -781,25 +781,23 @@
               <div class="dev-section glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800" data-collapsed="false">
                 <div class="flex items-center justify-between mb-3 cursor-pointer" onclick="toggleDevSection(this)">
                   <h4 class="text-xs font-bold text-teal-500 dark:text-teal-400 uppercase tracking-widest">Same-Name Duplicates (All Tracked Apps)</h4>
-                  <div class="flex items-center gap-2">
-                    <div class="flex gap-2" onclick="event.stopPropagation()">
-                      <button onclick="detectTrackedDuplicates()" class="px-3 py-1 text-[10px] font-bold bg-teal-500/20 text-teal-500 hover:bg-teal-500/30 rounded-lg transition-colors">
-                        <i class="ph-bold ph-magnifying-glass"></i> Detect
-                      </button>
-                      <button onclick="setAllTrackedDupCheckboxes(true)" title="Tick every delete checkbox" class="px-2 py-1 text-[10px] font-bold bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 rounded-lg transition-colors">
-                        <i class="ph-bold ph-check-square"></i> All
-                      </button>
-                      <button onclick="setAllTrackedDupCheckboxes(false)" title="Untick every delete checkbox" class="px-2 py-1 text-[10px] font-bold bg-gray-500/20 text-gray-500 hover:bg-gray-500/30 rounded-lg transition-colors">
-                        <i class="ph-bold ph-square"></i> None
-                      </button>
-                      <button onclick="deleteSelectedTrackedDuplicates()" id="dev-tdup-delete-btn" class="px-3 py-1 text-[10px] font-bold bg-red-500/20 text-red-500 hover:bg-red-500/30 rounded-lg transition-colors hidden">
-                        <i class="ph-bold ph-trash"></i> Delete Selected
-                      </button>
-                    </div>
-                    <i class="ph-bold ph-caret-down dev-section-toggle text-gray-400"></i>
-                  </div>
+                  <i class="ph-bold ph-caret-down dev-section-toggle text-gray-400"></i>
                 </div>
                 <div class="dev-section-body"><div>
+                  <div class="flex flex-wrap gap-2 mb-3">
+                    <button onclick="detectTrackedDuplicates()" class="px-3 py-1.5 text-[10px] font-bold bg-teal-500/20 text-teal-500 hover:bg-teal-500/30 rounded-lg transition-colors">
+                      <i class="ph-bold ph-magnifying-glass"></i> Detect
+                    </button>
+                    <button onclick="setAllTrackedDupCheckboxes(true)" title="Tick every delete checkbox" class="px-3 py-1.5 text-[10px] font-bold bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 rounded-lg transition-colors">
+                      <i class="ph-bold ph-check-square"></i> Select All
+                    </button>
+                    <button onclick="setAllTrackedDupCheckboxes(false)" title="Untick every delete checkbox" class="px-3 py-1.5 text-[10px] font-bold bg-gray-500/20 text-gray-500 hover:bg-gray-500/30 rounded-lg transition-colors">
+                      <i class="ph-bold ph-square"></i> Deselect All
+                    </button>
+                    <button onclick="deleteSelectedTrackedDuplicates()" id="dev-tdup-delete-btn" class="px-3 py-1.5 text-[10px] font-bold bg-red-500/20 text-red-500 hover:bg-red-500/30 rounded-lg transition-colors hidden">
+                      <i class="ph-bold ph-trash"></i> Delete Selected
+                    </button>
+                  </div>
                   <div id="dev-tracked-dup-report" class="text-xs text-gray-600 dark:text-gray-400">Click "Detect" to group ALL tracked apps with the same name...</div>
                 </div></div>
               </div>
@@ -7227,7 +7225,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.27.5';
+        window.BUILD_VERSION = '2026.08.27.6';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

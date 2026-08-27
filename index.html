@@ -3537,11 +3537,11 @@
 
                     return `<tr class="border-b border-gray-100 dark:border-gray-800">
                         <td class="py-1 pr-2 text-[10px] text-gray-400" data-sort-value="${i+1}">#${i+1}</td>
-                        <td class="py-1 pr-2 text-[10px] font-bold dark:text-gray-200 max-w-[150px] truncate" title="${g.title || ''}">${shortTitle}</td>
+                        <td onclick="toggleDevCell(this)" class="dev-expand-cell py-1 pr-2 text-[10px] font-bold dark:text-gray-200 max-w-[150px] truncate cursor-pointer" title="Tap to expand · ${g.title || ''}">${g.title || '-'}</td>
                         <td class="py-1 pr-2 text-[10px] text-purple-500">${g.platforms || '-'}</td>
                         <td class="py-1 pr-2 text-[10px] font-mono ${pDate && !isNaN(pDate.getTime()) ? 'text-gray-600 dark:text-gray-300' : 'text-red-500 font-bold'}" data-sort-value="${pDate && !isNaN(pDate.getTime()) ? pDate.getTime() : ''}">${dateStr}</td>
                         <td class="py-1 pr-2 text-[10px] text-gray-400">${g.source || '-'}</td>
-                        <td class="py-1 pr-2 text-[10px] font-mono text-blue-500 max-w-[120px] truncate" title="${g.normalizedId || ''}">${(g.normalizedId || '').length > 20 ? (g.normalizedId || '').substring(0, 20) + '...' : (g.normalizedId || '-')}</td>
+                        <td onclick="toggleDevCell(this)" class="dev-expand-cell py-1 pr-2 text-[10px] font-mono text-blue-500 max-w-[120px] truncate cursor-pointer" title="Tap to expand · ${g.normalizedId || ''}">${g.normalizedId || '-'}</td>
                         <td class="py-1 px-2 text-[10px] font-bold whitespace-nowrap"><span class="px-1.5 py-0.5 rounded ${statusClass}">${statusLabel}</span></td>
                     </tr>`;
                 }).join('');
@@ -3562,7 +3562,7 @@
                             <tbody>${feedRows}</tbody>
                         </table>
                     </div>
-                    <div class="mt-2 text-[10px] text-gray-400">${state.games.length} games in feed • Default sort: date desc → price desc → title A-Z • Click any column header to sort • Status from localStorage comparison</div>`;
+                    <div class="mt-2 text-[10px] text-gray-400">${state.games.length} games in feed • Default sort: date desc → price desc → title A-Z • Click any column header to sort • Tap a truncated Title/ID to expand • Status from localStorage comparison</div>`;
                 makeDevTableSortable(feedDebugEl.querySelector('table'));
             }
 
@@ -3594,7 +3594,7 @@
                         if (matchField) {
                             matches.push({
                                 feedIdx: i + 1,
-                                title: (g.title || '').substring(0, 30),
+                                title: g.title || '',
                                 source: g.source || '-',
                                 normId: normId,
                                 matchField,
@@ -3629,7 +3629,7 @@
                         const colorCls = reasonColors[m.reason] || 'bg-gray-100 text-gray-600';
                         return `<tr class="border-b border-gray-100 dark:border-gray-800">
                             <td class="py-1 pr-1 text-[10px] text-gray-400" data-sort-value="${m.feedIdx}">#${m.feedIdx}</td>
-                            <td class="py-1 pr-1 text-[10px] font-bold dark:text-gray-200 max-w-[100px] truncate" title="${m.title}">${m.title}</td>
+                            <td onclick="toggleDevCell(this)" class="dev-expand-cell py-1 pr-1 text-[10px] font-bold dark:text-gray-200 max-w-[100px] truncate cursor-pointer" title="Tap to expand · ${m.title}">${m.title}</td>
                             <td class="py-1 pr-1 text-[10px] text-purple-500">${m.source}</td>
                             <td class="py-1 pr-1 text-[10px] font-mono text-blue-500 max-w-[100px] truncate" title="${m.normId}">${m.normId}</td>
                             <td class="py-1 pr-1 text-[10px]"><span class="px-1 py-0.5 rounded ${colorCls} font-bold">${m.reason}</span></td>
@@ -3795,9 +3795,9 @@
                             <button onclick="deleteTrackedApp(${idx}, this)" title="Permanently delete this app" class="dev-del-btn text-red-400/70 hover:text-red-500 hover:bg-red-500/10 rounded-md p-1 transition-colors"><i class="ph-bold ph-trash text-[11px]"></i></button>
                         </td>
                         <td class="py-1.5 pr-2">${statusBadge}</td>
-                        <td class="py-1.5 pr-2 text-[10px] font-bold dark:text-gray-200 max-w-[120px] truncate" title="${title}">${shortTitle}</td>
+                        <td onclick="toggleDevCell(this)" class="dev-expand-cell py-1.5 pr-2 text-[10px] font-bold dark:text-gray-200 max-w-[120px] truncate cursor-pointer" title="Tap to expand · ${title}">${title}</td>
                         <td class="py-1.5 pr-2 font-mono text-[10px] max-w-[140px] truncate" title="${originalUrl}"><a href="${originalUrl}" target="_blank" rel="noopener" class="text-gray-500 dark:text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 underline decoration-dotted">${shortOriginalUrl}</a></td>
-                        <td class="py-1.5 pr-2 font-mono text-[10px] text-blue-500 max-w-[100px] truncate" title="${normalizedId}">${shortNormalizedId}</td>
+                        <td onclick="toggleDevCell(this)" class="dev-expand-cell py-1.5 pr-2 font-mono text-[10px] text-blue-500 max-w-[100px] truncate cursor-pointer" title="Tap to expand · ${normalizedId}">${normalizedId}</td>
                         <td class="py-1.5 pr-2 text-[10px] text-gray-500" data-sort-value="${dealDateSort}">${date}</td>
                         <td class="py-1.5 pr-2 text-[10px] text-gray-500" data-sort-value="${trackDateSort}">${trackDate}</td>
                         <td class="py-1.5 pr-2 text-[10px] ${claimedDate === '-' ? 'text-gray-400' : 'text-green-500 font-bold'}" data-sort-value="${claimedDateSort}">${claimedDate}</td>
@@ -3832,7 +3832,7 @@
                     <span class="text-green-500 font-bold">${claimedCount} claimed</span>
                     <span class="text-orange-500 font-bold">${deletedCount} deleted</span>
                     <span class="text-gray-400 font-bold">${trackedOnly} tracked only</span>
-                    <span class="text-gray-500">| ${allUrls.length} total • Click any column header to sort</span>
+                    <span class="text-gray-500">| ${allUrls.length} total • Click any column header to sort • Tap a truncated Title/ID to expand</span>
                 </div>`;
             makeDevTableSortable(appsTable.querySelector('table'));
         }
@@ -3919,6 +3919,24 @@
                 renderDevPanel();
             } catch(e) {
                 logError('deleteTrackedApp: ' + e.message, 'dev');
+            }
+        };
+
+        // ===== DEVELOPER MODE: Expand truncated cells =====
+        // Title/ID cells are CSS-truncated to keep tables compact. Tap one to
+        // expand it and reveal the FULL text; tap again to collapse it back.
+        window.toggleDevCell = function(td) {
+            if (!td) return;
+            if (td.dataset.expanded === '1') {
+                td.dataset.expanded = '';
+                td.classList.add('truncate');
+                td.classList.remove('whitespace-normal', 'break-words');
+                td.style.maxWidth = '';
+            } else {
+                td.dataset.expanded = '1';
+                td.classList.remove('truncate');
+                td.classList.add('whitespace-normal', 'break-words');
+                td.style.maxWidth = 'none';
             }
         };
 
@@ -6868,7 +6886,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.26.11';
+        window.BUILD_VERSION = '2026.08.26.12';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

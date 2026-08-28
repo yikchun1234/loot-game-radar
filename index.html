@@ -2306,6 +2306,13 @@
             const scrollArea = modal.querySelector('.library-scroll-area');
             if (scrollArea) scrollArea.scrollTop = 0;
 
+            // Loot Calendar starts at the most recent week (right edge = today):
+            // the grid runs oldest→newest left→right, so the default left edge
+            // shows a year-ago view that often looks empty. Same timing rule as
+            // the scrollTop reset — scrollLeft is a no-op while display:none.
+            const calScroll = modal.querySelector('#year-calendar-scroll');
+            if (calScroll) calScroll.scrollLeft = calScroll.scrollWidth;
+
             // The scroll-to-top button belongs to the feed/library screens —
             // hide it while analytics is on top
             if (window.updateScrollButtonState) window.updateScrollButtonState();
@@ -3429,7 +3436,7 @@
                 calWeeks.push({ week, monthLabel });
             }
             const yearCalendarHtml = `
-                <div class="overflow-x-auto pb-1">
+                <div id="year-calendar-scroll" class="overflow-x-auto pb-1">
                     <div class="flex gap-[3px] min-w-max">
                         ${calWeeks.map((wk, wi) => `
                             <div class="flex flex-col gap-[3px]">
@@ -7686,7 +7693,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.28.7';
+        window.BUILD_VERSION = '2026.08.28.8';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

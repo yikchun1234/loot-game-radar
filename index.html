@@ -2085,11 +2085,11 @@
         }
 
         function getUnclaimedCount() {
-            const claimedTitleSet = getClaimedTitleSet();
+            const claimedTitleMap = getClaimedTitleMap();
             return state.games.filter(g => {
                 const normId = g.normalizedId || normalizeUrl(g.open_giveaway || g.id || '');
                 const fullUrl = g.open_giveaway || '';
-                const isClaimed = !!state.claimedGames[normId] || !!state.claimedGames[fullUrl] || isClaimedByTitle(claimedTitleSet, g.title);
+                const isClaimed = !!state.claimedGames[normId] || !!state.claimedGames[fullUrl] || isClaimedMatch(claimedTitleMap, g.title, g.platforms);
                 if (isClaimed) return false;
                 if (state.deletedHistory) {
                     for (const h of state.deletedHistory) {
@@ -3523,7 +3523,7 @@
                 // Load claimed games and deleted history for status comparison
                 const claimedGames = state.claimedGames || {};
                 const deletedHistory = state.deletedHistory || [];
-                const claimedTitleSet = getClaimedTitleSet();
+                const claimedTitleMap = getClaimedTitleMap();
 
                 const feedRows = state.games.map((g, i) => {
                     const pDate = g.published_date ? new Date(g.published_date) : null;
@@ -3534,7 +3534,7 @@
                     const normId = g.normalizedId || normalizeUrl(g.open_giveaway || g.id || '');
                     const fullUrl = g.open_giveaway || '';
                     const keyClaimed = !!claimedGames[normId] || !!claimedGames[fullUrl];
-                    const titleClaimed = !keyClaimed && isClaimedByTitle(claimedTitleSet, g.title);
+                    const titleClaimed = !keyClaimed && isClaimedMatch(claimedTitleMap, g.title, g.platforms);
                     const isClaimed = keyClaimed || titleClaimed;
 
                     let statusLabel = 'Claim Now';
@@ -4607,14 +4607,16 @@
             Object.keys(claimedGames).forEach(u => allUrlsSet.add(u));
             deletedHistory.forEach(d => { if (d.id) allUrlsSet.add(d.id); });
 
-            // Title lookup for TRACKED-only entries (publish_dates stores no title)
+            // Title + platform lookup for TRACKED-only entries (publish_dates stores neither)
             const feedTitleMap = {};
+            const feedPlatformMap = {};
             (state.games || []).forEach(g => {
                 const fid = g.normalizedId || normalizeUrl(g.open_giveaway || g.id || '');
                 if (fid && g.title && !feedTitleMap[fid]) feedTitleMap[fid] = g.title;
+                if (fid && g.platforms && !feedPlatformMap[fid]) feedPlatformMap[fid] = g.platforms;
             });
 
-            // --- Resolve a title for every tracked URL and group by cleaned name ---
+            // --- Resolve a title for every tracked URL and group by cleaned name + platform ---
             const groups = {};
             let noTitleCount = 0;
             Array.from(allUrlsSet).forEach(url => {
@@ -4628,11 +4630,20 @@
                 const clean = (title || '').toLowerCase().replace(/\s+/g, ' ').trim();
                 if (!clean) { noTitleCount++; return; } // no title -> cannot group
 
-                if (!groups[clean]) groups[clean] = { title: title, entries: [] };
-                groups[clean].entries.push({
+                // Platform resolution: claimed -> deleted -> live feed
+                let platforms = claimed ? (claimed.platforms || '') : (deleted ? (deleted.platforms || '') : '');
+                if (!platforms) platforms = feedPlatformMap[normalizedId] || '';
+
+                // Group by name + platform: the iOS and Android giveaways of one
+                // game are separate freebies, not duplicates. Entries with unknown
+                // platform share the 'unknown' key and group as before.
+                const gKey = clean + '|' + platformKey(platforms);
+                if (!groups[gKey]) groups[gKey] = { title: title, platforms: platforms || '-', entries: [] };
+                groups[gKey].entries.push({
                     url: url,
                     normalizedId: normalizedId,
                     originalUrl: claimed ? (claimed.open_giveaway || url) : denormalizeUrl(url),
+                    platforms: platforms || '-',
                     claimed: !!claimed,
                     deleted: deleted || null,
                     claimedDate: claimed && claimed.claimed_date && !isNaN(new Date(claimed.claimed_date).getTime()) ? new Date(claimed.claimed_date).getTime()
@@ -4665,7 +4676,7 @@
             html += `<span class="px-2 py-1 bg-teal-500/10 text-teal-500 rounded text-[10px] font-bold">${dupGroups.length} groups (${totalExtra} same-name entries)</span>`;
             if (noTitleCount > 0) html += `<span class="px-2 py-1 bg-gray-500/10 text-gray-400 rounded text-[10px] font-bold">${noTitleCount} entries without title (skipped)</span>`;
             html += '</div>';
-            html += '<div class="text-[10px] text-gray-400 mb-3">Grouped by identical name across ALL tracked apps (claimed + tracked + deleted). KEEP = the entry to keep — tick the ones you want to remove (nothing is ticked by default), then press Delete Selected.</div>';
+            html += '<div class="text-[10px] text-gray-400 mb-3">Grouped by identical name + platform across ALL tracked apps (claimed + tracked + deleted). Same name on DIFFERENT platforms = separate giveaways, not grouped. KEEP = the entry to keep — tick the ones you want to remove (nothing is ticked by default), then press Delete Selected.</div>';
 
             const fmtDate = ts => ts ? new Date(ts).toLocaleString() : '-';
             const statusHtml = entry => {
@@ -4700,6 +4711,7 @@
                 html += `<div class="mb-4 p-3 bg-teal-500/5 border border-teal-500/20 rounded-lg">`;
                 html += `<div class="flex items-center gap-2 mb-2">`;
                 html += `<span class="font-bold text-[12px] dark:text-gray-200">${group.title}</span>`;
+                if (group.platforms && group.platforms !== '-') html += `<span class="text-[9px] px-1.5 py-0.5 bg-blue-500/10 text-blue-400 rounded font-bold">${group.platforms}</span>`;
                 html += `<span class="text-[10px] px-1.5 py-0.5 bg-teal-500/10 text-teal-500 rounded font-bold">${sorted.length} entries</span>`;
                 html += `</div>`;
 
@@ -4712,6 +4724,7 @@
                 html += `<div class="text-[10px] font-bold text-green-500 mb-1.5 flex items-center gap-1"><i class="ph-bold ph-check-circle"></i> KEEP ${statusHtml(keep)}</div>`;
                 html += `<div class="flex items-start gap-2">${kImg}<div class="min-w-0 flex-1">`;
                 html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Source:</span> ${keep.source}</div>`;
+                html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Platform:</span> ${keep.platforms}</div>`;
                 html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Deal:</span> ${fmtDate(keep.dealDate)}</div>`;
                 html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Tracked:</span> ${fmtDate(keep.trackDate)}</div>`;
                 if (keep.claimed) html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Claimed:</span> ${fmtDate(keep.claimedDate)}</div>`;
@@ -4734,6 +4747,7 @@
                     html += `</label></div>`;
                     html += `<div class="flex items-start gap-2">${dImg}<div class="min-w-0 flex-1">`;
                     html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Source:</span> ${entry.source}</div>`;
+                    html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Platform:</span> ${entry.platforms}</div>`;
                     html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Deal:</span> ${fmtDate(entry.dealDate)}</div>`;
                     html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Tracked:</span> ${fmtDate(entry.trackDate)}</div>`;
                     if (entry.claimed) html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Claimed:</span> ${fmtDate(entry.claimedDate)}</div>`;
@@ -6049,30 +6063,68 @@
             return before === ' ' && after === ' ';
         }
         // ---------------------------------------------------------------
-        // Title-aware claim protection: the same game can come back under a
-        // DIFFERENT key (Epic promo slugs change week to week, or the game
-        // flips between epic: and gp: keys). Key-based checks then miss the
-        // old claim and the card shows "Claim Now" again. If a feed title
-        // matches a claimed library entry's cleaned title EXACTLY, treat the
-        // feed item as claimed too. Exact match only (after cleaning) so
-        // "DOOM" never matches "DOOM Eternal".
+        // Title-aware claim protection, PLATFORM-AWARE: the same game can
+        // come back under a DIFFERENT key (Epic promo slugs change week to
+        // week, or the game flips between epic: and gp: keys). Key-based
+        // checks then miss the old claim and the card shows "Claim Now"
+        // again. If a feed title matches a claimed library entry's cleaned
+        // title EXACTLY, treat the feed item as claimed too — but only when
+        // the platforms INTERSECT: an iOS giveaway and an Android giveaway
+        // of the same game are separate freebies and each stays claimable.
+        // Exact match only (after cleaning) so "DOOM" never matches
+        // "DOOM Eternal".
         // ---------------------------------------------------------------
-        function getClaimedTitleSet() {
-            const set = new Set();
+        const PLATFORM_TOKEN_ALIASES = {
+            'epic games store': 'pc', // same Epic giveaway arrives as 'PC' from the
+            'windows': 'pc',          // Epic API and 'Epic Games Store' from GamerPower
+            'web browser': 'web',
+            'browser': 'web'
+        };
+        function platformTokens(platforms) {
+            const tokens = new Set();
+            if (!platforms) return tokens;
+            String(platforms).toLowerCase().split(/[,/]+/).forEach(raw => {
+                let t = raw.trim();
+                if (!t) return;
+                t = PLATFORM_TOKEN_ALIASES[t] || t;
+                tokens.add(t);
+            });
+            return tokens;
+        }
+        function platformKey(platforms) {
+            const t = platformTokens(platforms);
+            return t.size === 0 ? 'unknown' : Array.from(t).sort().join('+');
+        }
+        function getClaimedTitleMap() {
+            // cleanTitle -> { tokens:Set<platform>, unknown:bool }
+            const map = new Map();
             const cg = state.claimedGames || {};
             for (const key in cg) {
                 const entry = cg[key];
-                if (entry && typeof entry === 'object' && entry.title) {
-                    const clean = cleanTitleForDedupe(entry.title);
-                    if (clean) set.add(clean);
-                }
+                if (!entry || typeof entry !== 'object' || !entry.title) continue;
+                const clean = cleanTitleForDedupe(entry.title);
+                if (!clean) continue;
+                let slot = map.get(clean);
+                if (!slot) { slot = { tokens: new Set(), unknown: false }; map.set(clean, slot); }
+                const t = platformTokens(entry.platforms);
+                if (t.size === 0) slot.unknown = true; // no platform recorded -> title-only protection
+                else t.forEach(x => slot.tokens.add(x));
             }
-            return set;
+            return map;
         }
-        function isClaimedByTitle(titleSet, title) {
-            if (!title || !titleSet) return false;
+        function isClaimedMatch(titleMap, title, platforms) {
+            if (!title || !titleMap) return false;
             const clean = cleanTitleForDedupe(title);
-            return !!clean && titleSet.has(clean);
+            if (!clean) return false;
+            const slot = titleMap.get(clean);
+            if (!slot) return false;
+            if (slot.unknown) return true; // claimed entry has no platform -> keep title-only behavior
+            const feedTokens = platformTokens(platforms);
+            if (feedTokens.size === 0) return true; // feed side has no platform -> title-only
+            for (const t of feedTokens) {
+                if (slot.tokens.has(t)) return true;
+            }
+            return false; // same name, separate platform giveaway -> still claimable
         }
         // Feed-level twin of the Worker's cross-source merge: for each
         // GamerPower Epic giveaway that title-matches an Epic-store entry,
@@ -6194,16 +6246,24 @@
           // Determine the actual key used in storage
           let storageKey = existingByUrl && !existingByKey ? originalUrl : normalizedId;
 
-          // Title-aware safety net: claiming a game whose title matches an
-          // existing claim (same game back under a different key) must NOT
-          // create a duplicate entry or double-count totalSaved — point at
-          // the existing entry instead.
+          // Title-aware safety net (platform-aware): claiming a game whose
+          // title AND platform match an existing claim (same game back under
+          // a different key) must NOT create a duplicate entry or double-count
+          // totalSaved — point at the existing entry instead. A different-
+          // platform giveaway of the same game (iOS vs Android) is a separate
+          // freebie and claims normally as its own entry.
           if (!alreadyClaimed && game.title) {
             const cleanTitle = cleanTitleForDedupe(game.title);
             if (cleanTitle) {
+              const gameTokens = platformTokens(game.platforms);
               for (const k in state.claimedGames) {
                 const e = state.claimedGames[k];
-                if (e && typeof e === 'object' && e.title && cleanTitleForDedupe(e.title) === cleanTitle) {
+                if (!e || typeof e !== 'object' || !e.title) continue;
+                if (cleanTitleForDedupe(e.title) !== cleanTitle) continue;
+                const eTokens = platformTokens(e.platforms);
+                const platformOk = eTokens.size === 0 || gameTokens.size === 0 ||
+                  Array.from(gameTokens).some(t => eTokens.has(t));
+                if (platformOk) {
                   alreadyClaimed = true;
                   storageKey = k;
                   break;
@@ -6703,15 +6763,15 @@
             let filteredGames = state.currentPlatform === 'All' ? state.games : state.games.filter(g => isPlatformMatch(g, currentPlatObj.matches, currentPlatObj.excludes, currentPlatObj.requires, currentPlatObj.customRule));
 
             // Title-aware claim protection: same game under a different key
-            // still counts as claimed (built once per render)
-            const claimedTitleSet = getClaimedTitleSet();
+            // still counts as claimed — platform-aware (built once per render)
+            const claimedTitleMap = getClaimedTitleMap();
 
             // Apply Unclaimed filter
             if (state.showUnclaimedOnly) {
                 filteredGames = filteredGames.filter(g => {
                     const normId = g.normalizedId || normalizeUrl(g.open_giveaway || g.id || '');
                     const fullUrl = g.open_giveaway || '';
-                    const isClaimed = !!state.claimedGames[normId] || !!state.claimedGames[fullUrl] || isClaimedByTitle(claimedTitleSet, g.title);
+                    const isClaimed = !!state.claimedGames[normId] || !!state.claimedGames[fullUrl] || isClaimedMatch(claimedTitleMap, g.title, g.platforms);
                     if (isClaimed) return false;
                     // Also exclude items in deleted history
                     if (state.deletedHistory) {
@@ -6756,7 +6816,7 @@
                 // Check if claimed - try BOTH normalized ID and full URL (migration may have changed keys)
                 const gameNormalizedId = game.normalizedId || normalizeUrl(game.open_giveaway || game.id);
                 const gameFullUrl = game.open_giveaway || '';
-                const isClaimed = !!state.claimedGames[gameNormalizedId] || !!state.claimedGames[gameFullUrl] || isMergedAwayId(gameNormalizedId) || isClaimedByTitle(claimedTitleSet, game.title);
+                const isClaimed = !!state.claimedGames[gameNormalizedId] || !!state.claimedGames[gameFullUrl] || isMergedAwayId(gameNormalizedId) || isClaimedMatch(claimedTitleMap, game.title, game.platforms);
 
                 // Check if the game was previously deleted by searching history backwards (gets the most recent reason)
                 // Match by normalizedId regardless of source — same item = same status
@@ -7277,7 +7337,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.28.1';
+        window.BUILD_VERSION = '2026.08.28.2';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

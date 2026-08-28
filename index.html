@@ -2085,10 +2085,11 @@
         }
 
         function getUnclaimedCount() {
+            const claimedTitleSet = getClaimedTitleSet();
             return state.games.filter(g => {
                 const normId = g.normalizedId || normalizeUrl(g.open_giveaway || g.id || '');
                 const fullUrl = g.open_giveaway || '';
-                const isClaimed = !!state.claimedGames[normId] || !!state.claimedGames[fullUrl];
+                const isClaimed = !!state.claimedGames[normId] || !!state.claimedGames[fullUrl] || isClaimedByTitle(claimedTitleSet, g.title);
                 if (isClaimed) return false;
                 if (state.deletedHistory) {
                     for (const h of state.deletedHistory) {
@@ -3522,6 +3523,7 @@
                 // Load claimed games and deleted history for status comparison
                 const claimedGames = state.claimedGames || {};
                 const deletedHistory = state.deletedHistory || [];
+                const claimedTitleSet = getClaimedTitleSet();
 
                 const feedRows = state.games.map((g, i) => {
                     const pDate = g.published_date ? new Date(g.published_date) : null;
@@ -3531,13 +3533,15 @@
                     // Determine status from localStorage (same logic as renderGames)
                     const normId = g.normalizedId || normalizeUrl(g.open_giveaway || g.id || '');
                     const fullUrl = g.open_giveaway || '';
-                    const isClaimed = !!claimedGames[normId] || !!claimedGames[fullUrl];
+                    const keyClaimed = !!claimedGames[normId] || !!claimedGames[fullUrl];
+                    const titleClaimed = !keyClaimed && isClaimedByTitle(claimedTitleSet, g.title);
+                    const isClaimed = keyClaimed || titleClaimed;
 
                     let statusLabel = 'Claim Now';
                     let statusClass = 'text-blue-500 bg-blue-50 dark:bg-blue-900/20';
 
                     if (isClaimed) {
-                        statusLabel = '✅ Claimed';
+                        statusLabel = titleClaimed ? '✅ Claimed (title match)' : '✅ Claimed';
                         statusClass = 'text-green-600 bg-green-50 dark:bg-green-900/20 dark:text-green-400';
                     } else if (deletedHistory.length > 0) {
                         // Search deletedHistory for match
@@ -6044,6 +6048,32 @@
             const after = idx + short.length >= long.length ? ' ' : long[idx + short.length];
             return before === ' ' && after === ' ';
         }
+        // ---------------------------------------------------------------
+        // Title-aware claim protection: the same game can come back under a
+        // DIFFERENT key (Epic promo slugs change week to week, or the game
+        // flips between epic: and gp: keys). Key-based checks then miss the
+        // old claim and the card shows "Claim Now" again. If a feed title
+        // matches a claimed library entry's cleaned title EXACTLY, treat the
+        // feed item as claimed too. Exact match only (after cleaning) so
+        // "DOOM" never matches "DOOM Eternal".
+        // ---------------------------------------------------------------
+        function getClaimedTitleSet() {
+            const set = new Set();
+            const cg = state.claimedGames || {};
+            for (const key in cg) {
+                const entry = cg[key];
+                if (entry && typeof entry === 'object' && entry.title) {
+                    const clean = cleanTitleForDedupe(entry.title);
+                    if (clean) set.add(clean);
+                }
+            }
+            return set;
+        }
+        function isClaimedByTitle(titleSet, title) {
+            if (!title || !titleSet) return false;
+            const clean = cleanTitleForDedupe(title);
+            return !!clean && titleSet.has(clean);
+        }
         // Feed-level twin of the Worker's cross-source merge: for each
         // GamerPower Epic giveaway that title-matches an Epic-store entry,
         // keep the Epic-store entry (direct link + clean title), enrich its
@@ -6158,11 +6188,29 @@
           // A merged-away ID counts as claimed only while its kept twin is still in the library
           const mergedAway = (loadSafeStorage('lootradar_merged_xsrc_ids') || []).some(m =>
               typeof m === 'string' ? m === normalizedId : (m.removed === normalizedId && !!state.claimedGames[m.kept]));
-          const alreadyClaimed = !!existingByKey || !!existingByUrl || mergedAway;
+          let alreadyClaimed = !!existingByKey || !!existingByUrl || mergedAway;
           const isLegacySave = typeof (existingByKey || existingByUrl) === 'boolean';
 
           // Determine the actual key used in storage
-          const storageKey = existingByUrl && !existingByKey ? originalUrl : normalizedId;
+          let storageKey = existingByUrl && !existingByKey ? originalUrl : normalizedId;
+
+          // Title-aware safety net: claiming a game whose title matches an
+          // existing claim (same game back under a different key) must NOT
+          // create a duplicate entry or double-count totalSaved — point at
+          // the existing entry instead.
+          if (!alreadyClaimed && game.title) {
+            const cleanTitle = cleanTitleForDedupe(game.title);
+            if (cleanTitle) {
+              for (const k in state.claimedGames) {
+                const e = state.claimedGames[k];
+                if (e && typeof e === 'object' && e.title && cleanTitleForDedupe(e.title) === cleanTitle) {
+                  alreadyClaimed = true;
+                  storageKey = k;
+                  break;
+                }
+              }
+            }
+          }
 
           if (!alreadyClaimed || isLegacySave) {
             // First time claiming - save full game data
@@ -6654,12 +6702,16 @@
             const currentPlatObj = platforms.find(p => p.id === state.currentPlatform);
             let filteredGames = state.currentPlatform === 'All' ? state.games : state.games.filter(g => isPlatformMatch(g, currentPlatObj.matches, currentPlatObj.excludes, currentPlatObj.requires, currentPlatObj.customRule));
 
+            // Title-aware claim protection: same game under a different key
+            // still counts as claimed (built once per render)
+            const claimedTitleSet = getClaimedTitleSet();
+
             // Apply Unclaimed filter
             if (state.showUnclaimedOnly) {
                 filteredGames = filteredGames.filter(g => {
                     const normId = g.normalizedId || normalizeUrl(g.open_giveaway || g.id || '');
                     const fullUrl = g.open_giveaway || '';
-                    const isClaimed = !!state.claimedGames[normId] || !!state.claimedGames[fullUrl];
+                    const isClaimed = !!state.claimedGames[normId] || !!state.claimedGames[fullUrl] || isClaimedByTitle(claimedTitleSet, g.title);
                     if (isClaimed) return false;
                     // Also exclude items in deleted history
                     if (state.deletedHistory) {
@@ -6704,7 +6756,7 @@
                 // Check if claimed - try BOTH normalized ID and full URL (migration may have changed keys)
                 const gameNormalizedId = game.normalizedId || normalizeUrl(game.open_giveaway || game.id);
                 const gameFullUrl = game.open_giveaway || '';
-                const isClaimed = !!state.claimedGames[gameNormalizedId] || !!state.claimedGames[gameFullUrl] || isMergedAwayId(gameNormalizedId);
+                const isClaimed = !!state.claimedGames[gameNormalizedId] || !!state.claimedGames[gameFullUrl] || isMergedAwayId(gameNormalizedId) || isClaimedByTitle(claimedTitleSet, game.title);
 
                 // Check if the game was previously deleted by searching history backwards (gets the most recent reason)
                 // Match by normalizedId regardless of source — same item = same status
@@ -7225,7 +7277,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.27.6';
+        window.BUILD_VERSION = '2026.08.28.1';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

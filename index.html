@@ -2310,8 +2310,16 @@
             // the grid runs oldest→newest left→right, so the default left edge
             // shows a year-ago view that often looks empty. Same timing rule as
             // the scrollTop reset — scrollLeft is a no-op while display:none.
+            // The grid's layout props are inline styles (not Tailwind classes) so
+            // scrollWidth is final synchronously; the rAF re-pin below is insurance
+            // against any leftover async layout (2026.08.28.9).
             const calScroll = modal.querySelector('#year-calendar-scroll');
-            if (calScroll) calScroll.scrollLeft = calScroll.scrollWidth;
+            if (calScroll) {
+                calScroll.scrollLeft = calScroll.scrollWidth;
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                    calScroll.scrollLeft = calScroll.scrollWidth;
+                }));
+            }
 
             // The scroll-to-top button belongs to the feed/library screens —
             // hide it while analytics is on top
@@ -3437,13 +3445,18 @@
             }
             const yearCalendarHtml = `
                 <div id="year-calendar-scroll" class="overflow-x-auto pb-1">
-                    <div class="flex gap-[3px] min-w-max">
+                    <!-- Layout-critical props (flex/gap/min-width/cell sizes) are INLINE on purpose:
+                         the Tailwind CDN compiles newly-inserted classes ASYNCHRONOUSLY, so class-based
+                         widths reflow late and clamp the open-time scrollLeft short of the right edge
+                         (2026.08.28.9 fix — the old arbitrary-value 3px gap class alone added 156px
+                         of width only AFTER the scroll-to-today had already run). -->
+                    <div style="display:flex; gap:3px; min-width:max-content;">
                         ${calWeeks.map((wk, wi) => `
-                            <div class="flex flex-col gap-[3px]">
-                                <div class="w-3 h-3 text-[7px] font-bold text-gray-400 whitespace-nowrap overflow-visible">${wk.monthLabel}</div>
+                            <div style="display:flex; flex-direction:column; gap:3px;">
+                                <div class="text-[7px] font-bold text-gray-400 whitespace-nowrap overflow-visible" style="width:12px; height:12px;">${wk.monthLabel}</div>
                                 ${wk.week.map(cell => cell === null
-                                    ? `<div class="w-3 h-3"></div>`
-                                    : `<div class="heat-cell w-3 h-3 rounded-[3px] ${calLevels[calLevel(cell.count)]}" style="transition-delay: ${Math.min(wi * 8, 900)}ms;" title="${cell.key}: ${cell.count}"></div>`).join('')}
+                                    ? `<div style="width:12px; height:12px;"></div>`
+                                    : `<div class="heat-cell rounded-[3px] ${calLevels[calLevel(cell.count)]}" style="width:12px; height:12px; transition-delay: ${Math.min(wi * 8, 900)}ms;" title="${cell.key}: ${cell.count}"></div>`).join('')}
                             </div>`).join('')}
                     </div>
                 </div>`;
@@ -7693,7 +7706,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.28.8';
+        window.BUILD_VERSION = '2026.08.28.9';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

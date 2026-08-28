@@ -7086,7 +7086,7 @@
 
                 const isSelected = state.currentPlatform === plat.id;
                 const baseClasses = "relative flex-shrink-0 flex items-center gap-2 px-5 py-2.5 rounded-full font-medium transition-all duration-300 cursor-pointer text-sm border";
-                const activeClasses = isSelected ? "bg-blue-600 text-white border-blue-600 dark:bg-blue-600/20 dark:text-neon-blue dark:border-neon-blue shadow-[0_4px_15px_rgba(59,130,246,0.4)] dark:shadow-[0_0_15px_rgba(0,243,255,0.3)] transform -translate-y-[2px]" : "bg-white text-gray-600 border-light-border hover:bg-light-surface hover:-translate-y-[2px] hover:shadow-md dark:bg-dark-card dark:text-gray-400 dark:border-gray-800 dark:hover:border-gray-600 dark:hover:shadow-[0_4px_10px_rgba(0,0,0,0.5)]";
+                const activeClasses = isSelected ? "bg-amber-600 text-white border-amber-600 dark:bg-blue-600/20 dark:text-neon-blue dark:border-neon-blue shadow-[0_4px_15px_rgba(217,119,6,0.35)] dark:shadow-[0_0_15px_rgba(0,243,255,0.3)] transform -translate-y-[2px]" : "bg-white text-gray-600 border-light-border hover:bg-light-surface hover:-translate-y-[2px] hover:shadow-md dark:bg-dark-card dark:text-gray-400 dark:border-gray-800 dark:hover:border-gray-600 dark:hover:shadow-[0_4px_10px_rgba(0,0,0,0.5)]";
 
                 const labelMap = { 'Prime': t.prime, 'Ubisoft': t.ubisoft, 'EpicPhone': t.epicPhone };
                 const label = plat.id === 'All' ? t.platformAll : (labelMap[plat.id] || plat.id);
@@ -7230,7 +7230,7 @@
                   ? `bg-green-100 text-green-700 border-2 border-green-200 shadow-[0_4px_0_#bbf7d0] dark:bg-[#112211] dark:text-green-400 dark:border-green-900/50 dark:shadow-[0_4px_0_#052e16]`
                   : deletedReason
                   ? `bg-orange-50 text-orange-600 border-2 border-orange-200 shadow-[0_4px_0_#fed7aa] dark:bg-[#2a1600] dark:text-orange-400 dark:border-orange-900/50 dark:shadow-[0_4px_0_#431407] group-hover:bg-orange-500 group-hover:text-white group-hover:border-orange-500 group-hover:shadow-[0_6px_20px_rgba(249,115,22,0.4)] group-hover:-translate-y-1 dark:group-hover:bg-orange-500 dark:group-hover:text-black dark:group-hover:border-orange-500 dark:group-hover:shadow-[0_0_20px_rgba(249,115,22,0.4)] group-active:translate-y-[4px] group-active:shadow-[0_0_0_transparent]`
-                  : `bg-white text-blue-600 border-2 border-blue-100 shadow-[0_4px_0_#bfdbfe] dark:bg-[#151b22] dark:text-neon-blue dark:border-gray-700 dark:shadow-[0_4px_0_#0b0c10] group-hover:bg-blue-600 group-hover:text-white group-hover:border-blue-600 group-hover:shadow-[0_6px_20px_rgba(37,99,235,0.4)] group-hover:-translate-y-1 dark:group-hover:bg-neon-blue dark:group-hover:text-black dark:group-hover:border-neon-blue dark:group-hover:shadow-[0_0_20px_rgba(0,243,255,0.4)] dark:group-hover:-translate-y-1 group-active:translate-y-[4px] group-active:shadow-[0_0_0_transparent] dark:group-active:translate-y-[4px] dark:group-active:shadow-[0_0_0_transparent]`;
+                  : `bg-white text-amber-700 border-2 border-amber-200 shadow-[0_4px_0_#fde68a] dark:bg-[#151b22] dark:text-neon-blue dark:border-gray-700 dark:shadow-[0_4px_0_#0b0c10] group-hover:bg-amber-600 group-hover:text-white group-hover:border-amber-600 group-hover:shadow-[0_6px_20px_rgba(217,119,6,0.4)] group-hover:-translate-y-1 dark:group-hover:bg-neon-blue dark:group-hover:text-black dark:group-hover:border-neon-blue dark:group-hover:shadow-[0_0_20px_rgba(0,243,255,0.4)] dark:group-hover:-translate-y-1 group-active:translate-y-[4px] group-active:shadow-[0_0_0_transparent] dark:group-active:translate-y-[4px] dark:group-active:shadow-[0_0_0_transparent]`;
             
                 const btnContent = isClaimed
                   ? `<i class="ph-bold ph-check-circle mr-1 text-lg"></i> ${t.claimedBtn}`
@@ -7686,7 +7686,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.28.6';
+        window.BUILD_VERSION = '2026.08.28.7';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

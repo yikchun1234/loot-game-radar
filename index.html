@@ -261,7 +261,7 @@
         /* Clock petals bloom from the center */
         .rose-petal { opacity: 0; transform: scale(0); transform-box: view-box; transform-origin: 50% 50%; transition: opacity 0.5s ease, transform 0.9s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .chart-in-view .rose-petal { opacity: 1; transform: scale(1); }
-        /* Waterfall + harvest bars reuse .chart-bar (sweep animates data-target-height);
+        /* Streak Flame bars reuse .hist-bar (sweep animates data-target-width);
            Platform Rise stacked area wipes in via the .wealth-clip-rect clipPath */
 
     </style>
@@ -1621,17 +1621,17 @@
         Object.assign(i18n.ja, { avgClaimValue: "平均取得価値", claimStreak: "連続取得", days: "日", maxStreak: "最長", claimHeatmap: "取得アクティビティヒートマップ", releaseHeatmap: "リリース時間ヒートマップ", less: "少", more: "多", top10Expensive: "トップ10高価値", priceDistribution: "価格分布", trendComparison: "トレンド比較", trendGrowth: "成長", trendSlight: "微増", trendStable: "横ばい", trendDecline: "減少", trendGames: "ゲーム数", trendSavings: "節約額", thisMonth: "今月", prevMonth: "先月", reactionTime: "平均反応時間", reactionDesc: "公開 → 取得", bestHaul: "ベスト収穫日", monthlySavings: "月間節約額", removalReasons: "削除理由", removed: "削除済み", noRemovals: "まだ削除記録はありません。", gamerProfile: "ゲーマー像", profileSpeed: "スピード", profileValue: "価値", profileConsistency: "安定性", profileDiversity: "多様性", profileVolume: "ボリューム", speedDistribution: "取得速度", speedBucket1: "< 1時間", speedBucket2: "1-24時間", speedBucket3: "1-3日", speedBucket4: "3日以上" });
         Object.assign(i18n.ko, { avgClaimValue: "평균 획득 가치", claimStreak: "연속 획득", days: "일", maxStreak: "최대", claimHeatmap: "획득 활동 히트맵", releaseHeatmap: "출시 시간 히트맵", less: "적음", more: "많음", top10Expensive: "상위 10개 고가치", priceDistribution: "가격 분포", trendComparison: "트렌드 비교", trendGrowth: "성장", trendSlight: "소폭 변화", trendStable: "안정", trendDecline: "감소", trendGames: "게임", trendSavings: "절약", thisMonth: "이번 달", prevMonth: "지난달", reactionTime: "평균 반응 시간", reactionDesc: "공개 → 획득", bestHaul: "최고 수확일", monthlySavings: "월간 절약", removalReasons: "삭제 사유", removed: "삭제됨", noRemovals: "아직 삭제 기록이 없습니다.", gamerProfile: "게이머 프로필", profileSpeed: "속도", profileValue: "가치", profileConsistency: "꾸준함", profileDiversity: "다양성", profileVolume: "수량", speedDistribution: "수령 속도", speedBucket1: "< 1시간", speedBucket2: "1-24시간", speedBucket3: "1-3일", speedBucket4: "3일 이상" });
         Object.assign(i18n.pt, { avgClaimValue: "Valor Médio", claimStreak: "Sequência de Resgates", days: "dias", maxStreak: "Máx", claimHeatmap: "Mapa de Atividade", releaseHeatmap: "Mapa de Lançamentos", less: "Menos", more: "Mais", top10Expensive: "Top 10 Mais Valiosos", priceDistribution: "Distribuição de Preços", trendComparison: "Comparação de Tendências", trendGrowth: "crescimento", trendSlight: "mudança leve", trendStable: "estável", trendDecline: "declínio", trendGames: "Jogos", trendSavings: "Economia", thisMonth: "Este Mês", prevMonth: "Mês Passado", reactionTime: "Tempo de Reação", reactionDesc: "publicação → resgate", bestHaul: "Melhor Dia", monthlySavings: "Economia Mensal", removalReasons: "Razões de Remoção", removed: "removidos", noRemovals: "Ainda não há remoções.", gamerProfile: "Perfil do Jogador", profileSpeed: "Velocidade", profileValue: "Valor", profileConsistency: "Constância", profileDiversity: "Diversidade", profileVolume: "Volume", speedDistribution: "Velocidade de Resgate", speedBucket1: "< 1 hora", speedBucket2: "1-24 horas", speedBucket3: "1-3 dias", speedBucket4: "3+ dias" });
-        // New chart i18n keys (7 charts, 2026.08.28.3; reworked dimensions 2026.08.28.4)
-        Object.assign(i18n.en, { yearCalendar: "Loot Calendar", yearCalendarDesc: "Your claiming activity across the year", wealthWaterfall: "Wealth Waterfall", wealthWaterfallDesc: "Monthly gains vs removals", wfClaims: "Claims", wfRemovals: "Removals", hourScatter: "Midnight Hunter", hourScatterDesc: "Hour of the day vs game value", lootFunnel: "Loot Funnel", lootFunnelDesc: "Tracked → Removed → Kept", funnelTracked: "Tracked", funnelRemoved: "Removed", funnelKept: "Kept", platformRise: "Rise & Fall of Platforms", platformRiseDesc: "Monthly claimed value stacked by platform", platformOther: "Other", harvestSeason: "Harvest Season", harvestSeasonDesc: "Which month feeds you best (all years)", hourNight: "Night", hourMorning: "Morning", hourAfternoon: "Afternoon", hourEvening: "Evening", lootClock: "24-Hour Loot Clock", lootClockDesc: "Value claimed at each hour of the day" });
-        Object.assign(i18n['zh-CN'], { yearCalendar: "年度领取日历", yearCalendarDesc: "一年来的领取活跃度", wealthWaterfall: "财富瀑布图", wealthWaterfallDesc: "每月新增与移除的价值流水", wfClaims: "领取", wfRemovals: "移除", hourScatter: "深夜猎人", hourScatterDesc: "领取时刻 × 游戏价值", lootFunnel: "领取漏斗", lootFunnelDesc: "追踪 → 移除 → 保留", funnelTracked: "已追踪", funnelRemoved: "已移除", funnelKept: "已保留", platformRise: "平台兴衰史", platformRiseDesc: "每月领取价值按平台堆叠", platformOther: "其他", harvestSeason: "丰收季节", harvestSeasonDesc: "哪个月份是你的丰收旺季（历年汇总）", hourNight: "深夜", hourMorning: "上午", hourAfternoon: "下午", hourEvening: "晚上", lootClock: "24小时掠夺时钟", lootClockDesc: "一天中每个小时的领取价值" });
-        Object.assign(i18n['zh-TW'], { yearCalendar: "年度領取日曆", yearCalendarDesc: "一年來的領取活躍度", wealthWaterfall: "財富瀑布圖", wealthWaterfallDesc: "每月新增與移除的價值流水", wfClaims: "領取", wfRemovals: "移除", hourScatter: "深夜獵人", hourScatterDesc: "領取時刻 × 遊戲價值", lootFunnel: "領取漏斗", lootFunnelDesc: "追蹤 → 移除 → 保留", funnelTracked: "已追蹤", funnelRemoved: "已移除", funnelKept: "已保留", platformRise: "平台興衰史", platformRiseDesc: "每月領取價值按平台堆疊", platformOther: "其他", harvestSeason: "豐收季節", harvestSeasonDesc: "哪個月分是你的豐收旺季（歷年匯總）", hourNight: "深夜", hourMorning: "上午", hourAfternoon: "下午", hourEvening: "晚上", lootClock: "24小時掠奪時鐘", lootClockDesc: "一天中每個小時的領取價值" });
-        Object.assign(i18n.es, { yearCalendar: "Calendario de Loot", yearCalendarDesc: "Tu actividad de reclamos durante el año", wealthWaterfall: "Cascada de Riqueza", wealthWaterfallDesc: "Ganancias vs eliminaciones mensuales", wfClaims: "Reclamos", wfRemovals: "Eliminaciones", hourScatter: "Cazador Nocturno", hourScatterDesc: "Hora del día vs valor del juego", lootFunnel: "Embudo de Loot", lootFunnelDesc: "Rastreado → Eliminado → Conservado", funnelTracked: "Rastreados", funnelRemoved: "Eliminados", funnelKept: "Conservados", platformRise: "Auge y Caída de Plataformas", platformRiseDesc: "Valor mensual reclamado apilado por plataforma", platformOther: "Otros", harvestSeason: "Temporada de Cosecha", harvestSeasonDesc: "Qué mes te alimenta mejor (todos los años)", hourNight: "Noche", hourMorning: "Mañana", hourAfternoon: "Tarde", hourEvening: "Velada", lootClock: "Reloj de Loot 24h", lootClockDesc: "Valor reclamado a cada hora del día" });
-        Object.assign(i18n.fr, { yearCalendar: "Calendrier du Loot", yearCalendarDesc: "Votre activité de réclamation sur l'année", wealthWaterfall: "Cascade de Richesse", wealthWaterfallDesc: "Gains vs retraits mensuels", wfClaims: "Réclamations", wfRemovals: "Retraits", hourScatter: "Chasseur Nocturne", hourScatterDesc: "Heure de la journée vs valeur du jeu", lootFunnel: "Entonnoir du Loot", lootFunnelDesc: "Suivi → Retiré → Conservé", funnelTracked: "Suivis", funnelRemoved: "Retirés", funnelKept: "Conservés", platformRise: "Grandeur et Décadence des Plateformes", platformRiseDesc: "Valeur mensuelle réclamée empilée par plateforme", platformOther: "Autres", harvestSeason: "Saison des Récoltes", harvestSeasonDesc: "Quel mois vous nourrit le mieux (toutes années)", hourNight: "Nuit", hourMorning: "Matin", hourAfternoon: "Après-midi", hourEvening: "Soir", lootClock: "Horloge du Loot 24h", lootClockDesc: "Valeur réclamée à chaque heure de la journée" });
-        Object.assign(i18n.de, { yearCalendar: "Loot-Kalender", yearCalendarDesc: "Deine Claim-Aktivität im Jahresverlauf", wealthWaterfall: "Vermögens-Wasserfall", wealthWaterfallDesc: "Monatliche Gewinne vs Entfernungen", wfClaims: "Claims", wfRemovals: "Entfernungen", hourScatter: "Mitternachtsjäger", hourScatterDesc: "Uhrzeit vs Spielwert", lootFunnel: "Loot-Trichter", lootFunnelDesc: "Verfolgt → Entfernt → Behalten", funnelTracked: "Verfolgt", funnelRemoved: "Entfernt", funnelKept: "Behalten", platformRise: "Aufstieg & Fall der Plattformen", platformRiseDesc: "Monatlicher Claim-Wert gestapelt nach Plattform", platformOther: "Andere", harvestSeason: "Erntesaison", harvestSeasonDesc: "Welcher Monat dich am besten versorgt (alle Jahre)", hourNight: "Nacht", hourMorning: "Morgen", hourAfternoon: "Nachmittag", hourEvening: "Abend", lootClock: "24h-Loot-Uhr", lootClockDesc: "Claim-Wert zu jeder Stunde des Tages" });
-        Object.assign(i18n.ru, { yearCalendar: "Календарь лута", yearCalendarDesc: "Ваша активность получения за год", wealthWaterfall: "Водопад богатства", wealthWaterfallDesc: "Месячные приобретения против удалений", wfClaims: "Получения", wfRemovals: "Удаления", hourScatter: "Ночной Охотник", hourScatterDesc: "Время суток против ценности игры", lootFunnel: "Воронка лута", lootFunnelDesc: "Отслежено → Удалено → Сохранено", funnelTracked: "Отслежено", funnelRemoved: "Удалено", funnelKept: "Сохранено", platformRise: "Взлёт и Падение Платформ", platformRiseDesc: "Месячная ценность по платформам (стек)", platformOther: "Другие", harvestSeason: "Сезон Урожая", harvestSeasonDesc: "Какой месяц кормит лучше всего (все годы)", hourNight: "Ночь", hourMorning: "Утро", hourAfternoon: "День", hourEvening: "Вечер", lootClock: "24-часовые Часы Лута", lootClockDesc: "Ценность по часам суток" });
-        Object.assign(i18n.ja, { yearCalendar: "ルートカレンダー", yearCalendarDesc: "1年間の取得アクティビティ", wealthWaterfall: "富のウォーターフォール", wealthWaterfallDesc: "月別の獲得と削除", wfClaims: "取得", wfRemovals: "削除", hourScatter: "深夜ハンター", hourScatterDesc: "取得時刻 × ゲーム価値", lootFunnel: "ルートファネル", lootFunnelDesc: "追跡 → 削除 → 保持", funnelTracked: "追跡済み", funnelRemoved: "削除済み", funnelKept: "保持中", platformRise: "プラットフォーム興亡史", platformRiseDesc: "月別取得価値をプラットフォーム別に重ねた図", platformOther: "その他", harvestSeason: "収穫シーズン", harvestSeasonDesc: "どの月が一番豊作か（全期間）", hourNight: "深夜", hourMorning: "午前", hourAfternoon: "午後", hourEvening: "夜", lootClock: "24時間ルート時計", lootClockDesc: "時間帯別の取得価値" });
-        Object.assign(i18n.ko, { yearCalendar: "전리품 캘린더", yearCalendarDesc: "1년간의 획득 활동", wealthWaterfall: "자산 폭포수", wealthWaterfallDesc: "월별 획득 대 삭제", wfClaims: "획득", wfRemovals: "삭제", hourScatter: "심야 헌터", hourScatterDesc: "획득 시각 × 게임 가치", lootFunnel: "전리품 퍼널", lootFunnelDesc: "추적 → 삭제 → 보관", funnelTracked: "추적됨", funnelRemoved: "삭제됨", funnelKept: "보관 중", platformRise: "플랫폼 흥망사", platformRiseDesc: "월별 획득 가치를 플랫폼별로 쌓은 차트", platformOther: "기타", harvestSeason: "수확의 계절", harvestSeasonDesc: "어떤 달이 가장 풍년인지 (전체 기간)", hourNight: "심야", hourMorning: "오전", hourAfternoon: "오후", hourEvening: "저녁", lootClock: "24시간 전리품 시계", lootClockDesc: "시간대별 획득 가치" });
-        Object.assign(i18n.pt, { yearCalendar: "Calendário de Loot", yearCalendarDesc: "Sua atividade de resgate ao longo do ano", wealthWaterfall: "Cascata de Riqueza", wealthWaterfallDesc: "Ganhos vs remoções mensais", wfClaims: "Resgates", wfRemovals: "Remoções", hourScatter: "Caçador Noturno", hourScatterDesc: "Hora do dia vs valor do jogo", lootFunnel: "Funil de Loot", lootFunnelDesc: "Rastreado → Removido → Mantido", funnelTracked: "Rastreados", funnelRemoved: "Removidos", funnelKept: "Mantidos", platformRise: "Ascensão e Queda das Plataformas", platformRiseDesc: "Valor mensal resgatado empilhado por plataforma", platformOther: "Outros", harvestSeason: "Temporada de Colheita", harvestSeasonDesc: "Qual mês te alimenta melhor (todos os anos)", hourNight: "Noite", hourMorning: "Manhã", hourAfternoon: "Tarde", hourEvening: "Serão", lootClock: "Relógio de Loot 24h", lootClockDesc: "Valor resgatado a cada hora do dia" });
+        // New chart i18n keys (2026.08.28.3; reworked dimensions 2026.08.28.4; waterfall→streak flame + harvest removed 2026.08.28.5)
+        Object.assign(i18n.en, { yearCalendar: "Loot Calendar", yearCalendarDesc: "Your claiming activity across the year", hourScatter: "Midnight Hunter", hourScatterDesc: "Hour of the day vs game value", lootFunnel: "Loot Funnel", lootFunnelDesc: "Tracked → Removed → Kept", funnelTracked: "Tracked", funnelRemoved: "Removed", funnelKept: "Kept", platformRise: "Rise & Fall of Platforms", platformRiseDesc: "Monthly claimed value stacked by platform", platformOther: "Other", lootStreak: "Streak Flame", lootStreakDesc: "Every consecutive-day claiming run you've pulled off", streakEmpty: "No multi-day streaks yet",hourNight: "Night", hourMorning: "Morning", hourAfternoon: "Afternoon", hourEvening: "Evening", lootClock: "24-Hour Loot Clock", lootClockDesc: "Value claimed at each hour of the day" });
+        Object.assign(i18n['zh-CN'], { yearCalendar: "年度领取日历", yearCalendarDesc: "一年来的领取活跃度", hourScatter: "深夜猎人", hourScatterDesc: "领取时刻 × 游戏价值", lootFunnel: "领取漏斗", lootFunnelDesc: "追踪 → 移除 → 保留", funnelTracked: "已追踪", funnelRemoved: "已移除", funnelKept: "已保留", platformRise: "平台兴衰史", platformRiseDesc: "每月领取价值按平台堆叠", platformOther: "其他", lootStreak: "连胜火焰", lootStreakDesc: "你点燃过的每一段连续领取纪录", streakEmpty: "暂无连续多日领取",hourNight: "深夜", hourMorning: "上午", hourAfternoon: "下午", hourEvening: "晚上", lootClock: "24小时掠夺时钟", lootClockDesc: "一天中每个小时的领取价值" });
+        Object.assign(i18n['zh-TW'], { yearCalendar: "年度領取日曆", yearCalendarDesc: "一年來的領取活躍度", hourScatter: "深夜獵人", hourScatterDesc: "領取時刻 × 遊戲價值", lootFunnel: "領取漏斗", lootFunnelDesc: "追蹤 → 移除 → 保留", funnelTracked: "已追蹤", funnelRemoved: "已移除", funnelKept: "已保留", platformRise: "平台興衰史", platformRiseDesc: "每月領取價值按平台堆疊", platformOther: "其他", lootStreak: "連勝火焰", lootStreakDesc: "你點燃過的每一段連續領取紀錄", streakEmpty: "暫無連續多日領取",hourNight: "深夜", hourMorning: "上午", hourAfternoon: "下午", hourEvening: "晚上", lootClock: "24小時掠奪時鐘", lootClockDesc: "一天中每個小時的領取價值" });
+        Object.assign(i18n.es, { yearCalendar: "Calendario de Loot", yearCalendarDesc: "Tu actividad de reclamos durante el año", hourScatter: "Cazador Nocturno", hourScatterDesc: "Hora del día vs valor del juego", lootFunnel: "Embudo de Loot", lootFunnelDesc: "Rastreado → Eliminado → Conservado", funnelTracked: "Rastreados", funnelRemoved: "Eliminados", funnelKept: "Conservados", platformRise: "Auge y Caída de Plataformas", platformRiseDesc: "Valor mensual reclamado apilado por plataforma", platformOther: "Otros", lootStreak: "Llama de Rachas", lootStreakDesc: "Cada racha de días consecutivos que conseguiste", streakEmpty: "Aún sin rachas de varios días",hourNight: "Noche", hourMorning: "Mañana", hourAfternoon: "Tarde", hourEvening: "Velada", lootClock: "Reloj de Loot 24h", lootClockDesc: "Valor reclamado a cada hora del día" });
+        Object.assign(i18n.fr, { yearCalendar: "Calendrier du Loot", yearCalendarDesc: "Votre activité de réclamation sur l'année", hourScatter: "Chasseur Nocturne", hourScatterDesc: "Heure de la journée vs valeur du jeu", lootFunnel: "Entonnoir du Loot", lootFunnelDesc: "Suivi → Retiré → Conservé", funnelTracked: "Suivis", funnelRemoved: "Retirés", funnelKept: "Conservés", platformRise: "Grandeur et Décadence des Plateformes", platformRiseDesc: "Valeur mensuelle réclamée empilée par plateforme", platformOther: "Autres", lootStreak: "Flamme des Séries", lootStreakDesc: "Chaque série de jours consécutifs accomplie", streakEmpty: "Pas encore de série multi-jours",hourNight: "Nuit", hourMorning: "Matin", hourAfternoon: "Après-midi", hourEvening: "Soir", lootClock: "Horloge du Loot 24h", lootClockDesc: "Valeur réclamée à chaque heure de la journée" });
+        Object.assign(i18n.de, { yearCalendar: "Loot-Kalender", yearCalendarDesc: "Deine Claim-Aktivität im Jahresverlauf", hourScatter: "Mitternachtsjäger", hourScatterDesc: "Uhrzeit vs Spielwert", lootFunnel: "Loot-Trichter", lootFunnelDesc: "Verfolgt → Entfernt → Behalten", funnelTracked: "Verfolgt", funnelRemoved: "Entfernt", funnelKept: "Behalten", platformRise: "Aufstieg & Fall der Plattformen", platformRiseDesc: "Monatlicher Claim-Wert gestapelt nach Plattform", platformOther: "Andere", lootStreak: "Serien-Flamme", lootStreakDesc: "Jede Serie aufeinanderfolgender Claim-Tage", streakEmpty: "Noch keine Mehrtages-Serie",hourNight: "Nacht", hourMorning: "Morgen", hourAfternoon: "Nachmittag", hourEvening: "Abend", lootClock: "24h-Loot-Uhr", lootClockDesc: "Claim-Wert zu jeder Stunde des Tages" });
+        Object.assign(i18n.ru, { yearCalendar: "Календарь лута", yearCalendarDesc: "Ваша активность получения за год", hourScatter: "Ночной Охотник", hourScatterDesc: "Время суток против ценности игры", lootFunnel: "Воронка лута", lootFunnelDesc: "Отслежено → Удалено → Сохранено", funnelTracked: "Отслежено", funnelRemoved: "Удалено", funnelKept: "Сохранено", platformRise: "Взлёт и Падение Платформ", platformRiseDesc: "Месячная ценность по платформам (стек)", platformOther: "Другие", lootStreak: "Пламя Серий", lootStreakDesc: "Каждая серия дней подряд с получениями", streakEmpty: "Пока нет серий из нескольких дней",hourNight: "Ночь", hourMorning: "Утро", hourAfternoon: "День", hourEvening: "Вечер", lootClock: "24-часовые Часы Лута", lootClockDesc: "Ценность по часам суток" });
+        Object.assign(i18n.ja, { yearCalendar: "ルートカレンダー", yearCalendarDesc: "1年間の取得アクティビティ", hourScatter: "深夜ハンター", hourScatterDesc: "取得時刻 × ゲーム価値", lootFunnel: "ルートファネル", lootFunnelDesc: "追跡 → 削除 → 保持", funnelTracked: "追跡済み", funnelRemoved: "削除済み", funnelKept: "保持中", platformRise: "プラットフォーム興亡史", platformRiseDesc: "月別取得価値をプラットフォーム別に重ねた図", platformOther: "その他", lootStreak: "連勝フレーム", lootStreakDesc: "達成した連日取得の記録", streakEmpty: "まだ連日取得なし",hourNight: "深夜", hourMorning: "午前", hourAfternoon: "午後", hourEvening: "夜", lootClock: "24時間ルート時計", lootClockDesc: "時間帯別の取得価値" });
+        Object.assign(i18n.ko, { yearCalendar: "전리품 캘린더", yearCalendarDesc: "1년간의 획득 활동", hourScatter: "심야 헌터", hourScatterDesc: "획득 시각 × 게임 가치", lootFunnel: "전리품 퍼널", lootFunnelDesc: "추적 → 삭제 → 보관", funnelTracked: "추적됨", funnelRemoved: "삭제됨", funnelKept: "보관 중", platformRise: "플랫폼 흥망사", platformRiseDesc: "월별 획득 가치를 플랫폼별로 쌓은 차트", platformOther: "기타", lootStreak: "연승 불꽃", lootStreakDesc: "달성한 연속 날짜 획득 기록", streakEmpty: "아직 연속 획득 기록 없음",hourNight: "심야", hourMorning: "오전", hourAfternoon: "오후", hourEvening: "저녁", lootClock: "24시간 전리품 시계", lootClockDesc: "시간대별 획득 가치" });
+        Object.assign(i18n.pt, { yearCalendar: "Calendário de Loot", yearCalendarDesc: "Sua atividade de resgate ao longo do ano", hourScatter: "Caçador Noturno", hourScatterDesc: "Hora do dia vs valor do jogo", lootFunnel: "Funil de Loot", lootFunnelDesc: "Rastreado → Removido → Mantido", funnelTracked: "Rastreados", funnelRemoved: "Removidos", funnelKept: "Mantidos", platformRise: "Ascensão e Queda das Plataformas", platformRiseDesc: "Valor mensal resgatado empilhado por plataforma", platformOther: "Outros", lootStreak: "Chama de Sequências", lootStreakDesc: "Cada sequência de dias consecutivos resgatando", streakEmpty: "Ainda sem sequências de vários dias",hourNight: "Noite", hourMorning: "Manhã", hourAfternoon: "Tarde", hourEvening: "Serão", lootClock: "Relógio de Loot 24h", lootClockDesc: "Valor resgatado a cada hora do dia" });
         // ------------------------------------------
 
         // --- LOCAL STORAGE COMPRESSION HELPERS ---
@@ -3217,39 +3217,37 @@
             // ===== NEW CHARTS DATA (7 charts, 2026.08.28.3; 5 dimensions reworked 2026.08.28.4) =====
             // Each chart uses a UNIQUE data dimension so it never duplicates an existing panel.
 
-            // --- A) Wealth Waterfall: monthly claims (+) vs removals (−) as a cumulative flow ---
-            const removalsByMonth = {};
-            (state.deletedHistory || []).forEach(h => {
-                const dd = new Date(h.deletedAt);
-                if (isNaN(dd.getTime())) return;
-                const key = `${dd.getFullYear()}-${String(dd.getMonth() + 1).padStart(2, '0')}`;
-                const label = dd.toLocaleString(localeStr, { month: 'short', year: '2-digit' });
-                const worthNum = parseFloat(String(h.worth || '').replace(/[^0-9.]/g, '')) || 0;
-                if (!removalsByMonth[key]) removalsByMonth[key] = { label, removed: 0 };
-                removalsByMonth[key].removed += worthNum;
+            // --- A) Streak Flame: every consecutive-day claiming episode (2026.08.28.5) ---
+            // Unique dimension: EPISODE history of consecutive claim days (the stat card only shows two numbers)
+            const streakSerials = [];
+            games.forEach(g => {
+                const d = gameClaimedDate(g);
+                if (isNaN(d.getTime())) return;
+                streakSerials.push(Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000));
             });
-            const wfMonthKeys = Array.from(new Set([...Object.keys(monthSavings), ...Object.keys(removalsByMonth)])).sort();
-            let wfRunning = 0, wfMin = 0, wfMax = 0;
-            const wfSteps = wfMonthKeys.map(key => {
-                const claims = monthSavings[key] ? monthSavings[key].total : 0;
-                const removed = removalsByMonth[key] ? removalsByMonth[key].removed : 0;
-                const label = (monthSavings[key] || removalsByMonth[key]).label;
-                const start = wfRunning;
-                wfRunning += claims - removed;
-                wfMin = Math.min(wfMin, wfRunning, start);
-                wfMax = Math.max(wfMax, wfRunning, start);
-                return { label, claims, removed, start, end: wfRunning };
+            const streakDays = Array.from(new Set(streakSerials)).sort((a, b) => a - b);
+            const streakEpisodes = [];
+            streakDays.forEach((serial, i) => {
+                if (i > 0 && serial === streakDays[i - 1] + 1) {
+                    const ep = streakEpisodes[streakEpisodes.length - 1];
+                    ep.end = serial; ep.len++;
+                } else {
+                    streakEpisodes.push({ start: serial, end: serial, len: 1 });
+                }
             });
-            const wfRange = Math.max(wfMax - wfMin, 1);
-            const wfPct = (v) => ((v - wfMin) / wfRange) * 100;
-            const waterfallHtml = wfSteps.map(s => {
-                let cells = '';
-                if (s.claims > 0) cells += `<div class="chart-bar absolute left-0 right-0 bg-gradient-to-t from-green-600 to-green-400 rounded-md" style="bottom: ${wfPct(s.start).toFixed(2)}%; height: 0%;" data-target-height="${(s.claims / wfRange * 100).toFixed(2)}%"></div>`;
-                if (s.removed > 0) cells += `<div class="chart-bar absolute left-0 right-0 bg-gradient-to-t from-red-600 to-red-400 rounded-md" style="bottom: ${wfPct(s.end).toFixed(2)}%; height: 0%;" data-target-height="${(s.removed / wfRange * 100).toFixed(2)}%"></div>`;
+            const streakDateFmt = (serial) => new Intl.DateTimeFormat(localeStr, { month: 'short', day: 'numeric', year: '2-digit', timeZone: 'UTC' }).format(new Date(serial * 86400000));
+            const streakFlameOf = (len) => len >= 7 ? 'from-red-600 via-orange-500 to-amber-400' : (len >= 3 ? 'from-orange-600 to-amber-400' : 'from-amber-500 to-yellow-400');
+            const streakTopEpisodes = streakEpisodes.filter(e => e.len >= 2).sort((a, b) => b.len - a.len || b.start - a.start).slice(0, 10);
+            const streakMaxLen = Math.max(...streakTopEpisodes.map(e => e.len), 1);
+            const streakFlamesHtml = streakTopEpisodes.map((e, i) => {
+                const widthPct = (e.len / streakMaxLen) * 100;
                 return `
-                    <div class="flex flex-col items-center gap-1" style="min-width: 46px;">
-                        <div class="relative w-full max-w-[34px] h-36">${cells}</div>
-                        <span class="text-[10px] font-bold text-gray-400 uppercase whitespace-nowrap">${s.label}</span>
+                    <div class="flex items-center gap-2 w-full">
+                        <span class="text-[9px] font-bold text-gray-400 uppercase whitespace-nowrap w-28 text-right shrink-0">${streakDateFmt(e.start)} – ${streakDateFmt(e.end)}</span>
+                        <div class="flex-1 h-5 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
+                            <div class="hist-bar h-full bg-gradient-to-r ${streakFlameOf(e.len)} rounded-full" style="width: 0%; transition-delay: ${i * 90}ms;" data-target-width="${widthPct.toFixed(2)}%"></div>
+                        </div>
+                        <span class="text-[10px] font-black ${e.len >= 7 ? 'text-red-400' : 'text-amber-500'} whitespace-nowrap w-14 shrink-0">${e.len} ${t.days || 'days'}</span>
                     </div>`;
             }).join('');
 
@@ -3393,34 +3391,6 @@
             const prFirstLabel = prMonthKeys.length > 0 ? new Date(prMonthKeys[0] + '-01T00:00:00').toLocaleDateString(localeStr, { month: 'short', year: 'numeric' }) : '';
             const prMidLabel = prMonthKeys.length > 2 ? new Date(prMonthKeys[Math.floor(prMonthKeys.length / 2)] + '-01T00:00:00').toLocaleDateString(localeStr, { month: 'short', year: 'numeric' }) : '';
             const prLastLabel = prMonthKeys.length > 0 ? new Date(prMonthKeys[prMonthKeys.length - 1] + '-01T00:00:00').toLocaleDateString(localeStr, { month: 'short', year: 'numeric' }) : '';
-
-            // --- E) Harvest Season: calendar-month value aggregated across all years (2026.08.28.4) ---
-            const harvestValue = new Array(12).fill(0);
-            games.forEach(g => {
-                const d = gameClaimedDate(g);
-                if (isNaN(d.getTime())) return;
-                harvestValue[d.getMonth()] += (g.value || 0);
-            });
-            const harvestMax = Math.max(...harvestValue, 1);
-            const harvestBest = harvestValue.indexOf(Math.max(...harvestValue));
-            const harvestSeasonGrads = (m) => {
-                if (m === 11 || m <= 1) return 'from-cyan-600 to-cyan-400';
-                if (m <= 4) return 'from-emerald-600 to-emerald-400';
-                if (m <= 7) return 'from-amber-500 to-yellow-400';
-                return 'from-orange-600 to-orange-400';
-            };
-            const harvestBarsHtml = harvestValue.map((v, m) => {
-                const heightPct = (v / harvestMax) * 100;
-                const label = new Date(2026, m, 1).toLocaleString(localeStr, { month: 'short' });
-                return `
-                    <div class="flex flex-col items-center gap-1 flex-1 min-w-0">
-                        <span class="text-[8px] font-black ${m === harvestBest && v > 0 ? 'text-yellow-500' : 'text-gray-500'}">${v > 0 ? formatCompact(v) : ''}</span>
-                        <div class="w-full max-w-[26px] bg-gray-200 dark:bg-gray-800 rounded-t-lg flex items-end h-32 relative overflow-hidden">
-                            <div class="chart-bar w-full bg-gradient-to-t ${harvestSeasonGrads(m)} rounded-t-lg" style="height: 0%" data-target-height="${heightPct.toFixed(2)}%"></div>
-                        </div>
-                        <span class="text-[9px] font-bold text-gray-400 uppercase">${label}</span>
-                    </div>`;
-            }).join('');
 
             // --- F) Yearly Loot Calendar: GitHub-style 53×7 day grid (last 365 days) ---
             const calCounts = {};
@@ -3618,18 +3588,12 @@
                         </div>
                     </div>
 
-                    <!-- NEW: Wealth Waterfall (monthly claims vs removals flow) -->
+                    <!-- NEW: Streak Flame (consecutive-day claiming episodes) -->
                     <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 lg:col-span-2 flex flex-col">
-                        <div class="flex items-center justify-between mb-1 gap-2">
-                            <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">${t.wealthWaterfall || 'Wealth Waterfall'}</h3>
-                            <div class="flex items-center gap-3 text-[9px] font-bold text-gray-400 uppercase">
-                                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-green-500 inline-block"></span>${t.wfClaims || 'Claims'}</span>
-                                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-red-500 inline-block"></span>${t.wfRemovals || 'Removals'}</span>
-                            </div>
-                        </div>
-                        <p class="text-[10px] text-gray-400 mb-3">${t.wealthWaterfallDesc || 'Monthly gains vs removals'}</p>
-                        <div class="flex items-end gap-2 overflow-x-auto w-full pb-1" style="scrollbar-width: thin;">
-                            ${waterfallHtml}
+                        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">${t.lootStreak || 'Streak Flame'}</h3>
+                        <p class="text-[10px] text-gray-400 mb-4">${t.lootStreakDesc || 'Every consecutive-day claiming run'}</p>
+                        <div class="flex flex-col gap-2.5 w-full max-w-3xl mx-auto">
+                            ${streakTopEpisodes.length > 0 ? streakFlamesHtml : `<div class="h-20 flex items-center justify-center text-sm text-gray-400">${t.streakEmpty || 'No multi-day streaks yet'}</div>`}
                         </div>
                     </div>
 
@@ -3687,20 +3651,11 @@
                     </div>
 
                     <!-- NEW: Loot Funnel (tracked → removed → kept) -->
-                    <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 flex flex-col">
+                    <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 lg:col-span-2 flex flex-col">
                         <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">${t.lootFunnel || 'Loot Funnel'}</h3>
                         <p class="text-[10px] text-gray-400 mb-4">${t.lootFunnelDesc || 'Tracked → Removed → Kept'}</p>
-                        <div class="flex flex-col gap-3 flex-1 justify-center">
+                        <div class="flex flex-col gap-3 flex-1 justify-center w-full max-w-2xl mx-auto">
                             ${funnelHtml}
-                        </div>
-                    </div>
-
-                    <!-- NEW: Harvest Season (calendar-month value, all years) -->
-                    <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 flex flex-col">
-                        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">${t.harvestSeason || 'Harvest Season'}</h3>
-                        <p class="text-[10px] text-gray-400 mb-4">${t.harvestSeasonDesc || 'Which month feeds you best (all years)'}</p>
-                        <div class="flex items-end gap-1 w-full flex-1">
-                            ${harvestBarsHtml}
                         </div>
                     </div>
 
@@ -7727,7 +7682,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.28.4';
+        window.BUILD_VERSION = '2026.08.28.5';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

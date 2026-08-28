@@ -251,7 +251,24 @@
             stroke-dasharray: 0 100;
             transition: stroke-dasharray 1.5s cubic-bezier(0.2, 1, 0.4, 1), opacity 0.2s ease;
         }
-        
+        /* ===== New chart animations (7 charts, 2026.08.28.3) ===== */
+        /* Scatter dots pop in with a per-dot stagger */
+        .scatter-dot { opacity: 0; transform: scale(0); transform-box: fill-box; transform-origin: center; transition: opacity 0.4s ease, transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .chart-in-view .scatter-dot { opacity: 1; transform: scale(1); }
+        /* Funnel layers unfold from the center outward */
+        .funnel-layer { transform: scaleX(0); transform-box: fill-box; transform-origin: center; transition: transform 0.8s cubic-bezier(0.2, 1, 0.4, 1); }
+        .chart-in-view .funnel-layer { transform: scaleX(1); }
+        /* Treemap cells bloom in one by one */
+        .treemap-cell { opacity: 0; transform: scale(0.6); transform-box: fill-box; transform-origin: center; transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .chart-in-view .treemap-cell { opacity: 1; transform: scale(1); }
+        /* Source mix segments grow left→right from 0 to their share (--w) */
+        .source-seg { width: 0; transition: width 0.9s cubic-bezier(0.2, 1, 0.4, 1); }
+        .chart-in-view .source-seg { width: var(--w); }
+        /* Rose petals bloom from the center */
+        .rose-petal { opacity: 0; transform: scale(0); transform-box: view-box; transform-origin: 50% 50%; transition: opacity 0.5s ease, transform 0.9s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        .chart-in-view .rose-petal { opacity: 1; transform: scale(1); }
+        /* Waterfall bars reuse .chart-bar (sweep animates data-target-height) */
+
     </style>
 </head>
 <body class="bg-light-bg dark:bg-dark-bg text-gray-800 dark:text-gray-200 h-screen overflow-hidden transition-colors duration-300">
@@ -1609,6 +1626,17 @@
         Object.assign(i18n.ja, { avgClaimValue: "平均取得価値", claimStreak: "連続取得", days: "日", maxStreak: "最長", claimHeatmap: "取得アクティビティヒートマップ", releaseHeatmap: "リリース時間ヒートマップ", less: "少", more: "多", top10Expensive: "トップ10高価値", priceDistribution: "価格分布", trendComparison: "トレンド比較", trendGrowth: "成長", trendSlight: "微増", trendStable: "横ばい", trendDecline: "減少", trendGames: "ゲーム数", trendSavings: "節約額", thisMonth: "今月", prevMonth: "先月", reactionTime: "平均反応時間", reactionDesc: "公開 → 取得", bestHaul: "ベスト収穫日", monthlySavings: "月間節約額", removalReasons: "削除理由", removed: "削除済み", noRemovals: "まだ削除記録はありません。", gamerProfile: "ゲーマー像", profileSpeed: "スピード", profileValue: "価値", profileConsistency: "安定性", profileDiversity: "多様性", profileVolume: "ボリューム", speedDistribution: "取得速度", speedBucket1: "< 1時間", speedBucket2: "1-24時間", speedBucket3: "1-3日", speedBucket4: "3日以上" });
         Object.assign(i18n.ko, { avgClaimValue: "평균 획득 가치", claimStreak: "연속 획득", days: "일", maxStreak: "최대", claimHeatmap: "획득 활동 히트맵", releaseHeatmap: "출시 시간 히트맵", less: "적음", more: "많음", top10Expensive: "상위 10개 고가치", priceDistribution: "가격 분포", trendComparison: "트렌드 비교", trendGrowth: "성장", trendSlight: "소폭 변화", trendStable: "안정", trendDecline: "감소", trendGames: "게임", trendSavings: "절약", thisMonth: "이번 달", prevMonth: "지난달", reactionTime: "평균 반응 시간", reactionDesc: "공개 → 획득", bestHaul: "최고 수확일", monthlySavings: "월간 절약", removalReasons: "삭제 사유", removed: "삭제됨", noRemovals: "아직 삭제 기록이 없습니다.", gamerProfile: "게이머 프로필", profileSpeed: "속도", profileValue: "가치", profileConsistency: "꾸준함", profileDiversity: "다양성", profileVolume: "수량", speedDistribution: "수령 속도", speedBucket1: "< 1시간", speedBucket2: "1-24시간", speedBucket3: "1-3일", speedBucket4: "3일 이상" });
         Object.assign(i18n.pt, { avgClaimValue: "Valor Médio", claimStreak: "Sequência de Resgates", days: "dias", maxStreak: "Máx", claimHeatmap: "Mapa de Atividade", releaseHeatmap: "Mapa de Lançamentos", less: "Menos", more: "Mais", top10Expensive: "Top 10 Mais Valiosos", priceDistribution: "Distribuição de Preços", trendComparison: "Comparação de Tendências", trendGrowth: "crescimento", trendSlight: "mudança leve", trendStable: "estável", trendDecline: "declínio", trendGames: "Jogos", trendSavings: "Economia", thisMonth: "Este Mês", prevMonth: "Mês Passado", reactionTime: "Tempo de Reação", reactionDesc: "publicação → resgate", bestHaul: "Melhor Dia", monthlySavings: "Economia Mensal", removalReasons: "Razões de Remoção", removed: "removidos", noRemovals: "Ainda não há remoções.", gamerProfile: "Perfil do Jogador", profileSpeed: "Velocidade", profileValue: "Valor", profileConsistency: "Constância", profileDiversity: "Diversidade", profileVolume: "Volume", speedDistribution: "Velocidade de Resgate", speedBucket1: "< 1 hora", speedBucket2: "1-24 horas", speedBucket3: "1-3 dias", speedBucket4: "3+ dias" });
+        // New chart i18n keys (7 charts, 2026.08.28.3)
+        Object.assign(i18n.en, { yearCalendar: "Loot Calendar", yearCalendarDesc: "Your claiming activity across the year", wealthWaterfall: "Wealth Waterfall", wealthWaterfallDesc: "Monthly gains vs removals", wfClaims: "Claims", wfRemovals: "Removals", speedValueScatter: "Speed × Value", speedValueScatterDesc: "Reaction time vs game value", lootFunnel: "Loot Funnel", lootFunnelDesc: "Tracked → Claimed → Kept", funnelTracked: "Tracked", funnelClaimed: "Claimed", funnelKept: "Kept", libraryTreemap: "Library Territory", libraryTreemapDesc: "Your collection mapped by value", sourceMix: "Source Mix", sourceMixDesc: "Where your loot comes from", weekdayRose: "Weekday Rose", weekdayRoseDesc: "Value claimed on each weekday", sourceEpic: "Epic Games", sourceGamerpower: "GamerPower", sourceGplay: "Google Play", sourceIos: "App Store", sourceSteam: "Steam", sourceGog: "GOG", sourceReddit: "Reddit", sourceOther: "Other" });
+        Object.assign(i18n['zh-CN'], { yearCalendar: "年度领取日历", yearCalendarDesc: "一年来的领取活跃度", wealthWaterfall: "财富瀑布图", wealthWaterfallDesc: "每月新增与移除的价值流水", wfClaims: "领取", wfRemovals: "移除", speedValueScatter: "手速 × 价值", speedValueScatterDesc: "反应时间 vs 游戏价值", lootFunnel: "领取漏斗", lootFunnelDesc: "追踪 → 领取 → 保留", funnelTracked: "已追踪", funnelClaimed: "已领取", funnelKept: "已保留", libraryTreemap: "图书馆版图", libraryTreemapDesc: "按价值绘制的收藏版图", sourceMix: "来源占比", sourceMixDesc: "你的战利品来自哪里", weekdayRose: "星期玫瑰图", weekdayRoseDesc: "每个星期几领取的价值", sourceEpic: "Epic Games", sourceGamerpower: "GamerPower", sourceGplay: "Google Play", sourceIos: "App Store", sourceSteam: "Steam", sourceGog: "GOG", sourceReddit: "Reddit", sourceOther: "其他" });
+        Object.assign(i18n['zh-TW'], { yearCalendar: "年度領取日曆", yearCalendarDesc: "一年來的領取活躍度", wealthWaterfall: "財富瀑布圖", wealthWaterfallDesc: "每月新增與移除的價值流水", wfClaims: "領取", wfRemovals: "移除", speedValueScatter: "手速 × 價值", speedValueScatterDesc: "反應時間 vs 遊戲價值", lootFunnel: "領取漏斗", lootFunnelDesc: "追蹤 → 領取 → 保留", funnelTracked: "已追蹤", funnelClaimed: "已領取", funnelKept: "已保留", libraryTreemap: "圖書館版圖", libraryTreemapDesc: "按價值繪製的收藏版圖", sourceMix: "來源占比", sourceMixDesc: "你的戰利品來自哪裡", weekdayRose: "星期玫瑰圖", weekdayRoseDesc: "每個星期幾領取的價值", sourceEpic: "Epic Games", sourceGamerpower: "GamerPower", sourceGplay: "Google Play", sourceIos: "App Store", sourceSteam: "Steam", sourceGog: "GOG", sourceReddit: "Reddit", sourceOther: "其他" });
+        Object.assign(i18n.es, { yearCalendar: "Calendario de Loot", yearCalendarDesc: "Tu actividad de reclamos durante el año", wealthWaterfall: "Cascada de Riqueza", wealthWaterfallDesc: "Ganancias vs eliminaciones mensuales", wfClaims: "Reclamos", wfRemovals: "Eliminaciones", speedValueScatter: "Velocidad × Valor", speedValueScatterDesc: "Tiempo de reacción vs valor del juego", lootFunnel: "Embudo de Loot", lootFunnelDesc: "Rastreado → Reclamado → Conservado", funnelTracked: "Rastreados", funnelClaimed: "Reclamados", funnelKept: "Conservados", libraryTreemap: "Territorio de Biblioteca", libraryTreemapDesc: "Tu colección mapeada por valor", sourceMix: "Mezcla de Fuentes", sourceMixDesc: "De dónde viene tu loot", weekdayRose: "Rosa Semanal", weekdayRoseDesc: "Valor reclamado por día de la semana", sourceEpic: "Epic Games", sourceGamerpower: "GamerPower", sourceGplay: "Google Play", sourceIos: "App Store", sourceSteam: "Steam", sourceGog: "GOG", sourceReddit: "Reddit", sourceOther: "Otros" });
+        Object.assign(i18n.fr, { yearCalendar: "Calendrier du Loot", yearCalendarDesc: "Votre activité de réclamation sur l'année", wealthWaterfall: "Cascade de Richesse", wealthWaterfallDesc: "Gains vs retraits mensuels", wfClaims: "Réclamations", wfRemovals: "Retraits", speedValueScatter: "Vitesse × Valeur", speedValueScatterDesc: "Temps de réaction vs valeur du jeu", lootFunnel: "Entonnoir du Loot", lootFunnelDesc: "Suivi → Réclamé → Conservé", funnelTracked: "Suivis", funnelClaimed: "Réclamés", funnelKept: "Conservés", libraryTreemap: "Territoire de la Bibliothèque", libraryTreemapDesc: "Votre collection cartographiée par valeur", sourceMix: "Mix des Sources", sourceMixDesc: "D'où vient votre loot", weekdayRose: "Rose des Jours", weekdayRoseDesc: "Valeur réclamée par jour de semaine", sourceEpic: "Epic Games", sourceGamerpower: "GamerPower", sourceGplay: "Google Play", sourceIos: "App Store", sourceSteam: "Steam", sourceGog: "GOG", sourceReddit: "Reddit", sourceOther: "Autres" });
+        Object.assign(i18n.de, { yearCalendar: "Loot-Kalender", yearCalendarDesc: "Deine Claim-Aktivität im Jahresverlauf", wealthWaterfall: "Vermögens-Wasserfall", wealthWaterfallDesc: "Monatliche Gewinne vs Entfernungen", wfClaims: "Claims", wfRemovals: "Entfernungen", speedValueScatter: "Tempo × Wert", speedValueScatterDesc: "Reaktionszeit vs Spielwert", lootFunnel: "Loot-Trichter", lootFunnelDesc: "Verfolgt → Geclaimt → Behalten", funnelTracked: "Verfolgt", funnelClaimed: "Geclaimt", funnelKept: "Behalten", libraryTreemap: "Bibliotheks-Territorium", libraryTreemapDesc: "Deine Sammlung nach Wert kartiert", sourceMix: "Quellen-Mix", sourceMixDesc: "Woher dein Loot kommt", weekdayRose: "Wochentags-Rose", weekdayRoseDesc: "Claim-Wert je Wochentag", sourceEpic: "Epic Games", sourceGamerpower: "GamerPower", sourceGplay: "Google Play", sourceIos: "App Store", sourceSteam: "Steam", sourceGog: "GOG", sourceReddit: "Reddit", sourceOther: "Andere" });
+        Object.assign(i18n.ru, { yearCalendar: "Календарь лута", yearCalendarDesc: "Ваша активность получения за год", wealthWaterfall: "Водопад богатства", wealthWaterfallDesc: "Месячные приобретения против удалений", wfClaims: "Получения", wfRemovals: "Удаления", speedValueScatter: "Скорость × Ценность", speedValueScatterDesc: "Время реакции против ценности игры", lootFunnel: "Воронка лута", lootFunnelDesc: "Отслежено → Получено → Сохранено", funnelTracked: "Отслежено", funnelClaimed: "Получено", funnelKept: "Сохранено", libraryTreemap: "Территория библиотеки", libraryTreemapDesc: "Ваша коллекция по ценности", sourceMix: "Микс источников", sourceMixDesc: "Откуда приходит ваш лут", weekdayRose: "Роза будней", weekdayRoseDesc: "Ценность по дням недели", sourceEpic: "Epic Games", sourceGamerpower: "GamerPower", sourceGplay: "Google Play", sourceIos: "App Store", sourceSteam: "Steam", sourceGog: "GOG", sourceReddit: "Reddit", sourceOther: "Другие" });
+        Object.assign(i18n.ja, { yearCalendar: "ルートカレンダー", yearCalendarDesc: "1年間の取得アクティビティ", wealthWaterfall: "富のウォーターフォール", wealthWaterfallDesc: "月別の獲得と削除", wfClaims: "取得", wfRemovals: "削除", speedValueScatter: "スピード × 価値", speedValueScatterDesc: "反応時間 vs ゲーム価値", lootFunnel: "ルートファネル", lootFunnelDesc: "追跡 → 取得 → 保持", funnelTracked: "追跡済み", funnelClaimed: "取得済み", funnelKept: "保持中", libraryTreemap: "ライブラリー領土", libraryTreemapDesc: "価値で描いたコレクション地図", sourceMix: "ソースミックス", sourceMixDesc: "ルートの入手元", weekdayRose: "曜日ローズ", weekdayRoseDesc: "曜日別の取得価値", sourceEpic: "Epic Games", sourceGamerpower: "GamerPower", sourceGplay: "Google Play", sourceIos: "App Store", sourceSteam: "Steam", sourceGog: "GOG", sourceReddit: "Reddit", sourceOther: "その他" });
+        Object.assign(i18n.ko, { yearCalendar: "전리품 캘린더", yearCalendarDesc: "1년간의 획득 활동", wealthWaterfall: "자산 폭포수", wealthWaterfallDesc: "월별 획득 대 삭제", wfClaims: "획득", wfRemovals: "삭제", speedValueScatter: "속도 × 가치", speedValueScatterDesc: "반응 시간 대 게임 가치", lootFunnel: "전리품 퍼널", lootFunnelDesc: "추적 → 획득 → 보관", funnelTracked: "추적됨", funnelClaimed: "획득함", funnelKept: "보관 중", libraryTreemap: "라이브러리 영토", libraryTreemapDesc: "가치로 그린 컬렉션 지도", sourceMix: "출처 구성", sourceMixDesc: "전리품의 출처", weekdayRose: "요일 로즈", weekdayRoseDesc: "요일별 획득 가치", sourceEpic: "Epic Games", sourceGamerpower: "GamerPower", sourceGplay: "Google Play", sourceIos: "App Store", sourceSteam: "Steam", sourceGog: "GOG", sourceReddit: "Reddit", sourceOther: "기타" });
+        Object.assign(i18n.pt, { yearCalendar: "Calendário de Loot", yearCalendarDesc: "Sua atividade de resgate ao longo do ano", wealthWaterfall: "Cascata de Riqueza", wealthWaterfallDesc: "Ganhos vs remoções mensais", wfClaims: "Resgates", wfRemovals: "Remoções", speedValueScatter: "Velocidade × Valor", speedValueScatterDesc: "Tempo de reação vs valor do jogo", lootFunnel: "Funil de Loot", lootFunnelDesc: "Rastreado → Resgatado → Mantido", funnelTracked: "Rastreados", funnelClaimed: "Resgatados", funnelKept: "Mantidos", libraryTreemap: "Território da Biblioteca", libraryTreemapDesc: "Sua coleção mapeada por valor", sourceMix: "Mix de Fontes", sourceMixDesc: "De onde vem seu loot", weekdayRose: "Rosa Semanal", weekdayRoseDesc: "Valor resgatado por dia da semana", sourceEpic: "Epic Games", sourceGamerpower: "GamerPower", sourceGplay: "Google Play", sourceIos: "App Store", sourceSteam: "Steam", sourceGog: "GOG", sourceReddit: "Reddit", sourceOther: "Outros" });
         // ------------------------------------------
 
         // --- LOCAL STORAGE COMPRESSION HELPERS ---
@@ -2497,6 +2525,82 @@
             return '$' + val.toFixed(2);
         };
 
+        // ===== NEW ANALYTICS HELPERS (7 charts, 2026.08.28.3) =====
+        // --- Squarified Treemap layout (returns rects sized by value) ---
+        function worstTreemapRatio(row, rowSum, shortSide) {
+            if (row.length === 0 || shortSide <= 0) return Infinity;
+            const thickness = rowSum / shortSide;
+            let worst = 0;
+            for (const a of row) {
+                const len = a / thickness;
+                const r = Math.max(len / thickness, thickness / len);
+                if (r > worst) worst = r;
+            }
+            return worst;
+        }
+        function squarifyRecurse(items, rect, out) {
+            if (!items.length) return;
+            const { x, y, w, h } = rect;
+            if (w <= 0 || h <= 0) return;
+            if (items.length === 1) { out.push({ ...items[0], x, y, w, h }); return; }
+            const shortSide = Math.min(w, h);
+            let row = [], i = 0, worst = Infinity;
+            while (i < items.length) {
+                const area = items[i].area;
+                const cand = row.concat([area]);
+                const candWorst = worstTreemapRatio(cand, row.reduce((s, v) => s + v, 0) + area, shortSide);
+                if (candWorst <= worst) { row.push(area); worst = candWorst; i++; }
+                else break;
+            }
+            if (row.length === 0) { row.push(items[0].area); i = 1; }
+            const rowSum = row.reduce((s, v) => s + v, 0);
+            if (w >= h) {
+                const stripW = rowSum / h;
+                let cy = y;
+                row.forEach((a, k) => { const cellH = a / stripW; out.push({ ...items[k], x, y: cy, w: stripW, h: cellH }); cy += cellH; });
+                squarifyRecurse(items.slice(row.length), { x: x + stripW, y, w: w - stripW, h }, out);
+            } else {
+                const stripH = rowSum / w;
+                let cx = x;
+                row.forEach((a, k) => { const cellW = a / stripH; out.push({ ...items[k], x: cx, y, w: cellW, h: stripH }); cx += cellW; });
+                squarifyRecurse(items.slice(row.length), { x, y: y + stripH, w, h: h - stripH }, out);
+            }
+        }
+        function treemapLayout(games, x, y, w, h) {
+            const items = games.filter(g => (g.value || 0) > 0)
+                .sort((a, b) => (b.value || 0) - (a.value || 0))
+                .map(g => ({ title: g.title, value: g.value || 0, image: g.image, platforms: g.platforms }));
+            if (!items.length) return [];
+            const total = items.reduce((s, it) => s + it.value, 0);
+            const scaled = items.map(it => ({ ...it, area: (it.value / total) * (w * h) }));
+            const out = [];
+            squarifyRecurse(scaled, { x, y, w, h }, out);
+            return out;
+        }
+        // --- Nightingale Rose petal path (pie sector from center) ---
+        function rosePolar(cx, cy, r, deg) {
+            const rad = (deg - 90) * Math.PI / 180;
+            return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) };
+        }
+        function roseSectorPath(cx, cy, r, a0, a1) {
+            const p0 = rosePolar(cx, cy, r, a0), p1 = rosePolar(cx, cy, r, a1);
+            const large = (a1 - a0) > 180 ? 1 : 0;
+            return `M ${cx} ${cy} L ${p0.x.toFixed(2)} ${p0.y.toFixed(2)} A ${r.toFixed(2)} ${r.toFixed(2)} 0 ${large} 1 ${p1.x.toFixed(2)} ${p1.y.toFixed(2)} Z`;
+        }
+        // --- Giveaway source detection for Source Mix ---
+        function detectGameSource(g) {
+            const url = (g.open_giveaway || g.normalizedId || '').toLowerCase();
+            const nid = (g.normalizedId || '').toLowerCase();
+            if (nid.startsWith('epic:') || url.includes('epicgames.com')) return 'epic';
+            if (nid.startsWith('gp:') || url.includes('gamerpower')) return 'gamerpower';
+            if (nid.startsWith('gplay:') || url.includes('play.google.com')) return 'gplay';
+            if (nid.startsWith('ios:') || url.includes('apps.apple.com') || url.includes('itunes.apple')) return 'ios';
+            if (nid.startsWith('steam:') || url.includes('steampowered')) return 'steam';
+            if (nid.startsWith('gog:') || url.includes('gog.com')) return 'gog';
+            if (url.includes('reddit')) return 'reddit';
+            return 'other';
+        }
+
         function renderStats() {
             const container = document.getElementById('stats-container');
             const games = Object.values(state.claimedGames);
@@ -3179,6 +3283,227 @@
                     </div>`;
             }
 
+            // ===== NEW CHARTS DATA (7 charts, 2026.08.28.3) =====
+            // Each chart uses a UNIQUE data dimension so it never duplicates an existing panel.
+
+            // --- A) Wealth Waterfall: monthly claims (+) vs removals (−) as a cumulative flow ---
+            const removalsByMonth = {};
+            (state.deletedHistory || []).forEach(h => {
+                const dd = new Date(h.deletedAt);
+                if (isNaN(dd.getTime())) return;
+                const key = `${dd.getFullYear()}-${String(dd.getMonth() + 1).padStart(2, '0')}`;
+                const label = dd.toLocaleString(localeStr, { month: 'short', year: '2-digit' });
+                const worthNum = parseFloat(String(h.worth || '').replace(/[^0-9.]/g, '')) || 0;
+                if (!removalsByMonth[key]) removalsByMonth[key] = { label, removed: 0 };
+                removalsByMonth[key].removed += worthNum;
+            });
+            const wfMonthKeys = Array.from(new Set([...Object.keys(monthSavings), ...Object.keys(removalsByMonth)])).sort();
+            let wfRunning = 0, wfMin = 0, wfMax = 0;
+            const wfSteps = wfMonthKeys.map(key => {
+                const claims = monthSavings[key] ? monthSavings[key].total : 0;
+                const removed = removalsByMonth[key] ? removalsByMonth[key].removed : 0;
+                const label = (monthSavings[key] || removalsByMonth[key]).label;
+                const start = wfRunning;
+                wfRunning += claims - removed;
+                wfMin = Math.min(wfMin, wfRunning, start);
+                wfMax = Math.max(wfMax, wfRunning, start);
+                return { label, claims, removed, start, end: wfRunning };
+            });
+            const wfRange = Math.max(wfMax - wfMin, 1);
+            const wfPct = (v) => ((v - wfMin) / wfRange) * 100;
+            const waterfallHtml = wfSteps.map(s => {
+                let cells = '';
+                if (s.claims > 0) cells += `<div class="chart-bar absolute left-0 right-0 bg-gradient-to-t from-green-600 to-green-400 rounded-md" style="bottom: ${wfPct(s.start).toFixed(2)}%; height: 0%;" data-target-height="${(s.claims / wfRange * 100).toFixed(2)}%"></div>`;
+                if (s.removed > 0) cells += `<div class="chart-bar absolute left-0 right-0 bg-gradient-to-t from-red-600 to-red-400 rounded-md" style="bottom: ${wfPct(s.end).toFixed(2)}%; height: 0%;" data-target-height="${(s.removed / wfRange * 100).toFixed(2)}%"></div>`;
+                return `
+                    <div class="flex flex-col items-center gap-1" style="min-width: 46px;">
+                        <div class="relative w-full max-w-[34px] h-36">${cells}</div>
+                        <span class="text-[10px] font-bold text-gray-400 uppercase whitespace-nowrap">${s.label}</span>
+                    </div>`;
+            }).join('');
+
+            // --- B) Speed × Value scatter: per-game reaction time vs value ---
+            const scatterPts = [];
+            games.forEach(g => {
+                const pub = new Date(g.date);
+                const cl = new Date(g.claimed_date || g.date);
+                if (isNaN(pub.getTime()) || isNaN(cl.getTime())) return;
+                const diffH = (cl.getTime() - pub.getTime()) / 3600000;
+                const val = g.value || 0;
+                if (diffH < 0 || val <= 0) return;
+                let bucket = 0;
+                if (diffH < 1) bucket = 0; else if (diffH < 24) bucket = 1; else if (diffH < 72) bucket = 2; else bucket = 3;
+                scatterPts.push({ h: diffH, v: val, title: g.title, bucket });
+            });
+            const scatterColors = ['#10b981', '#3b82f6', '#f59e0b', '#f43f5e'];
+            let scatterSvgHtml = '';
+            if (scatterPts.length > 0) {
+                const maxH = Math.max(...scatterPts.map(p => p.h), 1);
+                const maxV = Math.max(...scatterPts.map(p => p.v), 1);
+                const sx = (h) => 34 + (Math.log10(h + 1) / Math.log10(maxH + 1)) * 350;
+                const sy = (v) => 12 + (1 - v / maxV) * 175;
+                const xTicks = [[1, '1h'], [6, '6h'], [24, '1d'], [72, '3d'], [168, '1w'], [720, '1mo']].filter(tk => tk[0] <= maxH * 1.05);
+                const gridHtml = xTicks.map(tk => `<line x1="${sx(tk[0]).toFixed(1)}" y1="12" x2="${sx(tk[0]).toFixed(1)}" y2="187" class="stroke-gray-200 dark:stroke-gray-700" stroke-width="1" stroke-dasharray="3 3"></line><text x="${sx(tk[0]).toFixed(1)}" y="200" text-anchor="middle" class="fill-gray-400" style="font-size:8px;font-weight:700;">${tk[1]}</text>`).join('');
+                const yTicksHtml = [0.25, 0.5, 0.75, 1].map(f => `<line x1="34" y1="${sy(maxV * f).toFixed(1)}" x2="384" y2="${sy(maxV * f).toFixed(1)}" class="stroke-gray-200 dark:stroke-gray-700" stroke-width="1" stroke-dasharray="3 3"></line><text x="30" y="${(sy(maxV * f) + 3).toFixed(1)}" text-anchor="end" class="fill-gray-400" style="font-size:8px;font-weight:700;">${formatCompact(maxV * f)}</text>`).join('');
+                const dotsHtml = scatterPts.map((p, i) => `<circle class="scatter-dot" cx="${sx(p.h).toFixed(1)}" cy="${sy(p.v).toFixed(1)}" r="4.5" fill="${scatterColors[p.bucket]}" fill-opacity="0.75" stroke="${scatterColors[p.bucket]}" stroke-width="1" style="transition-delay: ${Math.min(i * 18, 1600)}ms;"><title>${String(p.title || '').replace(/[<>&"]/g, '')} — ${formatCompact(p.v)}</title></circle>`).join('');
+                scatterSvgHtml = `<svg viewBox="0 0 400 210" class="w-full block">${gridHtml}${yTicksHtml}${dotsHtml}<line x1="34" y1="187" x2="384" y2="187" class="stroke-gray-300 dark:stroke-gray-600" stroke-width="1"></line></svg>`;
+            }
+            const scatterLegendHtml = speedBucketLabels.map((l, i) => `<span class="flex items-center gap-1 text-[9px] font-bold text-gray-400"><span class="w-2 h-2 rounded-full inline-block" style="background:${scatterColors[i]}"></span>${l}</span>`).join('');
+
+            // --- C) Loot Funnel: tracked → claimed-ever → kept lifecycle ---
+            let trackedCount = 0;
+            try {
+                const rawPd = localStorage.getItem('lootradar_publish_dates');
+                if (rawPd && window.LZString) {
+                    const decPd = LZString.decompressFromUTF16(rawPd);
+                    if (decPd) trackedCount = Object.keys(JSON.parse(decPd)).length;
+                }
+            } catch (e) { trackedCount = 0; }
+            const claimedEverCount = games.length + (state.deletedHistory || []).length;
+            const keptCount = games.length;
+            const funnelTop = Math.max(trackedCount, claimedEverCount, 1);
+            const funnelStages = [
+                { label: t.funnelTracked || 'Tracked', count: funnelTop, pct: 100, color: '#3b82f6' },
+                { label: t.funnelClaimed || 'Claimed', count: claimedEverCount, pct: Math.max((claimedEverCount / funnelTop) * 100, 10), color: '#bc13fe' },
+                { label: t.funnelKept || 'Kept', count: keptCount, pct: Math.max((keptCount / funnelTop) * 100, 6), color: '#10b981' }
+            ];
+            const funnelHtml = funnelStages.map((s, i) => `
+                <div class="flex flex-col gap-1 w-full">
+                    <div class="flex items-center justify-between w-full text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 px-1">
+                        <span>${s.label}</span><span>${s.count}</span>
+                    </div>
+                    <div class="funnel-layer h-9 rounded-lg flex items-center justify-center mx-auto" style="width: ${s.pct.toFixed(1)}%; background: ${s.color}; transition-delay: ${i * 180}ms;">
+                        <span class="text-[11px] font-black text-white drop-shadow">${Math.round(s.pct)}%</span>
+                    </div>
+                </div>`).join('');
+
+            // --- D) Library Treemap: top games mapped by value ---
+            const treemapGames = games.filter(g => (g.value || 0) > 0).slice().sort((a, b) => (b.value || 0) - (a.value || 0)).slice(0, 14);
+            const treemapRects = treemapLayout(treemapGames, 0, 0, 400, 210);
+            const treemapPlatColor = (rawP) => {
+                rawP = (rawP || 'pc').toLowerCase();
+                if (rawP.includes('epic')) return '#8b5cf6';
+                if (rawP.includes('steam')) return '#66c0f4';
+                if (rawP.includes('gog')) return '#ef4444';
+                if (rawP.includes('prime') || rawP.includes('amazon')) return '#00f3ff';
+                if (rawP.includes('ubisoft') || rawP.includes('uplay')) return '#3b82f6';
+                if (rawP.includes('playstation') || rawP.includes('ps4') || rawP.includes('ps5')) return '#2563eb';
+                if (rawP.includes('xbox')) return '#16a34a';
+                if (rawP.includes('switch') || rawP.includes('nintendo')) return '#f43f5e';
+                if (rawP.includes('android') || rawP.includes('ios')) return '#f59e0b';
+                return '#9ca3af';
+            };
+            const treemapHtml = treemapRects.length > 0 ? `
+                <svg viewBox="0 0 400 210" class="w-full block">
+                    ${treemapRects.map((r, i) => {
+                        const cleanT = String(r.title || '').replace(/[<>&"]/g, '');
+                        const pad = 1.5;
+                        const w = Math.max(r.w - pad * 2, 0), hgt = Math.max(r.h - pad * 2, 0);
+                        const showLabel = w > 46 && hgt > 26;
+                        const showVal = w > 46 && hgt > 40;
+                        const maxChars = Math.max(Math.floor(w / 6), 1);
+                        return `<g class="treemap-cell" style="transition-delay: ${i * 60}ms;">
+                            <rect x="${(r.x + pad).toFixed(1)}" y="${(r.y + pad).toFixed(1)}" width="${w.toFixed(1)}" height="${hgt.toFixed(1)}" rx="4" fill="${treemapPlatColor(r.platforms)}" fill-opacity="0.85"><title>${cleanT} — ${formatCompact(r.value)}</title></rect>
+                            ${showLabel ? `<text x="${(r.x + pad + 6).toFixed(1)}" y="${(r.y + pad + 15).toFixed(1)}" class="fill-white" style="font-size:9px;font-weight:800;pointer-events:none;">${cleanT.length > maxChars ? cleanT.slice(0, maxChars) + '…' : cleanT}</text>` : ''}
+                            ${showVal ? `<text x="${(r.x + pad + 6).toFixed(1)}" y="${(r.y + pad + 28).toFixed(1)}" class="fill-white" fill-opacity="0.85" style="font-size:9px;font-weight:700;pointer-events:none;">${formatCompact(r.value)}</text>` : ''}
+                        </g>`;
+                    }).join('')}
+                </svg>` : '';
+
+            // --- E) Source Mix: where each claimed game came from ---
+            const sourceMeta = {
+                epic: { label: t.sourceEpic || 'Epic Games', color: '#8b5cf6' },
+                gamerpower: { label: t.sourceGamerpower || 'GamerPower', color: '#00f3ff' },
+                gplay: { label: t.sourceGplay || 'Google Play', color: '#10b981' },
+                ios: { label: t.sourceIos || 'App Store', color: '#3b82f6' },
+                steam: { label: t.sourceSteam || 'Steam', color: '#66c0f4' },
+                gog: { label: t.sourceGog || 'GOG', color: '#ef4444' },
+                reddit: { label: t.sourceReddit || 'Reddit', color: '#f97316' },
+                other: { label: t.sourceOther || 'Other', color: '#9ca3af' }
+            };
+            const sourceCounts = {};
+            games.forEach(g => { const s = detectGameSource(g); sourceCounts[s] = (sourceCounts[s] || 0) + 1; });
+            const sourceEntries = Object.entries(sourceCounts).sort((a, b) => b[1] - a[1]);
+            const sourceBarHtml = sourceEntries.map(([s, c], i) => {
+                const pct = (c / games.length) * 100;
+                return `<div class="source-seg" style="--w: ${pct.toFixed(2)}%; flex-shrink: 0; background: ${sourceMeta[s].color}; transition-delay: ${i * 120}ms;" title="${sourceMeta[s].label}: ${c}"></div>`;
+            }).join('');
+            const sourceLegendHtml = sourceEntries.map(([s, c]) => `
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <div class="w-3 h-3 rounded-full shrink-0" style="background-color: ${sourceMeta[s].color}"></div>
+                        <span class="text-xs font-bold dark:text-gray-300 truncate">${sourceMeta[s].label}</span>
+                    </div>
+                    <span class="text-xs font-bold text-gray-500 dark:text-gray-400 shrink-0">${c} (${Math.round((c / games.length) * 100)}%)</span>
+                </div>`).join('');
+
+            // --- F) Yearly Loot Calendar: GitHub-style 53×7 day grid (last 365 days) ---
+            const calCounts = {};
+            games.forEach(g => {
+                const d = gameClaimedDate(g);
+                if (isNaN(d.getTime())) return;
+                const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+                calCounts[key] = (calCounts[key] || 0) + 1;
+            });
+            const calMaxCount = Math.max(...Object.values(calCounts), 1);
+            const calLevels = ['bg-gray-200 dark:bg-gray-800', 'bg-teal-200 dark:bg-teal-900', 'bg-teal-300 dark:bg-teal-700', 'bg-teal-500 dark:bg-teal-500', 'bg-teal-600 dark:bg-teal-300'];
+            const calLevel = (c) => c <= 0 ? 0 : (1 + Math.min(3, Math.floor((c / calMaxCount) * 4)));
+            const calToday = new Date(); calToday.setHours(0, 0, 0, 0);
+            const calStart = new Date(calToday.getTime() - 364 * 86400000);
+            calStart.setDate(calStart.getDate() - calStart.getDay()); // back to Sunday
+            const calWeeks = [];
+            const calCursor = new Date(calStart);
+            let calPrevMonth = -1;
+            while (calCursor <= calToday) {
+                const week = [];
+                let monthLabel = '';
+                for (let d = 0; d < 7; d++) {
+                    const cellDate = new Date(calCursor);
+                    if (cellDate > calToday) { week.push(null); }
+                    else {
+                        const key = `${cellDate.getFullYear()}-${String(cellDate.getMonth() + 1).padStart(2, '0')}-${String(cellDate.getDate()).padStart(2, '0')}`;
+                        if (d === 0 && cellDate.getMonth() !== calPrevMonth) { monthLabel = cellDate.toLocaleString(localeStr, { month: 'short' }); calPrevMonth = cellDate.getMonth(); }
+                        week.push({ count: calCounts[key] || 0, key });
+                    }
+                    calCursor.setDate(calCursor.getDate() + 1);
+                }
+                calWeeks.push({ week, monthLabel });
+            }
+            const yearCalendarHtml = `
+                <div class="overflow-x-auto pb-1">
+                    <div class="flex gap-[3px] min-w-max">
+                        ${calWeeks.map((wk, wi) => `
+                            <div class="flex flex-col gap-[3px]">
+                                <div class="w-3 h-3 text-[7px] font-bold text-gray-400 whitespace-nowrap overflow-visible">${wk.monthLabel}</div>
+                                ${wk.week.map(cell => cell === null
+                                    ? `<div class="w-3 h-3"></div>`
+                                    : `<div class="heat-cell w-3 h-3 rounded-[3px] ${calLevels[calLevel(cell.count)]}" style="transition-delay: ${Math.min(wi * 8, 900)}ms;" title="${cell.key}: ${cell.count}"></div>`).join('')}
+                            </div>`).join('')}
+                    </div>
+                </div>`;
+
+            // --- G) Weekday Rose: total claimed value on each weekday ---
+            const weekdayValue = [0, 0, 0, 0, 0, 0, 0];
+            games.forEach(g => {
+                const d = gameClaimedDate(g);
+                if (isNaN(d.getTime())) return;
+                weekdayValue[d.getDay()] += (g.value || 0);
+            });
+            const roseMax = Math.max(...weekdayValue, 1);
+            const roseColors = ['#f43f5e', '#f59e0b', '#10b981', '#00f3ff', '#3b82f6', '#8b5cf6', '#bc13fe'];
+            const roseCx = 110, roseCy = 105, roseMaxR = 68;
+            const roseWeekdayLabel = (i) => new Date(2026, 0, 4 + i).toLocaleString(localeStr, { weekday: 'short' });
+            const rosePetalsHtml = weekdayValue.map((v, i) => {
+                const r = 12 + (v / roseMax) * (roseMaxR - 12);
+                const a0 = i * (360 / 7) + 1.5, a1 = (i + 1) * (360 / 7) - 1.5;
+                const mid = rosePolar(roseCx, roseCy, roseMaxR + 15, (a0 + a1) / 2);
+                return `<g class="rose-petal" style="transition-delay: ${i * 110}ms;">
+                    <path d="${roseSectorPath(roseCx, roseCy, r, a0, a1)}" fill="${roseColors[i]}" fill-opacity="0.85" stroke="${roseColors[i]}" stroke-width="1"><title>${roseWeekdayLabel(i)}: ${formatCompact(v)}</title></path>
+                    <text x="${mid.x.toFixed(1)}" y="${(mid.y + 3).toFixed(1)}" text-anchor="middle" class="fill-gray-500 dark:fill-gray-400" style="font-size:8px;font-weight:700;">${roseWeekdayLabel(i)}</text>
+                </g>`;
+            }).join('');
+            const roseSvgHtml = `<svg viewBox="0 0 220 210" class="w-full max-w-[280px] mx-auto block">${rosePetalsHtml}</svg>`;
+
             // --- RENDER DOM ---
             container.innerHTML = `
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -3307,6 +3632,21 @@
                         </div>
                     </div>
 
+                    <!-- NEW: Wealth Waterfall (monthly claims vs removals flow) -->
+                    <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 lg:col-span-2 flex flex-col">
+                        <div class="flex items-center justify-between mb-1 gap-2">
+                            <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">${t.wealthWaterfall || 'Wealth Waterfall'}</h3>
+                            <div class="flex items-center gap-3 text-[9px] font-bold text-gray-400 uppercase">
+                                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-green-500 inline-block"></span>${t.wfClaims || 'Claims'}</span>
+                                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-sm bg-red-500 inline-block"></span>${t.wfRemovals || 'Removals'}</span>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-gray-400 mb-3">${t.wealthWaterfallDesc || 'Monthly gains vs removals'}</p>
+                        <div class="flex items-end gap-2 overflow-x-auto w-full pb-1" style="scrollbar-width: thin;">
+                            ${waterfallHtml}
+                        </div>
+                    </div>
+
                     <!-- NEW: Stat Cards Row -->
                     <div class="grid grid-cols-2 gap-4 lg:col-span-2">
                         <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800 text-center">
@@ -3344,6 +3684,49 @@
                         <div class="text-[9px] text-gray-400 text-center mt-3">${t.reactionDesc || 'publish → claim'}</div>
                     </div>
 
+                    <!-- NEW: Speed × Value Scatter -->
+                    <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 flex flex-col">
+                        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">${t.speedValueScatter || 'Speed × Value'}</h3>
+                        <p class="text-[10px] text-gray-400 mb-3">${t.speedValueScatterDesc || 'Reaction time vs game value'}</p>
+                        ${scatterPts.length > 0 ? scatterSvgHtml : `<div class="flex-1 min-h-[120px] flex items-center justify-center text-sm text-gray-400">—</div>`}
+                        <div class="flex flex-wrap gap-x-3 gap-y-1 justify-center mt-3">${scatterLegendHtml}</div>
+                    </div>
+
+                    <!-- NEW: Weekday Rose (value by weekday) -->
+                    <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 flex flex-col">
+                        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">${t.weekdayRose || 'Weekday Rose'}</h3>
+                        <p class="text-[10px] text-gray-400 mb-3">${t.weekdayRoseDesc || 'Value claimed on each weekday'}</p>
+                        ${roseSvgHtml}
+                    </div>
+
+                    <!-- NEW: Loot Funnel (tracked → claimed → kept) -->
+                    <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 flex flex-col">
+                        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">${t.lootFunnel || 'Loot Funnel'}</h3>
+                        <p class="text-[10px] text-gray-400 mb-4">${t.lootFunnelDesc || 'Tracked → Claimed → Kept'}</p>
+                        <div class="flex flex-col gap-3 flex-1 justify-center">
+                            ${funnelHtml}
+                        </div>
+                    </div>
+
+                    <!-- NEW: Source Mix (where the loot comes from) -->
+                    <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 flex flex-col">
+                        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">${t.sourceMix || 'Source Mix'}</h3>
+                        <p class="text-[10px] text-gray-400 mb-4">${t.sourceMixDesc || 'Where your loot comes from'}</p>
+                        <div class="flex w-full h-8 rounded-lg overflow-hidden mb-4">
+                            ${sourceBarHtml}
+                        </div>
+                        <div class="flex flex-col gap-2.5 justify-center flex-1">
+                            ${sourceLegendHtml}
+                        </div>
+                    </div>
+
+                    <!-- NEW: Library Treemap (collection mapped by value) -->
+                    <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 lg:col-span-2">
+                        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">${t.libraryTreemap || 'Library Territory'}</h3>
+                        <p class="text-[10px] text-gray-400 mb-4">${t.libraryTreemapDesc || 'Your collection mapped by value'}</p>
+                        ${treemapHtml || `<div class="h-32 flex items-center justify-center text-sm text-gray-400">—</div>`}
+                    </div>
+
                     <!-- NEW: Claim Heatmap -->
                     <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 lg:col-span-2">
                         <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4">${t.claimHeatmap || 'Claim Activity Heatmap'}</h3>
@@ -3374,6 +3757,22 @@
                             <div class="w-3 h-3 bg-blue-400 rounded-sm"></div>
                             <div class="w-3 h-3 bg-purple-500 rounded-sm"></div>
                             <div class="w-3 h-3 bg-purple-600 rounded-sm"></div>
+                            <span>${t.more || 'More'}</span>
+                        </div>
+                    </div>
+
+                    <!-- NEW: Yearly Loot Calendar (GitHub-style 53×7) -->
+                    <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 lg:col-span-2">
+                        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">${t.yearCalendar || 'Loot Calendar'}</h3>
+                        <p class="text-[10px] text-gray-400 mb-4">${t.yearCalendarDesc || 'Your claiming activity across the year'}</p>
+                        ${yearCalendarHtml}
+                        <div class="flex items-center justify-end gap-2 mt-3 text-[9px] text-gray-400">
+                            <span>${t.less || 'Less'}</span>
+                            <div class="w-3 h-3 bg-gray-200 dark:bg-gray-800 rounded-sm"></div>
+                            <div class="w-3 h-3 bg-teal-200 dark:bg-teal-900 rounded-sm"></div>
+                            <div class="w-3 h-3 bg-teal-300 dark:bg-teal-700 rounded-sm"></div>
+                            <div class="w-3 h-3 bg-teal-500 rounded-sm"></div>
+                            <div class="w-3 h-3 bg-teal-600 dark:bg-teal-300 rounded-sm"></div>
                             <span>${t.more || 'More'}</span>
                         </div>
                     </div>
@@ -7337,7 +7736,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.28.2';
+        window.BUILD_VERSION = '2026.08.28.3';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

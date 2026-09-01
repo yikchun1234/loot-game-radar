@@ -2283,11 +2283,16 @@
                 const ask = t.chAsk || 'Keep it in your library?';
                 const yes = t.chYes || 'Yes, keep';
                 const no = t.chNo || 'No, change status';
+                // 2026.09.01.7: show WHICH app the question is about.
+                let gTitle = '';
+                try { const g = JSON.parse(decodeURIComponent(gameObjStr)); if (g && g.title) gTitle = String(g.title); } catch (err) { gTitle = ''; }
+                const safeTitle = gTitle.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
                 const toast = document.createElement('div');
                 toast.id = 'claim-status-toast';
                 toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translate(-50%,90px);z-index:10000;display:flex;flex-direction:column;gap:9px;padding:14px 16px;border-radius:16px;background:#1f2937;color:#fff;border:1px solid rgba(245,158,11,0.4);box-shadow:0 8px 24px rgba(0,0,0,0.35);transition:transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275);max-width:min(94vw,400px);animation:lootClaimGlow 1.6s ease-in-out infinite;';
                 toast.innerHTML =
                     '<div style="display:flex;align-items:flex-start;gap:8px;font-weight:600;font-size:13px;line-height:1.4;"><i class="ph-fill ph-check-circle" style="font-size:17px;color:#34d399;flex-shrink:0;margin-top:1px;"></i><span>' + msg + '</span></div>' +
+                    (safeTitle ? '<div style="font-weight:700;font-size:13px;color:#fbbf24;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;min-width:0;">' + safeTitle + '</div>' : '') +
                     '<div style="font-weight:700;font-size:13px;">' + ask + '</div>' +
                     '<div style="display:flex;gap:8px;">' +
                         '<button type="button" onclick="window.claimToastKeep()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(52,211,153,0.14);border:1px solid rgba(52,211,153,0.5);color:#34d399;font-weight:700;font-size:12px;padding:9px 10px;border-radius:9999px;cursor:pointer;white-space:nowrap;"><i class="ph-bold ph-check-circle" style="font-size:14px;"></i>' + yes + '</button>' +
@@ -6979,20 +6984,20 @@
 
             //  NEW: ALWAYS update the library in the background so it's perfectly ready for when they open it!
             renderLibrary(true);
-
-            // B1 (2026.09.01.5): if the "Claimed" status is hidden by the feed
-            // filter, the card the user just claimed vanished from the feed and
-            // its eye button is unreachable. Offer a one-tap status change on
-            // the claim toast (e.g. claim first, then mark "Not Interested").
-            if (state.feedStatusFilter && state.feedStatusFilter.claimed === false) {
-                showClaimStatusToast(gameObjStr);
-            }
           } else {
             // Already claimed - update claimed_date to track last opened
             if (state.claimedGames[storageKey]) {
               state.claimedGames[storageKey].claimed_date = new Date().toISOString();
               saveSafeStorage('lootradar_claimed_v2', state.claimedGames);
             }
+          }
+
+          // B1 (2026.09.01.5, re-claims included 2026.09.01.7): if the "Claimed"
+          // status is hidden by the feed filter, this card is unreachable on the
+          // feed — ask the confirm question on EVERY claim tap (new or re-claim)
+          // so the user can always keep it or change its status.
+          if (state.feedStatusFilter && state.feedStatusFilter.claimed === false) {
+              showClaimStatusToast(gameObjStr);
           }
         };
 
@@ -7987,7 +7992,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.09.01.6';
+        window.BUILD_VERSION = '2026.09.01.7';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

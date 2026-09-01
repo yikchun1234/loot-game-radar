@@ -354,7 +354,17 @@
                         </button>
                     </div>
                     <!-- Filter by Status (multi-select) -->
-                    <p class="ff-status-title text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mb-1">Filter by Status</p>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <p class="ff-status-title text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest">Filter by Status</p>
+                        <div class="flex gap-1">
+                            <button id="fs-select-all" onclick="setAllStatusFilters(true)" class="text-[10px] font-bold px-2 py-1 rounded-full transition-colors flex items-center gap-1 bg-amber-50 text-amber-600 hover:bg-amber-100 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700">
+                                <i class="ph-bold ph-checks"></i><span data-fs-btn="all">All</span>
+                            </button>
+                            <button id="fs-select-none" onclick="setAllStatusFilters(false)" class="text-[10px] font-bold px-2 py-1 rounded-full transition-colors flex items-center gap-1 bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700">
+                                <i class="ph-bold ph-x"></i><span data-fs-btn="none">None</span>
+                            </button>
+                        </div>
+                    </div>
                     <div class="space-y-0.5 max-h-72 overflow-y-auto -mx-1 px-1">
                         <label class="flex items-center gap-3 px-3 py-2 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors">
                             <input type="checkbox" data-fs="unclaimed" onchange="toggleStatusFilter('unclaimed', this.checked)" class="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-amber-500 focus:ring-amber-500 dark:bg-gray-700">
@@ -1247,7 +1257,7 @@
                 syncImportDataBtn: "Import Data",
                 syncExportInst: "Enter this PIN on your other device within 15 minutes.",
                 syncImportWarn: "Warning: Importing will permanently overwrite your current library and savings on this device.",
-                feedFilters: "Feed Filters", fsByStatus: "Filter by Status", fsUnclaimed: "Unclaimed", fsClaimed: "Claimed", expiringSoon: "Expiring Soon", expiringSoonDesc: "Deals ending within 2 days"
+                feedFilters: "Feed Filters", fsByStatus: "Filter by Status", fsSelectAll: "All", fsUnselectAll: "None", fsUnclaimed: "Unclaimed", fsClaimed: "Claimed", expiringSoon: "Expiring Soon", expiringSoonDesc: "Deals ending within 2 days"
             },
             'zh-CN': {
                 title: "白嫖雷达", subtitle: "全网免费游戏限免实时追踪平台",
@@ -1287,7 +1297,7 @@
                 syncImportDataBtn: "导入数据",
                 syncExportInst: "请在15分钟内于另一台设备上输入此PIN码。",
                 syncImportWarn: "警告：导入操作将永久覆盖本设备上的当前游戏库和节省金额。",
-                feedFilters: "筛选条件", fsByStatus: "按状态筛选", fsUnclaimed: "待领取", fsClaimed: "已领取", expiringSoon: "即将过期", expiringSoonDesc: "2 天内结束的活动"
+                feedFilters: "筛选条件", fsByStatus: "按状态筛选", fsSelectAll: "全选", fsUnselectAll: "全不选", fsUnclaimed: "待领取", fsClaimed: "已领取", expiringSoon: "即将过期", expiringSoonDesc: "2 天内结束的活动"
             },
             'zh-TW': {
                 title: "白嫖雷達", subtitle: "全網免費遊戲限免實時追蹤平台",
@@ -1327,7 +1337,7 @@
                 syncImportDataBtn: "匯入資料",
                 syncExportInst: "請在15分鐘內於另一台裝置上輸入此PIN碼。",
                 syncImportWarn: "警告：匯入操作將永久覆蓋本裝置上的目前遊戲庫和節省金額。",
-                feedFilters: "篩選條件", fsByStatus: "按狀態篩選", fsUnclaimed: "待領取", fsClaimed: "已領取", expiringSoon: "即將過期", expiringSoonDesc: "2 天內結束的活動"
+                feedFilters: "篩選條件", fsByStatus: "按狀態篩選", fsSelectAll: "全選", fsUnselectAll: "全不選", fsUnclaimed: "待領取", fsClaimed: "已領取", expiringSoon: "即將過期", expiringSoonDesc: "2 天內結束的活動"
             },
             es: {
                 title: "RadarLoot", subtitle: "Rastreando juegos gratis en el multiverso", 
@@ -1369,7 +1379,7 @@
                 syncImportDataBtn: "Importar Datos",
                 syncExportInst: "Ingresa este PIN en tu otro dispositivo dentro de 15 minutos.",
                 syncImportWarn: "Advertencia: Importar sobrescribirá permanentemente tu biblioteca actual y ahorros en este dispositivo.",
-                feedFilters: "Filtros", fsByStatus: "Filtrar por estado", fsUnclaimed: "Sin reclamar", fsClaimed: "Reclamado", expiringSoon: "Por Expirar", expiringSoonDesc: "Ofertas que terminan en 2 días"
+                feedFilters: "Filtros", fsByStatus: "Filtrar por estado", fsSelectAll: "Todos", fsUnselectAll: "Ninguno", fsUnclaimed: "Sin reclamar", fsClaimed: "Reclamado", expiringSoon: "Por Expirar", expiringSoonDesc: "Ofertas que terminan en 2 días"
             },
             fr: {
                 title: "RadarButin", subtitle: "Suivi des jeux gratuits dans le multivers", 
@@ -1411,7 +1421,7 @@
                 syncImportDataBtn: "Importer les Données",
                 syncExportInst: "Saisissez ce PIN sur votre autre appareil dans les 15 minutes.",
                 syncImportWarn: "Avertissement : L'importation écrasera définitivement votre bibliothèque et vos économies sur cet appareil.",
-                feedFilters: "Filtres", fsByStatus: "Filtrer par statut", fsUnclaimed: "Non réclamé", fsClaimed: "Réclamé", expiringSoon: "Expire Bientôt", expiringSoonDesc: "Offres se terminant sous 2 jours"
+                feedFilters: "Filtres", fsByStatus: "Filtrer par statut", fsSelectAll: "Tout", fsUnselectAll: "Aucun", fsUnclaimed: "Non réclamé", fsClaimed: "Réclamé", expiringSoon: "Expire Bientôt", expiringSoonDesc: "Offres se terminant sous 2 jours"
             },
             de: {
                 title: "LootRadar", subtitle: "Verfolgung kostenloser Spiele", 
@@ -1453,7 +1463,7 @@
                 syncImportDataBtn: "Daten Importieren",
                 syncExportInst: "Geben Sie diese PIN innerhalb von 15 Minuten auf Ihrem anderen Gerät ein.",
                 syncImportWarn: "Warnung: Beim Importieren werden Ihre aktuelle Bibliothek und Ihre Ersparnisse dauerhaft überschrieben.",
-                feedFilters: "Filter", fsByStatus: "Nach Status filtern", fsUnclaimed: "Nicht eingelöst", fsClaimed: "Eingelöst", expiringSoon: "Läuft Bald Ab", expiringSoonDesc: "Angebote enden in 2 Tagen"
+                feedFilters: "Filter", fsByStatus: "Nach Status filtern", fsSelectAll: "Alle", fsUnselectAll: "Keine", fsUnclaimed: "Nicht eingelöst", fsClaimed: "Eingelöst", expiringSoon: "Läuft Bald Ab", expiringSoonDesc: "Angebote enden in 2 Tagen"
             },
             ru: {
                 title: "РадарЛута", subtitle: "Отслеживание бесплатных игр", 
@@ -1495,7 +1505,7 @@
                 syncImportDataBtn: "Импорт Данных",
                 syncExportInst: "Введите этот PIN-код на другом устройстве в течение 15 минут.",
                 syncImportWarn: "Внимание: Импорт навсегда перезапишет вашу текущую библиотеку и сэкономленные средства на этом устройстве.",
-                feedFilters: "Фильтры", fsByStatus: "Фильтр по статусу", fsUnclaimed: "Не получено", fsClaimed: "Получено", expiringSoon: "Скоро Истекает", expiringSoonDesc: "Предложения заканчиваются через 2 дня"
+                feedFilters: "Фильтры", fsByStatus: "Фильтр по статусу", fsSelectAll: "Все", fsUnselectAll: "Ничего", fsUnclaimed: "Не получено", fsClaimed: "Получено", expiringSoon: "Скоро Истекает", expiringSoonDesc: "Предложения заканчиваются через 2 дня"
             },
             ja: {
                 title: "ルートレーダー", subtitle: "無料ゲームをリアルタイムで追跡", 
@@ -1537,7 +1547,7 @@
                 syncImportDataBtn: "データ入力",
                 syncExportInst: "15分以内に別のデバイスでこのPINを入力してください。",
                 syncImportWarn: "警告：インポートすると、このデバイスの現在のライブラリと節約額が完全に上書きされます。",
-                feedFilters: "フィルター", fsByStatus: "ステータスで絞り込み", fsUnclaimed: "未取得", fsClaimed: "取得済み", expiringSoon: "まもなく終了", expiringSoonDesc: "2日以内に終了する案件"
+                feedFilters: "フィルター", fsByStatus: "ステータスで絞り込み", fsSelectAll: "すべて", fsUnselectAll: "なし", fsUnclaimed: "未取得", fsClaimed: "取得済み", expiringSoon: "まもなく終了", expiringSoonDesc: "2日以内に終了する案件"
             },
             ko: {
                 title: "루트 레이더", subtitle: "무료 게임 실시간 추적", 
@@ -1579,7 +1589,7 @@
                 syncImportDataBtn: "데이터 가져오기",
                 syncExportInst: "15분 이내에 다른 기기에 이 PIN을 입력하세요.",
                 syncImportWarn: "경고: 가져오기를 실행하면 이 기기의 현재 라이브러리와 절약액을 영구적으로 덮어씁니다.",
-                feedFilters: "필터", fsByStatus: "상태별 필터", fsUnclaimed: "미청구", fsClaimed: "청구됨", expiringSoon: "곧 만료", expiringSoonDesc: "2일 내 종료 예정"
+                feedFilters: "필터", fsByStatus: "상태별 필터", fsSelectAll: "전체", fsUnselectAll: "해제", fsUnclaimed: "미청구", fsClaimed: "청구됨", expiringSoon: "곧 만료", expiringSoonDesc: "2일 내 종료 예정"
             },
             pt: {
                 title: "RadarLoot", subtitle: "Rastreando jogos grátis", 
@@ -1621,7 +1631,7 @@
                 syncImportDataBtn: "Importar Dados",
                 syncExportInst: "Insira este PIN no seu outro dispositivo em até 15 minutos.",
                 syncImportWarn: "Aviso: A importação substituirá permanentemente sua biblioteca atual e economia neste dispositivo.",
-                feedFilters: "Filtros", fsByStatus: "Filtrar por status", fsUnclaimed: "Não resgatado", fsClaimed: "Resgatado", expiringSoon: "Expirando em Breve", expiringSoonDesc: "Ofertas terminando em 2 dias"
+                feedFilters: "Filtros", fsByStatus: "Filtrar por status", fsSelectAll: "Todos", fsUnselectAll: "Nenhum", fsUnclaimed: "Não resgatado", fsClaimed: "Resgatado", expiringSoon: "Expirando em Breve", expiringSoonDesc: "Ofertas terminando em 2 dias"
             }
         };
 
@@ -2229,6 +2239,9 @@
                     const s = el.getAttribute('data-fs-label');
                     el.textContent = t[statusLabelKeys[s]] || statusFallbacks[s];
                 });
+                panel.querySelectorAll('[data-fs-btn]').forEach(el => {
+                    el.textContent = el.getAttribute('data-fs-btn') === 'all' ? (t.fsSelectAll || 'All') : (t.fsUnselectAll || 'None');
+                });
                 panel.querySelector('.ff-label2').textContent = t.expiringSoon || 'Expiring Soon';
                 panel.querySelector('.ff-desc2').textContent = t.expiringSoonDesc || 'Deals ending within 2 days';
                 // Update checkbox state and counts
@@ -2268,6 +2281,13 @@
             renderGames();
         }
 
+        function setAllStatusFilters(on) {
+            FEED_STATUSES.forEach(s => { state.feedStatusFilter[s] = !!on; });
+            saveSafeStorage('lootradar_feed_status_filter', state.feedStatusFilter);
+            updateFeedFilterUI();
+            renderGames();
+        }
+
         function toggleExpiringFilter(checked) {
             state.showExpiringOnly = !!checked;
             updateFeedFilterUI();
@@ -2285,6 +2305,18 @@
             document.querySelectorAll('#feed-filter-panel input[data-fs]').forEach(cb => {
                 cb.checked = state.feedStatusFilter[cb.getAttribute('data-fs')] !== false;
             });
+            // Highlight the All / None pill that matches the current selection
+            const btnBase = 'text-[10px] font-bold px-2 py-1 rounded-full transition-colors flex items-center gap-1 ';
+            const allOn = FEED_STATUSES.every(s => state.feedStatusFilter[s] !== false);
+            const allOff = FEED_STATUSES.every(s => state.feedStatusFilter[s] === false);
+            const btnAll = document.getElementById('fs-select-all');
+            if (btnAll) btnAll.className = btnBase + (allOn
+                ? 'bg-amber-500 text-white shadow-sm'
+                : 'bg-amber-50 text-amber-600 hover:bg-amber-100 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700');
+            const btnNone = document.getElementById('fs-select-none');
+            if (btnNone) btnNone.className = btnBase + (allOff
+                ? 'bg-gray-700 text-white shadow-sm'
+                : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700');
             const cbExp = document.getElementById('feed-filter-expiring');
             if (cbExp) cbExp.checked = state.showExpiringOnly;
             // Update counts
@@ -7761,7 +7793,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.08.28.10';
+        window.BUILD_VERSION = '2026.09.01.1';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

@@ -1813,14 +1813,17 @@
           lang: localStorage.getItem('lang') || detectBrowserLang(),
           theme: localStorage.getItem('theme') || 'dark',
           games: [],
-          currentPlatform: 'All',
+          // 2026.09.03.3: remember the main-page platform tab across restarts
+          // (validated against the platforms list in renderTabs/renderGames)
+          currentPlatform: localStorage.getItem('lootradar_platform_tab') || 'All',
           // Which card statuses are visible in the feed — user toggles per status.
           // Default: everything visible. Persisted in lootradar_feed_status_filter.
           feedStatusFilter: Object.assign(
               { unclaimed: true, claimed: true, expired: true, failed: true, paywall: true, accidental: true },
               (() => { const s = loadSafeStorage('lootradar_feed_status_filter'); return (s && typeof s === 'object') ? s : {}; })()
           ),
-          showExpiringOnly: false, // Filter to show deals expiring within 2 days
+          // 2026.09.03.3: remember the Expiring Soon toggle across restarts
+          showExpiringOnly: localStorage.getItem('lootradar_expiring_filter') === '1',
           isLoading: false,
           claimedGames: sanitizeClaimed(loadSafeStorage('lootradar_claimed_v2') || loadSafeStorage('lootradar_claimed') || {}),
           totalSaved: parseFloat(localStorage.getItem('lootradar_saved_money')) || 0,
@@ -2574,6 +2577,8 @@
 
         function toggleExpiringFilter(checked) {
             state.showExpiringOnly = !!checked;
+            // 2026.09.03.3: persist — survives app restart
+            localStorage.setItem('lootradar_expiring_filter', checked ? '1' : '0');
             updateFeedFilterUI();
             renderGames();
         }
@@ -5959,7 +5964,12 @@
                 'lootradar_total_saved',
                 'lootradar_saved_money',
                 'lootradar_theme',
-                'lootradar_lang'
+                'lootradar_lang',
+                // 2026.09.03.3: main-page filter state — was missing, so every
+                // backup/import cycle reset the user's filters to defaults
+                'lootradar_feed_status_filter',
+                'lootradar_expiring_filter',
+                'lootradar_platform_tab'
             ];
 
             const data = {
@@ -7712,7 +7722,17 @@
             return matchKeywords.some(keyword => strictText.includes(keyword));
         }
 
+        // 2026.09.03.3: the persisted platform tab may name a platform that no
+        // longer exists (list changes, stale storage) — fall back to All so a
+        // bad value can never crash renderGames (currentPlatObj would be null).
+        function validatePlatformTab() {
+            if (state.currentPlatform !== 'All' && !platforms.some(p => p.id === state.currentPlatform)) {
+                state.currentPlatform = 'All';
+            }
+        }
+
         function renderTabs() {
+            validatePlatformTab();
             const tabsContainer = document.getElementById('platform-tabs');
             tabsContainer.innerHTML = '';
             const t = i18n[state.lang];
@@ -7737,7 +7757,7 @@
                 const label = plat.id === 'All' ? t.platformAll : (labelMap[plat.id] || plat.id);
                 const btn = document.createElement('button');
                 btn.className = `${baseClasses} ${activeClasses}`;
-                btn.onclick = () => { state.currentPlatform = plat.id; renderTabs(); renderGames(); };
+                btn.onclick = () => { state.currentPlatform = plat.id; localStorage.setItem('lootradar_platform_tab', plat.id); renderTabs(); renderGames(); }; // 2026.09.03.3: persist tab
                 btn.innerHTML = `<i class="ph-fill ${plat.icon} text-lg"></i><span>${label}</span><span class="text-xs opacity-60 ml-1">(${count})</span>${hasNew ? `<span class="absolute -top-1 -right-1 flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span></span>` : ''}`;
                 tabsContainer.appendChild(btn);
             });
@@ -7745,6 +7765,7 @@
         }
 
         function renderGames() {
+            validatePlatformTab();
             const renderStart = performance.now();
             const grid = document.getElementById('games-grid');
             const emptyState = document.getElementById('empty-state');
@@ -8296,7 +8317,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.09.03.2';
+        window.BUILD_VERSION = '2026.09.03.3';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

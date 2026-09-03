@@ -1687,21 +1687,45 @@
         function loadSafeStorage(key) {
             const raw = localStorage.getItem(key);
             if (!raw) return null;
+            // If it starts with { or [, it MIGHT be an old plain-text backup —
+            // but LZ-compressed data can also start with those characters, so a
+            // plain-JSON parse failure must fall through to decompression
+            // instead of giving up (2026.09.02.2 hardening).
+            if (raw.startsWith('{') || raw.startsWith('[')) {
+                try { return JSON.parse(raw); } catch (e) { /* fall through to LZ */ }
+            }
             try {
-                // If it starts with { or [, it is an old plain-text backup. Load it normally!
-                if (raw.startsWith('{') || raw.startsWith('[')) return JSON.parse(raw);
-                // Otherwise, it is new compressed data.
                 return JSON.parse(LZString.decompressFromUTF16(raw));
             } catch (e) {
                 console.error("Storage parse error:", e);
+                if (window.logError) window.logError('Storage parse failed [' + key + ']: ' + (e && e.message ? e.message : e), 'storage');
                 return null;
             }
         }
-        
+
         function saveSafeStorage(key, data) {
             // Compress heavily before saving to bypass the 5MB browser limit
             const compressed = LZString.compressToUTF16(JSON.stringify(data));
             localStorage.setItem(key, compressed);
+        }
+
+        // 2026.09.02.2: corrupted-storage hardening. If a saved array/object
+        // ever contains junk (null entries, strings, wrong shape), the render
+        // paths used to throw on the first bad item and kill the whole feed /
+        // library silently. These sanitizers run at EVERY load so one bad
+        // record can never break the app again.
+        function sanitizeHistory(arr) {
+            if (!Array.isArray(arr)) return [];
+            return arr.filter(h => h && typeof h === 'object' && !Array.isArray(h));
+        }
+        function sanitizeClaimed(obj) {
+            if (!obj || typeof obj !== 'object' || Array.isArray(obj)) return {};
+            Object.keys(obj).forEach(k => {
+                // drop null/undefined values; keep booleans (legacy entries the
+                // autoHealLegacySaves pass repairs) and real objects
+                if (obj[k] === null || obj[k] === undefined) delete obj[k];
+            });
+            return obj;
         }
         
         // 👇 PASTE THE NEW HEAL FUNCTION HERE 👇
@@ -1772,12 +1796,12 @@
           ),
           showExpiringOnly: false, // Filter to show deals expiring within 2 days
           isLoading: false,
-          claimedGames: loadSafeStorage('lootradar_claimed_v2') || loadSafeStorage('lootradar_claimed') || {},
+          claimedGames: sanitizeClaimed(loadSafeStorage('lootradar_claimed_v2') || loadSafeStorage('lootradar_claimed') || {}),
           totalSaved: parseFloat(localStorage.getItem('lootradar_saved_money')) || 0,
           libSort: localStorage.getItem('lootradar_lib_sort') || 'claimed_date_desc',
           libFilter: 'All',
           libView: localStorage.getItem('lootradar_lib_view') || 'grid',
-          deletedHistory: loadSafeStorage('lootradar_deleted_history') || []
+          deletedHistory: sanitizeHistory(loadSafeStorage('lootradar_deleted_history'))
         };
     
         const platforms = [
@@ -2110,7 +2134,7 @@
 
                     // 4. For other reasons: record in deleted history
                     if (!state.deletedHistory || !Array.isArray(state.deletedHistory)) {
-                        state.deletedHistory = JSON.parse(localStorage.getItem('lootradar_deleted_history')) || [];
+                        state.deletedHistory = sanitizeHistory(loadSafeStorage('lootradar_deleted_history'));
                     }
 
                     const historyItem = {
@@ -2210,7 +2234,7 @@
                 //    persists, exports in the JSON backup, feeds the Removal
                 //    Reasons donut and drives the feed status filter.
                 if (!state.deletedHistory || !Array.isArray(state.deletedHistory)) {
-                    state.deletedHistory = loadSafeStorage('lootradar_deleted_history') || [];
+                    state.deletedHistory = sanitizeHistory(loadSafeStorage('lootradar_deleted_history'));
                 }
                 state.deletedHistory.push({
                     id: game.id || normId,
@@ -2338,8 +2362,12 @@
         function classifyFeedGame(game, ctx) {
             const normId = game.normalizedId || normalizeUrl(game.open_giveaway || game.id || '');
             const fullUrl = game.open_giveaway || '';
+            // 2026.09.02.2: mergedXsrcList must be an array — a corrupted
+            // storage value (plain object) used to make .some() throw here and
+            // kill every feed render.
+            const mergedXsrc = Array.isArray(ctx.mergedXsrcList) ? ctx.mergedXsrcList : [];
             const isClaimed = !!state.claimedGames[normId] || !!state.claimedGames[fullUrl]
-                || (ctx.mergedXsrcList || []).some(m => typeof m === 'string' ? m === normId : (m.removed === normId && !!state.claimedGames[m.kept]))
+                || mergedXsrc.some(m => typeof m === 'string' ? m === normId : (m && m.removed === normId && !!state.claimedGames[m.kept]))
                 || isClaimedMatch(ctx.claimedTitleMap, game.title, game.platforms);
             if (isClaimed) return { status: 'claimed', matchInfo: null };
 
@@ -2347,6 +2375,10 @@
             if (state.deletedHistory) {
                 for (let i = state.deletedHistory.length - 1; i >= 0; i--) {
                     const h = state.deletedHistory[i];
+                    // 2026.09.02.2: skip corrupted entries instead of throwing
+                    // (h.id on a null entry killed renderGames for the whole
+                    // feed — the 2026-09-02 user outage).
+                    if (!h || typeof h !== 'object') continue;
                     const hId = h.id || '';
                     const hNorm = h.normalizedId || hId;
                     const hUrl = h.originalUrl || hId;
@@ -3258,6 +3290,7 @@
             // --- NEW: Removal Reasons Donut Data (from deletedHistory) ---
             const reasonCounts = {};
             (state.deletedHistory || []).forEach(h => {
+                if (!h || typeof h !== 'object') return; // 2026.09.02.2 hardening
                 const r = h.reason || 'accidental';
                 reasonCounts[r] = (reasonCounts[r] || 0) + 1;
             });
@@ -3781,6 +3814,7 @@
             // deletedAt date. Rose palette instead of teal (2026.09.02.1). ---
             const remCalCounts = {};
             (state.deletedHistory || []).forEach(h => {
+                if (!h || typeof h !== 'object') return; // 2026.09.02.2 hardening
                 const d = new Date(h.deletedAt);
                 if (isNaN(d.getTime())) return;
                 const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -5920,8 +5954,15 @@
         };
 
         // ===== DEVELOPER MODE: Error Log =====
+        // 2026.09.02.2: errors now ALSO persist to localStorage — a crashed
+        // feed used to lose its only clue on reload (the log lived in memory).
+        // Ring buffer of the last 20 entries, seeded into devErrorLog at start.
         window.devErrorLog = [];
         window.devOperationHistory = [];
+        try {
+            const persistedErrors = JSON.parse(localStorage.getItem('lootradar_error_log') || '[]');
+            if (Array.isArray(persistedErrors)) window.devErrorLog = persistedErrors.slice(-20);
+        } catch (e) { /* corrupted log — start fresh */ }
 
         window.logError = function(error, context) {
             window.devErrorLog.push({
@@ -5930,6 +5971,8 @@
                 stack: error.stack || '',
                 context: context || ''
             });
+            window.devErrorLog = window.devErrorLog.slice(-20);
+            try { localStorage.setItem('lootradar_error_log', JSON.stringify(window.devErrorLog)); } catch (e) { /* storage full — session log still works */ }
             updateErrorLogUI();
         };
 
@@ -5992,6 +6035,7 @@
 
         window.clearErrorLog = function() {
             window.devErrorLog = [];
+            try { localStorage.removeItem('lootradar_error_log'); } catch (e) { /* ignore */ }
             updateErrorLogUI();
         };
 
@@ -6578,6 +6622,12 @@
                 renderTabs();
                 renderGames();
             } catch (error) {
+                // 2026.09.02.2: this catch used to swallow the error silently —
+                // the feed just sat there empty with no clue why (the
+                // 2026-09-02 outage). Log it to console AND the persistent
+                // error log so Developer Mode can reveal it.
+                console.error('Feed render pipeline failed:', error);
+                if (window.logError) window.logError('Feed render failed: ' + (error && error.message ? error.message : error), 'render');
                 document.getElementById('games-grid').innerHTML = '';
                 document.getElementById('error-state').classList.remove('hidden');
             } finally {
@@ -6988,8 +7038,11 @@
           const existingByKey = state.claimedGames[normalizedId];
           const existingByUrl = state.claimedGames[originalUrl];
           // A merged-away ID counts as claimed only while its kept twin is still in the library
-          const mergedAway = (loadSafeStorage('lootradar_merged_xsrc_ids') || []).some(m =>
-              typeof m === 'string' ? m === normalizedId : (m.removed === normalizedId && !!state.claimedGames[m.kept]));
+          // 2026.09.02.2: Array.isArray guard — a non-array merged list used to
+          // throw on every claim tap.
+          const mergedAwayList = loadSafeStorage('lootradar_merged_xsrc_ids');
+          const mergedAway = (Array.isArray(mergedAwayList) ? mergedAwayList : []).some(m =>
+              typeof m === 'string' ? m === normalizedId : (m && m.removed === normalizedId && !!state.claimedGames[m.kept]));
           let alreadyClaimed = !!existingByKey || !!existingByUrl || mergedAway;
           const isLegacySave = typeof (existingByKey || existingByUrl) === 'boolean';
 
@@ -7183,10 +7236,14 @@
             }
 
             // 1. Convert the claimedGames dictionary directly into a clean array
-            const libraryGames = Object.entries(state.claimedGames).map(([id, game]) => ({
-                id: id,
-                ...game
-            }));
+            // 2026.09.02.2: skip non-object entries (corrupted values /
+            // unhealed legacy flags) so one bad record can't kill the list.
+            const libraryGames = Object.entries(state.claimedGames)
+                .filter(([, game]) => game && typeof game === 'object')
+                .map(([id, game]) => ({
+                    id: id,
+                    ...game
+                }));
             
         // --- RESTORED MISSING UI LOGIC ---
         if (!skipOdometer) {
@@ -8067,7 +8124,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.09.02.1';
+        window.BUILD_VERSION = '2026.09.02.2';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

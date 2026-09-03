@@ -3723,11 +3723,9 @@
             // --- C) Loot Funnel: tracked → removed → kept (2026.08.28.4) ---
             let trackedCount = 0;
             try {
-                const rawPd = localStorage.getItem('lootradar_publish_dates');
-                if (rawPd && window.LZString) {
-                    const decPd = LZString.decompressFromUTF16(rawPd);
-                    if (decPd) trackedCount = Object.keys(JSON.parse(decPd)).length;
-                }
+                // 2026.09.02.5: loadSafeStorage reads both LZ and plain JSON
+                const pd = loadSafeStorage('lootradar_publish_dates');
+                if (pd && typeof pd === 'object') trackedCount = Object.keys(pd).length;
             } catch (e) { trackedCount = 0; }
             const removedCount = (state.deletedHistory || []).length;
             const keptCount = games.length;
@@ -4602,20 +4600,12 @@
             const appsTable = document.getElementById('dev-apps-table');
             let publishDates = {};
             let deletedHistory = [];
-            try {
-                const raw = localStorage.getItem('lootradar_publish_dates');
-                if (raw) {
-                    const decompressed = LZString.decompressFromUTF16(raw);
-                    publishDates = decompressed ? JSON.parse(decompressed) : {};
-                }
-            } catch(e) {}
-            try {
-                const rawDel = localStorage.getItem('lootradar_deleted_history');
-                if (rawDel) {
-                    const decompressed = LZString.decompressFromUTF16(rawDel);
-                    deletedHistory = decompressed ? JSON.parse(decompressed) : [];
-                }
-            } catch(e) {}
+            // 2026.09.02.5: read via loadSafeStorage — the old code called
+            // decompressFromUTF16 directly, which silently yields NOTHING for
+            // plain-JSON storage (created by Cloud Sync imports / the .4
+            // rescue), blanking these tables even though the data is there.
+            publishDates = loadSafeStorage('lootradar_publish_dates') || {};
+            deletedHistory = sanitizeHistory(loadSafeStorage('lootradar_deleted_history'));
 
             // Build lookup maps
             const claimedGames = state.claimedGames || {};
@@ -4813,32 +4803,30 @@
 
             // 2. Tracking history (publish_dates)
             try {
-                const raw = localStorage.getItem('lootradar_publish_dates');
-                if (raw) {
-                    const dec = LZString.decompressFromUTF16(raw);
-                    const pd = dec ? JSON.parse(dec) : {};
-                    if (pd[url] !== undefined) {
-                        delete pd[url];
-                        saveSafeStorage('lootradar_publish_dates', pd);
-                    }
+                // 2026.09.02.5: loadSafeStorage — direct decompress returned
+                // null for plain-JSON storage, silently skipping the delete.
+                const pd = loadSafeStorage('lootradar_publish_dates');
+                if (pd && typeof pd === 'object' && pd[url] !== undefined) {
+                    delete pd[url];
+                    saveSafeStorage('lootradar_publish_dates', pd);
                 }
             } catch(e) { logError('permanentlyDeleteTrackedUrl publish_dates: ' + e.message, 'dev'); }
 
             // 3. Deleted history — remove every entry that matches in any id format
             try {
-                const rawDel = localStorage.getItem('lootradar_deleted_history');
-                if (rawDel) {
-                    const dec = LZString.decompressFromUTF16(rawDel);
-                    let dh = dec ? JSON.parse(dec) : [];
-                    const norm = normalizeUrl(url);
-                    const full = denormalizeUrl(url);
-                    dh = dh.filter(d => {
-                        const ids = [d.id, d.normalizedId, d.originalUrl];
-                        return !(ids.indexOf(url) > -1 || ids.indexOf(norm) > -1 || ids.indexOf(full) > -1);
-                    });
-                    saveSafeStorage('lootradar_deleted_history', dh);
-                    state.deletedHistory = dh;
-                }
+                // 2026.09.02.5: CRITICAL — the old code did a direct decompress;
+                // on plain-JSON storage dec=null → dh=[] → saveSafeStorage([])
+                // WIPED THE ENTIRE HISTORY. loadSafeStorage reads both formats.
+                let dh = sanitizeHistory(loadSafeStorage('lootradar_deleted_history'));
+                const norm = normalizeUrl(url);
+                const full = denormalizeUrl(url);
+                dh = dh.filter(d => {
+                    if (!d || typeof d !== 'object') return true; // keep unknown shapes — never destroy
+                    const ids = [d.id, d.normalizedId, d.originalUrl];
+                    return !(ids.indexOf(url) > -1 || ids.indexOf(norm) > -1 || ids.indexOf(full) > -1);
+                });
+                saveSafeStorage('lootradar_deleted_history', dh);
+                state.deletedHistory = dh;
             } catch(e) { logError('permanentlyDeleteTrackedUrl deleted_history: ' + e.message, 'dev'); }
 
             if (changedClaimed) {
@@ -5459,21 +5447,9 @@
 
             // --- Collect the same union the All Tracked Apps table shows ---
             let publishDates = {};
-            let deletedHistory = [];
-            try {
-                const raw = localStorage.getItem('lootradar_publish_dates');
-                if (raw) {
-                    const dec = LZString.decompressFromUTF16(raw);
-                    publishDates = dec ? JSON.parse(dec) : {};
-                }
-            } catch(e) {}
-            try {
-                const rawDel = localStorage.getItem('lootradar_deleted_history');
-                if (rawDel) {
-                    const dec = LZString.decompressFromUTF16(rawDel);
-                    deletedHistory = dec ? JSON.parse(dec) : [];
-                }
-            } catch(e) {}
+            // 2026.09.02.5: loadSafeStorage — plain-JSON-safe (see renderDevPanel)
+            publishDates = loadSafeStorage('lootradar_publish_dates') || {};
+            deletedHistory = sanitizeHistory(loadSafeStorage('lootradar_deleted_history'));
             const claimedGames = state.claimedGames || {};
 
             const deletedMap = {};
@@ -6149,20 +6125,12 @@
         window.copyTrackedApps = function() {
             let publishDates = {};
             let deletedHistory = [];
-            try {
-                const raw = localStorage.getItem('lootradar_publish_dates');
-                if (raw) {
-                    const decompressed = LZString.decompressFromUTF16(raw);
-                    publishDates = decompressed ? JSON.parse(decompressed) : {};
-                }
-            } catch(e) {}
-            try {
-                const rawDel = localStorage.getItem('lootradar_deleted_history');
-                if (rawDel) {
-                    const decompressed = LZString.decompressFromUTF16(rawDel);
-                    deletedHistory = decompressed ? JSON.parse(decompressed) : [];
-                }
-            } catch(e) {}
+            // 2026.09.02.5: read via loadSafeStorage — the old code called
+            // decompressFromUTF16 directly, which silently yields NOTHING for
+            // plain-JSON storage (created by Cloud Sync imports / the .4
+            // rescue), blanking these tables even though the data is there.
+            publishDates = loadSafeStorage('lootradar_publish_dates') || {};
+            deletedHistory = sanitizeHistory(loadSafeStorage('lootradar_deleted_history'));
 
             const claimedGames = state.claimedGames || {};
             // Index deleted entries by every id format they carry (see renderDevPanel)
@@ -6229,21 +6197,15 @@
         function getItemCount(key) {
             try {
                 if (key === 'lootradar_claimed_v2') {
-                    const raw = localStorage.getItem(key);
-                    if (!raw) return '0';
-                    const data = JSON.parse(LZString.decompressFromUTF16(raw));
-                    return Object.keys(data).length + ' items';
+                    const data = loadSafeStorage(key); // 2026.09.02.5: plain-JSON-safe
+                    return (data && typeof data === 'object') ? Object.keys(data).length + ' items' : '0';
                 }
                 if (key === 'lootradar_publish_dates') {
-                    const raw = localStorage.getItem(key);
-                    if (!raw) return '0';
-                    const data = JSON.parse(LZString.decompressFromUTF16(raw));
-                    return Object.keys(data).length + ' items';
+                    const data = loadSafeStorage(key);
+                    return (data && typeof data === 'object') ? Object.keys(data).length + ' items' : '0';
                 }
                 if (key === 'lootradar_deleted_history') {
-                    const raw = localStorage.getItem(key);
-                    if (!raw) return '0';
-                    const data = JSON.parse(LZString.decompressFromUTF16(raw));
+                    const data = loadSafeStorage(key);
                     return (Array.isArray(data) ? data.length : 0) + ' items';
                 }
                 return '-';
@@ -8225,7 +8187,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.09.02.4';
+        window.BUILD_VERSION = '2026.09.02.5';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

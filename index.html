@@ -5540,9 +5540,11 @@
             html += `<span class="px-2 py-1 bg-teal-500/10 text-teal-500 rounded text-[10px] font-bold">${dupGroups.length} groups (${totalExtra} same-name entries)</span>`;
             if (noTitleCount > 0) html += `<span class="px-2 py-1 bg-gray-500/10 text-gray-400 rounded text-[10px] font-bold">${noTitleCount} entries without title (skipped)</span>`;
             html += '</div>';
-            html += '<div class="text-[10px] text-gray-400 mb-3">Grouped by identical name + platform across ALL tracked apps (claimed + tracked + deleted). Same name on DIFFERENT platforms = separate giveaways, not grouped. KEEP = the entry to keep — tick the ones you want to remove (nothing is ticked by default), then press Delete Selected.</div>';
+            html += '<div class="text-[10px] text-gray-400 mb-3">Grouped by identical name + platform across ALL tracked apps (claimed + tracked + deleted). Same name on DIFFERENT platforms = separate giveaways, not grouped. KEEP = the recommended entry. Tap the trash button on ANY card (left or right) to delete that exact entry on the spot — or tick checkboxes and use Delete Selected for a batch.</div>';
 
             const fmtDate = ts => ts ? new Date(ts).toLocaleString() : '-';
+            // 2026.09.03.1: escape titles embedded in data-title attributes
+            const escAttr = s => String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             const statusHtml = entry => {
                 if (entry.claimed) return '<span class="px-1.5 py-0.5 text-[9px] font-bold rounded bg-green-500/20 text-green-500">CLAIMED</span>';
                 if (entry.deleted) return `<span class="px-1.5 py-0.5 text-[9px] font-bold rounded bg-orange-500/20 text-orange-500">${(entry.deleted.reason || 'DELETED').toUpperCase()}</span>`;
@@ -5582,10 +5584,15 @@
                 // Swipeable comparison row, same layout as the claimed-library detector
                 html += `<div class="flex gap-3 mb-2 overflow-x-auto pb-1 snap-x" style="-webkit-overflow-scrolling: touch;">`;
 
-                // Card 1: KEEP (no checkbox, never deleted by this tool)
+                // Card 1: KEEP (recommended entry — but 2026.09.03.1: the user
+                // can still delete it on the spot via its own trash button, so
+                // they can freely choose left OR right in every group)
                 const kImg = keep.image ? `<img src="${keep.image}" class="w-8 h-8 rounded object-cover flex-shrink-0" onerror="this.style.display='none'">` : '';
                 html += `<div class="flex-shrink-0 w-[240px] snap-start p-2 bg-green-500/10 border border-green-500/30 rounded-lg">`;
-                html += `<div class="text-[10px] font-bold text-green-500 mb-1.5 flex items-center gap-1"><i class="ph-bold ph-check-circle"></i> KEEP ${statusHtml(keep)}</div>`;
+                html += `<div class="flex items-center justify-between gap-2 mb-1.5">`;
+                html += `<div class="text-[10px] font-bold text-green-500 flex items-center gap-1"><i class="ph-bold ph-check-circle"></i> KEEP ${statusHtml(keep)}</div>`;
+                html += `<button onclick="deleteTrackedDupEntry(this)" data-storage-key="${keep.url}" data-title="${escAttr(group.title)}" title="Permanently delete this entry now" class="tdup-del-btn px-1.5 py-0.5 text-[9px] font-bold bg-red-500/15 text-red-500 hover:bg-red-500/30 rounded transition-colors"><i class="ph-bold ph-trash"></i></button>`;
+                html += `</div>`;
                 html += `<div class="flex items-start gap-2">${kImg}<div class="min-w-0 flex-1">`;
                 html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Source:</span> ${keep.source}</div>`;
                 html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Platform:</span> ${keep.platforms}</div>`;
@@ -5603,12 +5610,14 @@
                 extras.forEach((entry, di) => {
                     const dImg = entry.image ? `<img src="${entry.image}" class="w-8 h-8 rounded object-cover flex-shrink-0" onerror="this.style.display='none'">` : '';
                     html += `<div class="flex-shrink-0 w-[240px] snap-start p-2 bg-red-500/10 border border-red-500/30 rounded-lg">`;
-                    html += `<div class="flex items-center justify-between mb-1">`;
+                    html += `<div class="flex items-center justify-between mb-1 gap-2">`;
                     html += `<div class="text-[10px] font-bold text-red-500 flex items-center gap-1"><i class="ph-bold ph-copy"></i> SAME NAME #${di + 1} ${statusHtml(entry)}</div>`;
-                    html += `<label class="flex items-center gap-1 cursor-pointer">`;
-                    html += `<span class="text-[9px] text-red-500 font-bold">Delete</span>`;
+                    html += `<div class="flex items-center gap-2">`;
+                    html += `<label class="flex items-center cursor-pointer" title="Tick to include in batch Delete Selected">`;
                     html += `<input type="checkbox" class="tdup-checkbox" data-storage-key="${entry.url}">`;
-                    html += `</label></div>`;
+                    html += `</label>`;
+                    html += `<button onclick="deleteTrackedDupEntry(this)" data-storage-key="${entry.url}" data-title="${escAttr(group.title)}" title="Permanently delete this entry now" class="tdup-del-btn px-1.5 py-0.5 text-[9px] font-bold bg-red-500/15 text-red-500 hover:bg-red-500/30 rounded transition-colors"><i class="ph-bold ph-trash"></i></button>`;
+                    html += `</div></div>`;
                     html += `<div class="flex items-start gap-2">${dImg}<div class="min-w-0 flex-1">`;
                     html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Source:</span> ${entry.source}</div>`;
                     html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">Platform:</span> ${entry.platforms}</div>`;
@@ -5665,6 +5674,31 @@
 
             alert(`Permanently deleted ${keys.length - failed} app(s).` + (failed > 0 ? ` (${failed} failed — check error log)` : ''));
             detectTrackedDuplicates(); // Re-run to show updated state
+        };
+
+        // 2026.09.03.1: one-tap delete from INSIDE a duplicate group — the
+        // user picks the left OR right card and removes it on the spot. No
+        // scrolling up to the batch "Delete Selected" button and no hunting
+        // through the All Tracked Apps table. Same permanent-delete core.
+        window.deleteTrackedDupEntry = function(btn) {
+            const key = btn && btn.dataset ? btn.dataset.storageKey : null;
+            if (!key) return;
+            const title = btn.dataset.title || 'this entry';
+            if (!confirm('Permanently delete "' + title + '"?\n\nIt will be removed from your library, tracking history AND deleted history. This CANNOT be undone!')) return;
+
+            try {
+                permanentlyDeleteTrackedUrl(key);
+            } catch (e) {
+                logError('deleteTrackedDupEntry: ' + e.message, 'dev');
+                alert('Delete failed: ' + e.message);
+                return;
+            }
+
+            if (typeof updateWalletUI === 'function') updateWalletUI();
+            if (typeof renderLibrary === 'function') renderLibrary();
+            if (typeof renderGames === 'function') renderGames();
+            renderDevPanel();
+            detectTrackedDuplicates(); // refresh the group list in place
         };
 
         // Header shortcuts: tick / untick every delete checkbox at once.
@@ -8209,7 +8243,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.09.02.6';
+        window.BUILD_VERSION = '2026.09.03.1';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

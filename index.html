@@ -414,6 +414,17 @@
                             <span id="feed-filter-expiring-count" class="text-xs font-bold text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-0.5 rounded-full">0</span>
                         </label>
                     </div>
+                    <!-- 2026.09.03.4: opt-in filter memory (unchecked = next boot ALL OPEN) -->
+                    <div class="border-t border-gray-100 dark:border-gray-800 mt-1 pt-2">
+                        <label class="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors">
+                            <input type="checkbox" id="feed-filter-remember" onchange="toggleRememberFilters(this.checked)" class="w-4 h-4 rounded border-gray-300 dark:border-gray-600 text-amber-500 focus:ring-amber-500 dark:bg-gray-700">
+                            <div class="flex-1">
+                                <p class="ff-label3 text-sm font-bold text-gray-700 dark:text-gray-200">Remember My Filters</p>
+                                <p class="ff-desc3 text-[10px] text-gray-400 dark:text-gray-500">Next launch restores these filters; off = show everything</p>
+                            </div>
+                            <i class="ph-bold ph-floppy-disk text-amber-400"></i>
+                        </label>
+                    </div>
                 </div>
             </div>
 
@@ -1257,7 +1268,7 @@
                 syncImportDataBtn: "Import Data",
                 syncExportInst: "Enter this PIN on your other device within 15 minutes.",
                 syncImportWarn: "Warning: Importing will permanently overwrite your current library and savings on this device.",
-                feedFilters: "Feed Filters", fsByStatus: "Filter by Status", fsSelectAll: "All", fsUnselectAll: "None", fsUnclaimed: "Unclaimed", fsClaimed: "Claimed", expiringSoon: "Expiring Soon", expiringSoonDesc: "Deals ending within 2 days", niTip: "Mark status", fdTitle: "Mark Item Status", fdDesc: "Pick a status for this item — it stays on your feed and you can change it anytime.", chToast: "Claimed! This item is now hidden by your filter.", chToast2: "This item is already in your library.", chAsk: "Keep it in your library?", chYes: "Yes, keep", chNo: "No, change status"
+                feedFilters: "Feed Filters", fsByStatus: "Filter by Status", fsSelectAll: "All", fsUnselectAll: "None", fsUnclaimed: "Unclaimed", fsClaimed: "Claimed", expiringSoon: "Expiring Soon", expiringSoonDesc: "Deals ending within 2 days", ffRemember: "Remember My Filters", ffRememberDesc: "Next launch restores these filters; off = show everything", niTip: "Mark status", fdTitle: "Mark Item Status", fdDesc: "Pick a status for this item — it stays on your feed and you can change it anytime.", chToast: "Claimed! This item is now hidden by your filter.", chToast2: "This item is already in your library.", chAsk: "Keep it in your library?", chYes: "Yes, keep", chNo: "No, change status"
             },
             'zh-CN': {
                 title: "白嫖雷达", subtitle: "全网免费游戏限免实时追踪平台",
@@ -1297,7 +1308,7 @@
                 syncImportDataBtn: "导入数据",
                 syncExportInst: "请在15分钟内于另一台设备上输入此PIN码。",
                 syncImportWarn: "警告：导入操作将永久覆盖本设备上的当前游戏库和节省金额。",
-                feedFilters: "筛选条件", fsByStatus: "按状态筛选", fsSelectAll: "全选", fsUnselectAll: "全不选", fsUnclaimed: "待领取", fsClaimed: "已领取", expiringSoon: "即将过期", expiringSoonDesc: "2 天内结束的活动", niTip: "标记状态", fdTitle: "标记项目状态", fdDesc: "为这个项目选择一个状态，它会保留在主页，随时可以更改。", chToast: "已领取！此项目已被你的筛选隐藏。", chToast2: "此项目已在你的收藏库中。", chAsk: "要保留在收藏库吗？", chYes: "是，保留", chNo: "不，更换状态"
+                feedFilters: "筛选条件", fsByStatus: "按状态筛选", fsSelectAll: "全选", fsUnselectAll: "全不选", fsUnclaimed: "待领取", fsClaimed: "已领取", expiringSoon: "即将过期", expiringSoonDesc: "2 天内结束的活动", ffRemember: "记住我的筛选", ffRememberDesc: "下次打开时恢复当前筛选；不勾则显示全部", niTip: "标记状态", fdTitle: "标记项目状态", fdDesc: "为这个项目选择一个状态，它会保留在主页，随时可以更改。", chToast: "已领取！此项目已被你的筛选隐藏。", chToast2: "此项目已在你的收藏库中。", chAsk: "要保留在收藏库吗？", chYes: "是，保留", chNo: "不，更换状态"
             },
             'zh-TW': {
                 title: "白嫖雷達", subtitle: "全網免費遊戲限免實時追蹤平台",
@@ -1337,7 +1348,7 @@
                 syncImportDataBtn: "匯入資料",
                 syncExportInst: "請在15分鐘內於另一台裝置上輸入此PIN碼。",
                 syncImportWarn: "警告：匯入操作將永久覆蓋本裝置上的目前遊戲庫和節省金額。",
-                feedFilters: "篩選條件", fsByStatus: "按狀態篩選", fsSelectAll: "全選", fsUnselectAll: "全不選", fsUnclaimed: "待領取", fsClaimed: "已領取", expiringSoon: "即將過期", expiringSoonDesc: "2 天內結束的活動", niTip: "標記狀態", fdTitle: "標記項目狀態", fdDesc: "為這個項目選擇一個狀態，它會保留在主頁，隨時可以更改。", chToast: "已領取！此項目已被你的篩選隱藏。", chToast2: "此項目已在你的收藏庫中。", chAsk: "要保留在收藏庫嗎？", chYes: "是，保留", chNo: "不，更換狀態"
+                feedFilters: "篩選條件", fsByStatus: "按狀態篩選", fsSelectAll: "全選", fsUnselectAll: "全不選", fsUnclaimed: "待領取", fsClaimed: "已領取", expiringSoon: "即將過期", expiringSoonDesc: "2 天內結束的活動", ffRemember: "記住我的篩選", ffRememberDesc: "下次開啟時恢復目前的篩選；不勾則顯示全部", niTip: "標記狀態", fdTitle: "標記項目狀態", fdDesc: "為這個項目選擇一個狀態，它會保留在主頁，隨時可以更改。", chToast: "已領取！此項目已被你的篩選隱藏。", chToast2: "此項目已在你的收藏庫中。", chAsk: "要保留在收藏庫嗎？", chYes: "是，保留", chNo: "不，更換狀態"
             },
             es: {
                 title: "RadarLoot", subtitle: "Rastreando juegos gratis en el multiverso", 
@@ -1379,7 +1390,7 @@
                 syncImportDataBtn: "Importar Datos",
                 syncExportInst: "Ingresa este PIN en tu otro dispositivo dentro de 15 minutos.",
                 syncImportWarn: "Advertencia: Importar sobrescribirá permanentemente tu biblioteca actual y ahorros en este dispositivo.",
-                feedFilters: "Filtros", fsByStatus: "Filtrar por estado", fsSelectAll: "Todos", fsUnselectAll: "Ninguno", fsUnclaimed: "Sin reclamar", fsClaimed: "Reclamado", expiringSoon: "Por Expirar", expiringSoonDesc: "Ofertas que terminan en 2 días", niTip: "Marcar estado", fdTitle: "Marcar estado del artículo", fdDesc: "Elige un estado para este artículo; se queda en tu feed y puedes cambiarlo cuando quieras.", chToast: "¡Reclamado! Tu filtro ahora oculta este artículo.", chToast2: "Este artículo ya está en tu biblioteca.", chAsk: "¿Conservarlo en tu biblioteca?", chYes: "Sí, conservar", chNo: "No, cambiar estado"
+                feedFilters: "Filtros", fsByStatus: "Filtrar por estado", fsSelectAll: "Todos", fsUnselectAll: "Ninguno", fsUnclaimed: "Sin reclamar", fsClaimed: "Reclamado", expiringSoon: "Por Expirar", expiringSoonDesc: "Ofertas que terminan en 2 días", ffRemember: "Recordar Mis Filtros", ffRememberDesc: "Al abrir, restaura estos filtros; sin marcar = mostrar todo", niTip: "Marcar estado", fdTitle: "Marcar estado del artículo", fdDesc: "Elige un estado para este artículo; se queda en tu feed y puedes cambiarlo cuando quieras.", chToast: "¡Reclamado! Tu filtro ahora oculta este artículo.", chToast2: "Este artículo ya está en tu biblioteca.", chAsk: "¿Conservarlo en tu biblioteca?", chYes: "Sí, conservar", chNo: "No, cambiar estado"
             },
             fr: {
                 title: "RadarButin", subtitle: "Suivi des jeux gratuits dans le multivers", 
@@ -1421,7 +1432,7 @@
                 syncImportDataBtn: "Importer les Données",
                 syncExportInst: "Saisissez ce PIN sur votre autre appareil dans les 15 minutes.",
                 syncImportWarn: "Avertissement : L'importation écrasera définitivement votre bibliothèque et vos économies sur cet appareil.",
-                feedFilters: "Filtres", fsByStatus: "Filtrer par statut", fsSelectAll: "Tout", fsUnselectAll: "Aucun", fsUnclaimed: "Non réclamé", fsClaimed: "Réclamé", expiringSoon: "Expire Bientôt", expiringSoonDesc: "Offres se terminant sous 2 jours", niTip: "Marquer le statut", fdTitle: "Marquer le statut", fdDesc: "Choisissez un statut pour cet élément ; il reste dans votre flux et vous pouvez le modifier à tout moment.", chToast: "Récupéré ! Votre filtre masque maintenant cet élément.", chToast2: "Cet élément est déjà dans votre bibliothèque.", chAsk: "Le conserver dans votre bibliothèque ?", chYes: "Oui, conserver", chNo: "Non, changer le statut"
+                feedFilters: "Filtres", fsByStatus: "Filtrer par statut", fsSelectAll: "Tout", fsUnselectAll: "Aucun", fsUnclaimed: "Non réclamé", fsClaimed: "Réclamé", expiringSoon: "Expire Bientôt", expiringSoonDesc: "Offres se terminant sous 2 jours", ffRemember: "Mémoriser Mes Filtres", ffRememberDesc: "Restaure ces filtres à l'ouverture ; décoché = tout afficher", niTip: "Marquer le statut", fdTitle: "Marquer le statut", fdDesc: "Choisissez un statut pour cet élément ; il reste dans votre flux et vous pouvez le modifier à tout moment.", chToast: "Récupéré ! Votre filtre masque maintenant cet élément.", chToast2: "Cet élément est déjà dans votre bibliothèque.", chAsk: "Le conserver dans votre bibliothèque ?", chYes: "Oui, conserver", chNo: "Non, changer le statut"
             },
             de: {
                 title: "LootRadar", subtitle: "Verfolgung kostenloser Spiele", 
@@ -1463,7 +1474,7 @@
                 syncImportDataBtn: "Daten Importieren",
                 syncExportInst: "Geben Sie diese PIN innerhalb von 15 Minuten auf Ihrem anderen Gerät ein.",
                 syncImportWarn: "Warnung: Beim Importieren werden Ihre aktuelle Bibliothek und Ihre Ersparnisse dauerhaft überschrieben.",
-                feedFilters: "Filter", fsByStatus: "Nach Status filtern", fsSelectAll: "Alle", fsUnselectAll: "Keine", fsUnclaimed: "Nicht eingelöst", fsClaimed: "Eingelöst", expiringSoon: "Läuft Bald Ab", expiringSoonDesc: "Angebote enden in 2 Tagen", niTip: "Status markieren", fdTitle: "Status markieren", fdDesc: "Wähle einen Status für dieses Element — es bleibt im Feed und kann jederzeit geändert werden.", chToast: "Eingelöst! Dein Filter blendet dieses Element jetzt aus.", chToast2: "Dieses Element ist bereits in deiner Bibliothek.", chAsk: "In deiner Bibliothek behalten?", chYes: "Ja, behalten", chNo: "Nein, Status ändern"
+                feedFilters: "Filter", fsByStatus: "Nach Status filtern", fsSelectAll: "Alle", fsUnselectAll: "Keine", fsUnclaimed: "Nicht eingelöst", fsClaimed: "Eingelöst", expiringSoon: "Läuft Bald Ab", expiringSoonDesc: "Angebote enden in 2 Tagen", ffRemember: "Meine Filter Merken", ffRememberDesc: "Beim nächsten Start diese Filter wiederherstellen; aus = alles anzeigen", niTip: "Status markieren", fdTitle: "Status markieren", fdDesc: "Wähle einen Status für dieses Element — es bleibt im Feed und kann jederzeit geändert werden.", chToast: "Eingelöst! Dein Filter blendet dieses Element jetzt aus.", chToast2: "Dieses Element ist bereits in deiner Bibliothek.", chAsk: "In deiner Bibliothek behalten?", chYes: "Ja, behalten", chNo: "Nein, Status ändern"
             },
             ru: {
                 title: "РадарЛута", subtitle: "Отслеживание бесплатных игр", 
@@ -1505,7 +1516,7 @@
                 syncImportDataBtn: "Импорт Данных",
                 syncExportInst: "Введите этот PIN-код на другом устройстве в течение 15 минут.",
                 syncImportWarn: "Внимание: Импорт навсегда перезапишет вашу текущую библиотеку и сэкономленные средства на этом устройстве.",
-                feedFilters: "Фильтры", fsByStatus: "Фильтр по статусу", fsSelectAll: "Все", fsUnselectAll: "Ничего", fsUnclaimed: "Не получено", fsClaimed: "Получено", expiringSoon: "Скоро Истекает", expiringSoonDesc: "Предложения заканчиваются через 2 дня", niTip: "Отметить статус", fdTitle: "Отметить статус", fdDesc: "Выберите статус для этого элемента — он останется в ленте, и вы сможете изменить его в любой момент.", chToast: "Получено! Фильтр теперь скрывает этот элемент.", chToast2: "Этот элемент уже в вашей библиотеке.", chAsk: "Оставить в библиотеке?", chYes: "Да, оставить", chNo: "Нет, сменить статус"
+                feedFilters: "Фильтры", fsByStatus: "Фильтр по статусу", fsSelectAll: "Все", fsUnselectAll: "Ничего", fsUnclaimed: "Не получено", fsClaimed: "Получено", expiringSoon: "Скоро Истекает", expiringSoonDesc: "Предложения заканчиваются через 2 дня", ffRemember: "Запомнить Мои Фильтры", ffRememberDesc: "Восстанавливать эти фильтры при запуске; выкл. = показать всё", niTip: "Отметить статус", fdTitle: "Отметить статус", fdDesc: "Выберите статус для этого элемента — он останется в ленте, и вы сможете изменить его в любой момент.", chToast: "Получено! Фильтр теперь скрывает этот элемент.", chToast2: "Этот элемент уже в вашей библиотеке.", chAsk: "Оставить в библиотеке?", chYes: "Да, оставить", chNo: "Нет, сменить статус"
             },
             ja: {
                 title: "ルートレーダー", subtitle: "無料ゲームをリアルタイムで追跡", 
@@ -1547,7 +1558,7 @@
                 syncImportDataBtn: "データ入力",
                 syncExportInst: "15分以内に別のデバイスでこのPINを入力してください。",
                 syncImportWarn: "警告：インポートすると、このデバイスの現在のライブラリと節約額が完全に上書きされます。",
-                feedFilters: "フィルター", fsByStatus: "ステータスで絞り込み", fsSelectAll: "すべて", fsUnselectAll: "なし", fsUnclaimed: "未取得", fsClaimed: "取得済み", expiringSoon: "まもなく終了", expiringSoonDesc: "2日以内に終了する案件", niTip: "ステータスを設定", fdTitle: "ステータスを設定", fdDesc: "このアイテムのステータスを選択してください。フィードに残り、いつでも変更できます。", chToast: "取得しました！このアイテムはフィルターで非表示になりました。", chToast2: "このアイテムはすでにライブラリにあります。", chAsk: "ライブラリに保持しますか？", chYes: "はい、保持", chNo: "いいえ、ステータスを変更"
+                feedFilters: "フィルター", fsByStatus: "ステータスで絞り込み", fsSelectAll: "すべて", fsUnselectAll: "なし", fsUnclaimed: "未取得", fsClaimed: "取得済み", expiringSoon: "まもなく終了", expiringSoonDesc: "2日以内に終了する案件", ffRemember: "フィルターを記憶", ffRememberDesc: "次回起動時にこのフィルターを復元；オフなら全て表示", niTip: "ステータスを設定", fdTitle: "ステータスを設定", fdDesc: "このアイテムのステータスを選択してください。フィードに残り、いつでも変更できます。", chToast: "取得しました！このアイテムはフィルターで非表示になりました。", chToast2: "このアイテムはすでにライブラリにあります。", chAsk: "ライブラリに保持しますか？", chYes: "はい、保持", chNo: "いいえ、ステータスを変更"
             },
             ko: {
                 title: "루트 레이더", subtitle: "무료 게임 실시간 추적", 
@@ -1589,7 +1600,7 @@
                 syncImportDataBtn: "데이터 가져오기",
                 syncExportInst: "15분 이내에 다른 기기에 이 PIN을 입력하세요.",
                 syncImportWarn: "경고: 가져오기를 실행하면 이 기기의 현재 라이브러리와 절약액을 영구적으로 덮어씁니다.",
-                feedFilters: "필터", fsByStatus: "상태별 필터", fsSelectAll: "전체", fsUnselectAll: "해제", fsUnclaimed: "미청구", fsClaimed: "청구됨", expiringSoon: "곧 만료", expiringSoonDesc: "2일 내 종료 예정", niTip: "상태 표시", fdTitle: "상태 표시", fdDesc: "이 항목의 상태를 선택하세요. 피드에 유지되며 언제든 변경할 수 있습니다.", chToast: "수령 완료! 필터에 의해 이 항목이 숨겨졌습니다.", chToast2: "이 항목은 이미 라이브러리에 있습니다.", chAsk: "라이브러리에 유지할까요?", chYes: "네, 유지", chNo: "아니요, 상태 변경"
+                feedFilters: "필터", fsByStatus: "상태별 필터", fsSelectAll: "전체", fsUnselectAll: "해제", fsUnclaimed: "미청구", fsClaimed: "청구됨", expiringSoon: "곧 만료", expiringSoonDesc: "2일 내 종료 예정", ffRemember: "내 필터 기억", ffRememberDesc: "다음 실행 시 이 필터를 복원; 끄면 모두 표시", niTip: "상태 표시", fdTitle: "상태 표시", fdDesc: "이 항목의 상태를 선택하세요. 피드에 유지되며 언제든 변경할 수 있습니다.", chToast: "수령 완료! 필터에 의해 이 항목이 숨겨졌습니다.", chToast2: "이 항목은 이미 라이브러리에 있습니다.", chAsk: "라이브러리에 유지할까요?", chYes: "네, 유지", chNo: "아니요, 상태 변경"
             },
             pt: {
                 title: "RadarLoot", subtitle: "Rastreando jogos grátis", 
@@ -1631,7 +1642,7 @@
                 syncImportDataBtn: "Importar Dados",
                 syncExportInst: "Insira este PIN no seu outro dispositivo em até 15 minutos.",
                 syncImportWarn: "Aviso: A importação substituirá permanentemente sua biblioteca atual e economia neste dispositivo.",
-                feedFilters: "Filtros", fsByStatus: "Filtrar por status", fsSelectAll: "Todos", fsUnselectAll: "Nenhum", fsUnclaimed: "Não resgatado", fsClaimed: "Resgatado", expiringSoon: "Expirando em Breve", expiringSoonDesc: "Ofertas terminando em 2 dias", niTip: "Marcar status", fdTitle: "Marcar status", fdDesc: "Escolha um status para este item — ele permanece no feed e você pode alterar quando quiser.", chToast: "Resgatado! Seu filtro agora oculta este item.", chToast2: "Este item já está na sua biblioteca.", chAsk: "Manter na sua biblioteca?", chYes: "Sim, manter", chNo: "Não, alterar status"
+                feedFilters: "Filtros", fsByStatus: "Filtrar por status", fsSelectAll: "Todos", fsUnselectAll: "Nenhum", fsUnclaimed: "Não resgatado", fsClaimed: "Resgatado", expiringSoon: "Expirando em Breve", expiringSoonDesc: "Ofertas terminando em 2 dias", ffRemember: "Lembrar Meus Filtros", ffRememberDesc: "Restaura estes filtros ao abrir; desmarcado = mostrar tudo", niTip: "Marcar status", fdTitle: "Marcar status", fdDesc: "Escolha um status para este item — ele permanece no feed e você pode alterar quando quiser.", chToast: "Resgatado! Seu filtro agora oculta este item.", chToast2: "Este item já está na sua biblioteca.", chAsk: "Manter na sua biblioteca?", chYes: "Sim, manter", chNo: "Não, alterar status"
             }
         };
 
@@ -1813,17 +1824,22 @@
           lang: localStorage.getItem('lang') || detectBrowserLang(),
           theme: localStorage.getItem('theme') || 'dark',
           games: [],
-          // 2026.09.03.3: remember the main-page platform tab across restarts
-          // (validated against the platforms list in renderTabs/renderGames)
-          currentPlatform: localStorage.getItem('lootradar_platform_tab') || 'All',
+          // 2026.09.03.4: filters restore ONLY when "Remember My Filters" is
+          // checked (lootradar_remember_filters = '1'). Default boot = ALL OPEN:
+          // every status visible, platform All, Expiring Soon off.
+          currentPlatform: localStorage.getItem('lootradar_remember_filters') === '1'
+              ? (localStorage.getItem('lootradar_platform_tab') || 'All')
+              : 'All',
           // Which card statuses are visible in the feed — user toggles per status.
-          // Default: everything visible. Persisted in lootradar_feed_status_filter.
+          // Persisted in lootradar_feed_status_filter (restored only when remembered).
           feedStatusFilter: Object.assign(
               { unclaimed: true, claimed: true, expired: true, failed: true, paywall: true, accidental: true },
-              (() => { const s = loadSafeStorage('lootradar_feed_status_filter'); return (s && typeof s === 'object') ? s : {}; })()
+              localStorage.getItem('lootradar_remember_filters') === '1'
+                  ? (() => { const s = loadSafeStorage('lootradar_feed_status_filter'); return (s && typeof s === 'object') ? s : {}; })()
+                  : {}
           ),
-          // 2026.09.03.3: remember the Expiring Soon toggle across restarts
-          showExpiringOnly: localStorage.getItem('lootradar_expiring_filter') === '1',
+          showExpiringOnly: localStorage.getItem('lootradar_remember_filters') === '1'
+              && localStorage.getItem('lootradar_expiring_filter') === '1',
           isLoading: false,
           claimedGames: sanitizeClaimed(loadSafeStorage('lootradar_claimed_v2') || loadSafeStorage('lootradar_claimed') || {}),
           totalSaved: parseFloat(localStorage.getItem('lootradar_saved_money')) || 0,
@@ -2531,6 +2547,11 @@
                 });
                 panel.querySelector('.ff-label2').textContent = t.expiringSoon || 'Expiring Soon';
                 panel.querySelector('.ff-desc2').textContent = t.expiringSoonDesc || 'Deals ending within 2 days';
+                // 2026.09.03.4: remember-filters row labels
+                const lblRem = panel.querySelector('.ff-label3');
+                if (lblRem) lblRem.textContent = t.ffRemember || 'Remember My Filters';
+                const descRem = panel.querySelector('.ff-desc3');
+                if (descRem) descRem.textContent = t.ffRememberDesc || 'Next launch restores these filters; off = show everything';
                 // Update checkbox state and counts
                 const statusCounts = getFeedStatusCounts();
                 panel.querySelectorAll('input[data-fs]').forEach(cb => {
@@ -2543,6 +2564,9 @@
                 if (cbExp) cbExp.checked = state.showExpiringOnly;
                 const countExp = document.getElementById('feed-filter-expiring-count');
                 if (countExp) countExp.textContent = getExpiringCount();
+                // 2026.09.03.4: sync the remember-filters checkbox
+                const cbRem = document.getElementById('feed-filter-remember');
+                if (cbRem) cbRem.checked = localStorage.getItem('lootradar_remember_filters') === '1';
                 // Animate open
                 requestAnimationFrame(() => {
                     panel.classList.remove('opacity-0', 'scale-95', 'pointer-events-none');
@@ -2583,6 +2607,13 @@
             renderGames();
         }
 
+        // 2026.09.03.4: OPT-IN filter memory. The filter values themselves are
+        // always saved (on every toggle); this flag only decides whether the
+        // NEXT boot restores them or starts ALL OPEN (default = unchecked).
+        function toggleRememberFilters(checked) {
+            localStorage.setItem('lootradar_remember_filters', checked ? '1' : '0');
+        }
+
         function updateFeedFilterUI() {
             const badge = document.getElementById('feed-filter-badge');
             if (badge) {
@@ -2608,6 +2639,9 @@
                 : 'bg-gray-100 text-gray-500 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700');
             const cbExp = document.getElementById('feed-filter-expiring');
             if (cbExp) cbExp.checked = state.showExpiringOnly;
+            // 2026.09.03.4: keep remember-filters checkbox in sync too
+            const cbRem = document.getElementById('feed-filter-remember');
+            if (cbRem) cbRem.checked = localStorage.getItem('lootradar_remember_filters') === '1';
             // Update counts
             const statusCounts = getFeedStatusCounts();
             FEED_STATUSES.forEach(s => {
@@ -5969,7 +6003,9 @@
                 // backup/import cycle reset the user's filters to defaults
                 'lootradar_feed_status_filter',
                 'lootradar_expiring_filter',
-                'lootradar_platform_tab'
+                'lootradar_platform_tab',
+                // 2026.09.03.4: the opt-in "remember my filters" flag
+                'lootradar_remember_filters'
             ];
 
             const data = {
@@ -8317,7 +8353,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.09.03.3';
+        window.BUILD_VERSION = '2026.09.03.4';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

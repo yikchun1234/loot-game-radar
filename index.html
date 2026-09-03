@@ -2212,8 +2212,11 @@
                     }
 
                     const historyItem = {
-                        id: activeDeleteId,
-                        originalUrl: game.open_giveaway || activeDeleteId,
+                        // 2026.09.02.6: FORCE strings — GamerPower feed games carry
+                        // numeric ids; a numeric id in history crashed
+                        // migrateNormalizedIds at every boot (the 2026-09-02 outage).
+                        id: (activeDeleteId === null || activeDeleteId === undefined) ? '' : String(activeDeleteId),
+                        originalUrl: String(game.open_giveaway || activeDeleteId || ''),
                         normalizedId: game.normalizedId || normalizeUrl(game.open_giveaway || activeDeleteId),
                         title: game.title,
                         worth: game.worth || 'Free',
@@ -2311,8 +2314,9 @@
                     state.deletedHistory = sanitizeHistory(loadSafeStorage('lootradar_deleted_history'));
                 }
                 state.deletedHistory.push({
-                    id: game.id || normId,
-                    originalUrl: fullUrl || game.id || normId,
+                    // 2026.09.02.6: FORCE strings (see executeDeletion historyItem)
+                    id: String(game.id || normId || ''),
+                    originalUrl: String(fullUrl || game.id || normId || ''),
                     normalizedId: normId,
                     title: game.title,
                     worth: game.worth || 'Free',
@@ -2392,10 +2396,13 @@
             };
 
             function init() {
-              // Migrate old normalized IDs to full URLs (fix broken links)
-              migrateNormalizedIds();
+              // Migrate old normalized IDs to full URLs (fix broken links).
+              // 2026.09.02.6: migrations must NEVER be able to kill startup —
+              // one numeric id in deleted history did exactly that and bricked
+              // the app on every boot (the 2026-09-02 outage).
+              try { migrateNormalizedIds(); } catch (e) { window.logError('init migrateNormalizedIds: ' + (e && e.message ? e.message : e), 'storage'); }
               // Merge epic:+gp: pairs of the same game already in the library
-              migrateCrossSourceDuplicates();
+              try { migrateCrossSourceDuplicates(); } catch (e) { window.logError('init migrateCrossSourceDuplicates: ' + (e && e.message ? e.message : e), 'storage'); }
 
               applyTheme();
               updateLanguageUI();
@@ -5972,9 +5979,11 @@
                             state.deletedHistory = loadSafeStorage('lootradar_deleted_history') || [];
                             state.totalSaved = parseFloat(localStorage.getItem('lootradar_saved_money')) || 0;
 
-                            // Run migration to fix any normalized IDs
-                            migrateNormalizedIds();
-                            migrateCrossSourceDuplicates();
+                            // Run migration to fix any normalized IDs.
+                            // 2026.09.02.6: guarded — a migration hiccup must not
+                            // abort the import after the data is already written.
+                            try { migrateNormalizedIds(); } catch (e) { window.logError('import migrateNormalizedIds: ' + (e && e.message ? e.message : e), 'storage'); }
+                            try { migrateCrossSourceDuplicates(); } catch (e) { window.logError('import migrateCrossSourceDuplicates: ' + (e && e.message ? e.message : e), 'storage'); }
 
                             // Refresh all UI
                             updateWalletUI();
@@ -6766,11 +6775,13 @@
             let migratedCount = 0;
 
             Object.entries(claimedGames).forEach(([id, game]) => {
+                // 2026.09.02.6: skip junk entries; open_giveaway may be non-string
+                if (!game || typeof game !== 'object') return;
                 // Don't change keys - only fix open_giveaway and add normalizedId
                 let fixedUrl = game.open_giveaway;
 
                 // Check if open_giveaway is a normalized ID (broken link from old bug)
-                if (game.open_giveaway && (game.open_giveaway.startsWith('gplay:') || game.open_giveaway.startsWith('ios:id') || game.open_giveaway.startsWith('steam:') || game.open_giveaway.startsWith('epic:') || game.open_giveaway.startsWith('gog:'))) {
+                if (typeof game.open_giveaway === 'string' && (game.open_giveaway.startsWith('gplay:') || game.open_giveaway.startsWith('ios:id') || game.open_giveaway.startsWith('steam:') || game.open_giveaway.startsWith('epic:') || game.open_giveaway.startsWith('gog:'))) {
                     fixedUrl = denormalizeUrl(game.open_giveaway);
                     needsSave = true;
                 }
@@ -6827,7 +6838,17 @@
             const deletedHistory = loadSafeStorage('lootradar_deleted_history') || [];
             let deletedNeedsSave = false;
             deletedHistory.forEach(item => {
-                if (item.id && (item.id.startsWith('http://') || item.id.startsWith('https://'))) {
+                // 2026.09.02.6: the outage root cause — GamerPower games carry
+                // numeric ids, and item.id.startsWith threw on them, killing
+                // this migration at EVERY boot (which killed the whole app).
+                // Coerce numbers to strings; guard everything else.
+                if (!item || typeof item !== 'object') return;
+                if (typeof item.id === 'number') {
+                    item.id = String(item.id);
+                    deletedNeedsSave = true;
+                    return;
+                }
+                if (typeof item.id === 'string' && (item.id.startsWith('http://') || item.id.startsWith('https://'))) {
                     const norm = normalizeUrl(item.id);
                     if (norm && norm !== item.id) {
                         item.id = norm;
@@ -6843,7 +6864,8 @@
 
             // Remove ALL "duplicate" entries from deleted_history (no longer needed)
             // These entries cause items to show as "DUPLICATE" status which is confusing
-            let currentDeleted = loadSafeStorage('lootradar_deleted_history') || [];
+            let currentDeleted = sanitizeHistory(loadSafeStorage('lootradar_deleted_history'));
+            // 2026.09.02.6: sanitizeHistory (not bare load) — item.reason threw on junk entries
             let filteredDeleted = currentDeleted.filter(item => item.reason !== 'duplicate');
             if (filteredDeleted.length < currentDeleted.length) {
                 saveSafeStorage('lootradar_deleted_history', filteredDeleted);
@@ -6853,7 +6875,7 @@
 
             // Remove CORRUPTED entries from deleted_history (id/normalizedId/originalUrl are all "undefined")
             // These cause false matches with items that have no game.id (e.g. NewMobileLife items)
-            currentDeleted = loadSafeStorage('lootradar_deleted_history') || [];
+            currentDeleted = sanitizeHistory(loadSafeStorage('lootradar_deleted_history'));
             filteredDeleted = currentDeleted.filter(item => {
                 const id = item.id || '';
                 const normId = item.normalizedId || id;
@@ -8187,7 +8209,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.09.02.5';
+        window.BUILD_VERSION = '2026.09.02.6';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

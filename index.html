@@ -2315,7 +2315,13 @@
                 }
                 state.deletedHistory.push({
                     // 2026.09.02.6: FORCE strings (see executeDeletion historyItem)
-                    id: String(game.id || normId || ''),
+                    // 2026.09.03.2: canonical key FIRST (normId). The Worker gives
+                    // AppSales/CheapCharts items synthetic ids (android_<title>,
+                    // ios_<title>) while publish_dates + claimed are keyed by the
+                    // normalized URL (gplay:...). Storing game.id here made ONE app
+                    // own TWO keys — a ghost entry that re-created the Same-Name
+                    // duplicate group after every claim/mark cycle.
+                    id: String(normId || game.id || ''),
                     originalUrl: String(fullUrl || game.id || normId || ''),
                     normalizedId: normId,
                     title: game.title,
@@ -4630,7 +4636,16 @@
             const allUrlsSet = new Set();
             Object.keys(publishDates).forEach(u => allUrlsSet.add(u));
             Object.keys(claimedGames).forEach(u => allUrlsSet.add(u));
-            deletedHistory.forEach(d => { if (d.id) allUrlsSet.add(d.id); });
+            deletedHistory.forEach(d => {
+                // 2026.09.03.2: resolve to the CANONICAL key. A legacy entry with
+                // id 'android_<title>' + normalizedId 'gplay:...' is the SAME app
+                // as the gplay: entry in publish_dates — adding both keys spawns
+                // ghost rows / duplicate groups that can never be cleaned up.
+                const canon = (typeof d.normalizedId === 'string' && d.normalizedId && d.normalizedId !== 'undefined')
+                    ? d.normalizedId
+                    : (normalizeUrl(d.id || '') || d.id);
+                if (canon) allUrlsSet.add(canon);
+            });
             const allUrls = Array.from(allUrlsSet);
 
             // Title lookup for TRACKED-only entries: publish_dates stores no title,
@@ -5469,7 +5484,16 @@
             const allUrlsSet = new Set();
             Object.keys(publishDates).forEach(u => allUrlsSet.add(u));
             Object.keys(claimedGames).forEach(u => allUrlsSet.add(u));
-            deletedHistory.forEach(d => { if (d.id) allUrlsSet.add(d.id); });
+            deletedHistory.forEach(d => {
+                // 2026.09.03.2: resolve to the CANONICAL key. A legacy entry with
+                // id 'android_<title>' + normalizedId 'gplay:...' is the SAME app
+                // as the gplay: entry in publish_dates — adding both keys spawns
+                // ghost rows / duplicate groups that can never be cleaned up.
+                const canon = (typeof d.normalizedId === 'string' && d.normalizedId && d.normalizedId !== 'undefined')
+                    ? d.normalizedId
+                    : (normalizeUrl(d.id || '') || d.id);
+                if (canon) allUrlsSet.add(canon);
+            });
 
             // Title + platform lookup for TRACKED-only entries (publish_dates stores neither)
             const feedTitleMap = {};
@@ -5517,7 +5541,10 @@
                     deletedDate: deleted && deleted.deletedAt && !isNaN(new Date(deleted.deletedAt).getTime()) ? new Date(deleted.deletedAt).getTime() : 0,
                     source: info.source || (claimed && claimed.source) || (deleted && deleted.source) || '-',
                     image: claimed && claimed.image ? claimed.image : '',
-                    worth: claimed && claimed.worth ? claimed.worth : ''
+                    worth: claimed && claimed.worth ? claimed.worth : '',
+                    // 2026.09.03.2: still served by an upstream feed? Deleting
+                    // its record cannot hide it — the next refresh re-tracks it.
+                    live: !!feedTitleMap[normalizedId]
                 });
             });
 
@@ -5540,11 +5567,15 @@
             html += `<span class="px-2 py-1 bg-teal-500/10 text-teal-500 rounded text-[10px] font-bold">${dupGroups.length} groups (${totalExtra} same-name entries)</span>`;
             if (noTitleCount > 0) html += `<span class="px-2 py-1 bg-gray-500/10 text-gray-400 rounded text-[10px] font-bold">${noTitleCount} entries without title (skipped)</span>`;
             html += '</div>';
-            html += '<div class="text-[10px] text-gray-400 mb-3">Grouped by identical name + platform across ALL tracked apps (claimed + tracked + deleted). Same name on DIFFERENT platforms = separate giveaways, not grouped. KEEP = the recommended entry. Tap the trash button on ANY card (left or right) to delete that exact entry on the spot — or tick checkboxes and use Delete Selected for a batch.</div>';
+            html += '<div class="text-[10px] text-gray-400 mb-3">Grouped by identical name + platform across ALL tracked apps (claimed + tracked + deleted). Same name on DIFFERENT platforms = separate giveaways, not grouped. KEEP = the recommended entry. Tap the trash button on ANY card (left or right) to delete that exact entry on the spot — or tick checkboxes and use Delete Selected for a batch. Note: a LIVE entry is still served by an upstream feed — deleting its record will not remove it from the feed (it gets re-tracked on the next refresh); mark it Not Interested instead.</div>';
 
             const fmtDate = ts => ts ? new Date(ts).toLocaleString() : '-';
             // 2026.09.03.1: escape titles embedded in data-title attributes
             const escAttr = s => String(s || '').replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            // 2026.09.03.2: LIVE badge — explains why a "deleted" app can come
+            // back: it is still served by an upstream feed, so the next refresh
+            // re-tracks it. Deleting a record hides nothing that is still live.
+            const liveBadge = entry => entry.live ? '<span class="px-1.5 py-0.5 text-[9px] font-bold rounded bg-blue-500/20 text-blue-400" title="Still served by an upstream feed — deleting its record will NOT remove it from the feed; it is re-tracked on the next refresh. Mark it Not Interested instead to hide it.">LIVE</span>' : '';
             const statusHtml = entry => {
                 if (entry.claimed) return '<span class="px-1.5 py-0.5 text-[9px] font-bold rounded bg-green-500/20 text-green-500">CLAIMED</span>';
                 if (entry.deleted) return `<span class="px-1.5 py-0.5 text-[9px] font-bold rounded bg-orange-500/20 text-orange-500">${(entry.deleted.reason || 'DELETED').toUpperCase()}</span>`;
@@ -5590,7 +5621,7 @@
                 const kImg = keep.image ? `<img src="${keep.image}" class="w-8 h-8 rounded object-cover flex-shrink-0" onerror="this.style.display='none'">` : '';
                 html += `<div class="flex-shrink-0 w-[240px] snap-start p-2 bg-green-500/10 border border-green-500/30 rounded-lg">`;
                 html += `<div class="flex items-center justify-between gap-2 mb-1.5">`;
-                html += `<div class="text-[10px] font-bold text-green-500 flex items-center gap-1"><i class="ph-bold ph-check-circle"></i> KEEP ${statusHtml(keep)}</div>`;
+                html += `<div class="text-[10px] font-bold text-green-500 flex items-center gap-1 flex-wrap"><i class="ph-bold ph-check-circle"></i> KEEP ${statusHtml(keep)} ${liveBadge(keep)}</div>`;
                 html += `<button onclick="deleteTrackedDupEntry(this)" data-storage-key="${keep.url}" data-title="${escAttr(group.title)}" title="Permanently delete this entry now" class="tdup-del-btn px-1.5 py-0.5 text-[9px] font-bold bg-red-500/15 text-red-500 hover:bg-red-500/30 rounded transition-colors"><i class="ph-bold ph-trash"></i></button>`;
                 html += `</div>`;
                 html += `<div class="flex items-start gap-2">${kImg}<div class="min-w-0 flex-1">`;
@@ -5611,7 +5642,7 @@
                     const dImg = entry.image ? `<img src="${entry.image}" class="w-8 h-8 rounded object-cover flex-shrink-0" onerror="this.style.display='none'">` : '';
                     html += `<div class="flex-shrink-0 w-[240px] snap-start p-2 bg-red-500/10 border border-red-500/30 rounded-lg">`;
                     html += `<div class="flex items-center justify-between mb-1 gap-2">`;
-                    html += `<div class="text-[10px] font-bold text-red-500 flex items-center gap-1"><i class="ph-bold ph-copy"></i> SAME NAME #${di + 1} ${statusHtml(entry)}</div>`;
+                    html += `<div class="text-[10px] font-bold text-red-500 flex items-center gap-1 flex-wrap"><i class="ph-bold ph-copy"></i> SAME NAME #${di + 1} ${statusHtml(entry)} ${liveBadge(entry)}</div>`;
                     html += `<div class="flex items-center gap-2">`;
                     html += `<label class="flex items-center cursor-pointer" title="Tick to include in batch Delete Selected">`;
                     html += `<input type="checkbox" class="tdup-checkbox" data-storage-key="${entry.url}">`;
@@ -6188,7 +6219,16 @@
             const allUrlsSet = new Set();
             Object.keys(publishDates).forEach(u => allUrlsSet.add(u));
             Object.keys(claimedGames).forEach(u => allUrlsSet.add(u));
-            deletedHistory.forEach(d => { if (d.id) allUrlsSet.add(d.id); });
+            deletedHistory.forEach(d => {
+                // 2026.09.03.2: resolve to the CANONICAL key. A legacy entry with
+                // id 'android_<title>' + normalizedId 'gplay:...' is the SAME app
+                // as the gplay: entry in publish_dates — adding both keys spawns
+                // ghost rows / duplicate groups that can never be cleaned up.
+                const canon = (typeof d.normalizedId === 'string' && d.normalizedId && d.normalizedId !== 'undefined')
+                    ? d.normalizedId
+                    : (normalizeUrl(d.id || '') || d.id);
+                if (canon) allUrlsSet.add(canon);
+            });
             const allUrls = Array.from(allUrlsSet);
 
             // Build text output
@@ -6879,6 +6919,19 @@
                 if (!item || typeof item !== 'object') return;
                 if (typeof item.id === 'number') {
                     item.id = String(item.id);
+                    deletedNeedsSave = true;
+                    return;
+                }
+                // 2026.09.03.2: canonicalize synthetic ids (android_<title>,
+                // ios_<title>, numeric-strings...) when the entry already knows
+                // its normalized URL key. Keeps every history entry in the SAME
+                // key space as publish_dates / claimed, so one app can never
+                // own two keys again.
+                if (typeof item.id === 'string' && typeof item.normalizedId === 'string' &&
+                    item.normalizedId && item.normalizedId !== 'undefined' &&
+                    item.id !== item.normalizedId &&
+                    !item.id.startsWith('http://') && !item.id.startsWith('https://')) {
+                    item.id = item.normalizedId;
                     deletedNeedsSave = true;
                     return;
                 }
@@ -8243,7 +8296,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.09.03.1';
+        window.BUILD_VERSION = '2026.09.03.2';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

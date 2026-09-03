@@ -4265,19 +4265,39 @@
         let devModeActive = false;
 
         document.addEventListener('DOMContentLoaded', function() {
-            const titleEl = document.getElementById('ui-stats-title');
-            if (!titleEl) return;
-            titleEl.style.cursor = 'pointer';
-            titleEl.addEventListener('click', function() {
-                devTapCount++;
-                clearTimeout(devTapTimer);
-                devTapTimer = setTimeout(() => { devTapCount = 0; }, 2000);
-                if (devTapCount >= 5 && !devModeActive) {
-                    devModeActive = true;
-                    devTapCount = 0;
-                    renderDevPanel();
-                    document.getElementById('dev-panel').classList.remove('hidden');
-                }
+            // 2026.09.02.3: the secret tap now works on BOTH the main
+            // header title (home screen) and the Loot Analytics panel
+            // title. Users stuck on a broken feed shouldn't have to
+            // navigate anywhere first to reach Developer Mode — the
+            // 2026-09-02 outage showed the analytics-only entry point
+            // was undiscoverable when you most needed it.
+            ['ui-title', 'ui-stats-title'].forEach(function(elId) {
+                const titleEl = document.getElementById(elId);
+                if (!titleEl) return;
+                titleEl.style.cursor = 'pointer';
+                titleEl.addEventListener('click', function() {
+                    devTapCount++;
+                    clearTimeout(devTapTimer);
+                    devTapTimer = setTimeout(() => { devTapCount = 0; }, 2000);
+                    if (devTapCount >= 5 && !devModeActive) {
+                        devTapCount = 0;
+                        // The dev panel lives inside the analytics modal —
+                        // if triggered from the home screen, open the modal
+                        // first. Guarded so a broken chart render can never
+                        // block Dev Mode itself.
+                        try {
+                            const statsModal = document.getElementById('stats-modal');
+                            if (statsModal && statsModal.classList.contains('hidden') && window.toggleStats) window.toggleStats();
+                        } catch (e) { if (window.logError) window.logError('Dev Mode open (stats): ' + e.message, 'dev'); }
+                        devModeActive = true;
+                        try { renderDevPanel(); } catch (e) { if (window.logError) window.logError('renderDevPanel: ' + e.message, 'dev'); }
+                        const devPanel = document.getElementById('dev-panel');
+                        if (devPanel) {
+                            devPanel.classList.remove('hidden');
+                            try { devPanel.scrollIntoView({ behavior: 'smooth' }); } catch (e) { /* older browsers */ }
+                        }
+                    }
+                });
             });
         });
 
@@ -8124,7 +8144,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.09.02.2';
+        window.BUILD_VERSION = '2026.09.02.3';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

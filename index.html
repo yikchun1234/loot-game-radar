@@ -4053,8 +4053,11 @@
                         <div class="flex-1 flex items-end mt-auto relative">
                             <!-- Left fade indicator (shown when scrollable) -->
                             <div id="bar-chart-fade" class="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-white dark:from-dark-card to-transparent z-10 pointer-events-none opacity-0 transition-opacity duration-300"></div>
-                            <!-- Scrollable bar container -->
-                            <div id="bar-chart-scroll" class="flex items-end gap-2 overflow-x-auto w-full pb-2" onscroll="updateBarChartFade()" style="scroll-behavior: smooth; scrollbar-width: thin;">
+                            <!-- Scrollable bar container (2026.09.03.5: px/pt give the
+                                 click-glow box-shadow room — overflow-x-auto clips it at
+                                 the container edge, so the oldest/newest month's bar used
+                                 to light up only half-way) -->
+                            <div id="bar-chart-scroll" class="flex items-end gap-2 overflow-x-auto w-full px-6 pt-5 pb-2" onscroll="updateBarChartFade()" style="scroll-behavior: smooth; scrollbar-width: thin;">
                                 ${barsHtml}
                             </div>
                         </div>
@@ -4066,8 +4069,9 @@
                         <div class="flex-1 flex items-end mt-auto relative">
                             <!-- Left fade indicator (shown when scrollable) -->
                             <div id="savings-bar-fade" class="absolute left-0 top-0 bottom-0 w-12 bg-gradient-to-r from-white dark:from-dark-card to-transparent z-10 pointer-events-none opacity-0 transition-opacity duration-300"></div>
-                            <!-- Scrollable bar container (auto-scroll to newest) -->
-                            <div id="savings-bar-scroll" class="flex items-end gap-2 overflow-x-auto w-full pb-2" onscroll="updateSavingsBarFade()" style="scroll-behavior: smooth; scrollbar-width: thin;">
+                            <!-- Scrollable bar container (auto-scroll to newest;
+                                 2026.09.03.5: px/pt padding for unclipped glow) -->
+                            <div id="savings-bar-scroll" class="flex items-end gap-2 overflow-x-auto w-full px-6 pt-5 pb-2" onscroll="updateSavingsBarFade()" style="scroll-behavior: smooth; scrollbar-width: thin;">
                                 ${savingsBarsHtml}
                             </div>
                         </div>
@@ -8353,7 +8357,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.09.03.4';
+        window.BUILD_VERSION = '2026.09.03.5';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

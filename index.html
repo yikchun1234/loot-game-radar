@@ -265,6 +265,33 @@
         /* Clock petals bloom from the center */
         .rose-petal { opacity: 0; transform: scale(0); transform-box: view-box; transform-origin: 50% 50%; transition: opacity 0.5s ease, transform 0.9s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
         .chart-in-view .rose-petal { opacity: 1; transform: scale(1); }
+        /* ===== 2026.09.04.1: TAP-TO-REVEAL CHART INFO =====
+           Tap a [data-info] item: siblings dim, it brightens, a chip shows
+           its info; everything restores on the platform-donut cadence
+           (200ms in / 2000ms hold / 200ms out). The 0-delay !important
+           transition overrides the inline entrance stagger while a
+           focus/restore is running. */
+        .chart-focus [data-info], .chart-restore [data-info] {
+            transition: opacity 0.2s ease, filter 0.2s ease, transform 0.2s ease !important;
+            transition-delay: 0s !important;
+        }
+        .chart-focus [data-info] { opacity: 0.25; }
+        .chart-focus [data-info].chart-focus-hit { opacity: 1; filter: brightness(1.25) saturate(1.3); }
+        .chart-focus div[data-info].chart-focus-hit { transform: scale(1.6); position: relative; z-index: 20; }
+        .chart-focus circle[data-info].chart-focus-hit { transform: scale(1.5); transform-box: fill-box; transform-origin: center; }
+        [data-info] { cursor: pointer; }
+        .chart-info-chip {
+            position: absolute; left: 50%; top: 8px; z-index: 30;
+            width: max-content; max-width: 90%;
+            padding: 6px 14px; border-radius: 9999px;
+            background: rgba(17, 24, 39, 0.92); color: #fff;
+            font-size: 11px; font-weight: 700; line-height: 1.3; text-align: center;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+            opacity: 0; pointer-events: none;
+            transform: translateX(-50%) translateY(-4px) scale(0.9);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+        .chart-info-chip.chip-on { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
         /* Streak Flame bars reuse .hist-bar (sweep animates data-target-width);
            Platform Rise stacked area wipes in via the .wealth-clip-rect clipPath */
 
@@ -2794,6 +2821,10 @@
                 // only when it scrolls into view (IntersectionObserver)
                 initStatsScrollAnimations();
 
+                // 2026.09.04.1: tap-to-reveal info on the 7 detail charts
+                // (bind-once; the container element persists across renders)
+                initChartInfoTaps();
+
                 // Initialize bar chart scroll (auto-scroll to newest, show fade if needed)
                 initBarChartScroll();
                 initSavingsBarScroll();
@@ -2814,6 +2845,11 @@
 
             // Reset scroll-triggered animation state (replays on next open)
             document.querySelectorAll('.chart-in-view').forEach(p => p.classList.remove('chart-in-view'));
+
+            // 2026.09.04.1: clear any tap-to-reveal focus left mid-animation
+            document.querySelectorAll('.chart-focus, .chart-restore').forEach(p => p.classList.remove('chart-focus', 'chart-restore'));
+            document.querySelectorAll('.chart-focus-hit').forEach(el => el.classList.remove('chart-focus-hit'));
+            document.querySelectorAll('.chart-info-chip').forEach(c => c.classList.remove('chip-on'));
 
             // Detach the scroll sweep so it can't fire while the modal is hidden
             if (window.statsScrollSweep) {
@@ -3479,7 +3515,7 @@
                     else if (intensity > 0.5) bgColor = 'bg-green-500';
                     else if (intensity > 0.25) bgColor = 'bg-green-400';
                     else if (intensity > 0) bgColor = 'bg-green-300';
-                    heatmapHtml += `<div class="heat-cell w-3 h-3 ${bgColor} rounded-sm" style="transition-delay: ${hour * 14}ms" title="${count} claims"></div>`;
+                    heatmapHtml += `<div class="heat-cell w-3 h-3 ${bgColor} rounded-sm" style="transition-delay: ${hour * 14}ms" title="${count} claims" data-info="${dayLabels[day]} ${hour}:00 · ${count} claims"></div>`;
                 }
             }
             heatmapHtml += '</div>';
@@ -3514,7 +3550,7 @@
                     else if (intensity > 0.5) bgColor = 'bg-purple-500';
                     else if (intensity > 0.25) bgColor = 'bg-blue-400';
                     else if (intensity > 0) bgColor = 'bg-blue-300';
-                    releaseHeatmapHtml += `<div class="heat-cell w-3 h-3 ${bgColor} rounded-sm" style="transition-delay: ${hour * 14}ms" title="${count} releases"></div>`;
+                    releaseHeatmapHtml += `<div class="heat-cell w-3 h-3 ${bgColor} rounded-sm" style="transition-delay: ${hour * 14}ms" title="${count} releases" data-info="${releaseDayLabels[day]} ${hour}:00 · ${count} releases"></div>`;
                 }
             }
             releaseHeatmapHtml += '</div>';
@@ -3767,7 +3803,12 @@
                 const sy = (v) => 12 + (1 - v / maxV) * 175;
                 const gridHtml = [0, 4, 8, 12, 16, 20, 24].map(hk => `<line x1="${sx(hk).toFixed(1)}" y1="12" x2="${sx(hk).toFixed(1)}" y2="187" class="stroke-gray-200 dark:stroke-gray-700" stroke-width="1" stroke-dasharray="3 3"></line><text x="${sx(hk).toFixed(1)}" y="200" text-anchor="middle" class="fill-gray-400" style="font-size:8px;font-weight:700;">${hk}h</text>`).join('');
                 const yTicksHtml = [0.25, 0.5, 0.75, 1].map(f => `<line x1="34" y1="${sy(maxV * f).toFixed(1)}" x2="384" y2="${sy(maxV * f).toFixed(1)}" class="stroke-gray-200 dark:stroke-gray-700" stroke-width="1" stroke-dasharray="3 3"></line><text x="30" y="${(sy(maxV * f) + 3).toFixed(1)}" text-anchor="end" class="fill-gray-400" style="font-size:8px;font-weight:700;">${formatCompact(maxV * f)}</text>`).join('');
-                const dotsHtml = scatterPts.map((p, i) => `<circle class="scatter-dot" cx="${sx(p.hour).toFixed(1)}" cy="${sy(p.v).toFixed(1)}" r="4.5" fill="${hourBands[p.band].color}" fill-opacity="0.75" stroke="${hourBands[p.band].color}" stroke-width="1" style="transition-delay: ${Math.min(i * 18, 1600)}ms;"><title>${String(p.title || '').replace(/[<>&"]/g, '')} — ${Math.floor(p.hour)}:00 · ${formatCompact(p.v)}</title></circle>`).join('');
+                const dotsHtml = scatterPts.map((p, i) => {
+                    // 2026.09.04.1: data-info feeds the tap-to-reveal chip
+                    // (title tooltips need hover — phones can't hover)
+                    const dotInfo = `${String(p.title || '').replace(/[<>&"]/g, '')} — ${Math.floor(p.hour)}:00 · ${formatCompact(p.v)}`;
+                    return `<circle class="scatter-dot" cx="${sx(p.hour).toFixed(1)}" cy="${sy(p.v).toFixed(1)}" r="4.5" fill="${hourBands[p.band].color}" fill-opacity="0.75" stroke="${hourBands[p.band].color}" stroke-width="1" style="transition-delay: ${Math.min(i * 18, 1600)}ms;" data-info="${dotInfo}"><title>${dotInfo}</title></circle>`;
+                }).join('');
                 scatterSvgHtml = `<svg viewBox="0 0 400 210" class="w-full block">${gridHtml}${yTicksHtml}${dotsHtml}<line x1="34" y1="187" x2="384" y2="187" class="stroke-gray-300 dark:stroke-gray-600" stroke-width="1"></line></svg>`;
             }
             const hourBandLegendHtml = hourBands.map(b => `<span class="flex items-center gap-1 text-[9px] font-bold text-gray-400"><span class="w-2 h-2 rounded-full inline-block" style="background:${b.color}"></span>${b.label}</span>`).join('');
@@ -3866,7 +3907,7 @@
                     const botPts = prMonthKeys.map((_, i) => `${prX(i).toFixed(1)},${prY(prCum[i][s]).toFixed(1)}`).reverse();
                     let seriesTotal = prTotals[prSeries[s]] || 0;
                     if (prSeries[s] === prOtherLabel && prFold.length > 0) seriesTotal += prFold.reduce((acc, fl) => acc + (prTotals[fl] || 0), 0);
-                    prLayers += `<path d="M ${topPts.join(' L ')} L ${botPts.join(' L ')} Z" fill="${prColorPool[s % prColorPool.length]}" fill-opacity="0.85" stroke="${prColorPool[s % prColorPool.length]}" stroke-width="1"><title>${prSeries[s]} — ${formatCompact(seriesTotal)}</title></path>`;
+                    prLayers += `<path d="M ${topPts.join(' L ')} L ${botPts.join(' L ')} Z" fill="${prColorPool[s % prColorPool.length]}" fill-opacity="0.85" stroke="${prColorPool[s % prColorPool.length]}" stroke-width="1" data-info="${prSeries[s]} — ${formatCompact(seriesTotal)}"><title>${prSeries[s]} — ${formatCompact(seriesTotal)}</title></path>`;
                 }
                 platformRiseHtml = `
                     <svg viewBox="0 0 1000 200" preserveAspectRatio="none" class="w-full h-44 block overflow-visible">
@@ -3928,7 +3969,7 @@
                                 <div class="text-[7px] font-bold text-gray-400 whitespace-nowrap overflow-visible" style="width:12px; height:12px;">${wk.monthLabel}</div>
                                 ${wk.week.map(cell => cell === null
                                     ? `<div style="width:12px; height:12px;"></div>`
-                                    : `<div class="heat-cell rounded-[3px] ${calLevels[calLevel(cell.count)]}" style="width:12px; height:12px; transition-delay: ${Math.min(wi * 8, 900)}ms;" title="${cell.key}: ${cell.count}"></div>`).join('')}
+                                    : `<div class="heat-cell rounded-[3px] ${calLevels[calLevel(cell.count)]}" style="width:12px; height:12px; transition-delay: ${Math.min(wi * 8, 900)}ms;" title="${cell.key}: ${cell.count}" data-info="${cell.key}: ${cell.count}"></div>`).join('')}
                             </div>`).join('')}
                     </div>
                 </div>`;
@@ -3979,7 +4020,7 @@
                                 <div class="text-[7px] font-bold text-gray-400 whitespace-nowrap overflow-visible" style="width:12px; height:12px;">${wk.monthLabel}</div>
                                 ${wk.week.map(cell => cell === null
                                     ? `<div style="width:12px; height:12px;"></div>`
-                                    : `<div class="heat-cell rounded-[3px] ${remCalLevels[remCalLevel(cell.count)]}" style="width:12px; height:12px; transition-delay: ${Math.min(wi * 8, 900)}ms;" title="${cell.key}: ${cell.count}"></div>`).join('')}
+                                    : `<div class="heat-cell rounded-[3px] ${remCalLevels[remCalLevel(cell.count)]}" style="width:12px; height:12px; transition-delay: ${Math.min(wi * 8, 900)}ms;" title="${cell.key}: ${cell.count}" data-info="${cell.key}: ${cell.count}"></div>`).join('')}
                             </div>`).join('')}
                     </div>
                 </div>`;
@@ -3998,7 +4039,7 @@
                 const a0 = h * 15 + 1, a1 = (h + 1) * 15 - 1;
                 const bandColor = hourBands[hourBandOf(h)].color;
                 return `<g class="rose-petal" style="transition-delay: ${h * 45}ms;">
-                    <path d="${roseSectorPath(clockCx, clockCy, r, a0, a1)}" fill="${bandColor}" fill-opacity="0.85" stroke="${bandColor}" stroke-width="0.5"><title>${h}:00 — ${formatCompact(v)}</title></path>
+                    <path d="${roseSectorPath(clockCx, clockCy, r, a0, a1)}" fill="${bandColor}" fill-opacity="0.85" stroke="${bandColor}" stroke-width="0.5" data-info="${h}:00 — ${formatCompact(v)}"><title>${h}:00 — ${formatCompact(v)}</title></path>
                 </g>`;
             }).join('');
             const clockTicksHtml = [0, 6, 12, 18].map(hk => {
@@ -6393,6 +6434,68 @@
             if(wealthTotal) wealthTotal.innerText = `$${state.totalSaved.toFixed(2)}`;
         };
 
+        // ===== 2026.09.04.1: TAP-TO-REVEAL CHART INFO =====
+        // One delegated listener on the persistent #stats-container serves all
+        // seven tappable charts (Midnight Hunter scatter, Loot Clock petals,
+        // Rise & Fall layers, Claim/Release heatmaps, Loot/Removal calendars).
+        // Tap → the item brightens, siblings dim, a chip shows its data-info,
+        // then everything restores — the Loot-by-Platform donut cadence:
+        // 200ms in / 2000ms hold / 200ms out. Re-taps restart the cycle.
+        window.initChartInfoTaps = function() {
+            const container = document.getElementById('stats-container');
+            if (!container || container.dataset.infoTapsBound === '1') return;
+            container.dataset.infoTapsBound = '1';
+            container.addEventListener('click', function(e) {
+                try {
+                    const item = e.target && e.target.closest ? e.target.closest('[data-info]') : null;
+                    if (!item) return;
+                    const panel = item.closest('.glass-panel');
+                    if (!panel) return;
+                    const info = item.getAttribute('data-info') || '';
+
+                    // One chip per panel, created on demand (all styling in CSS)
+                    let chip = panel.querySelector('.chart-info-chip');
+                    if (!chip) {
+                        if (getComputedStyle(panel).position === 'static') panel.style.position = 'relative';
+                        chip = document.createElement('div');
+                        chip.className = 'chart-info-chip';
+                        panel.appendChild(chip);
+                    }
+
+                    clearTimeout(panel._ciInTimer);
+                    clearTimeout(panel._ciHoldTimer);
+                    clearTimeout(panel._ciRestoreTimer);
+
+                    // Dim siblings, brighten the tapped item
+                    panel.querySelectorAll('.chart-focus-hit').forEach(el => el.classList.remove('chart-focus-hit'));
+                    panel.classList.remove('chart-restore');
+                    panel.classList.add('chart-focus');
+                    item.classList.add('chart-focus-hit');
+
+                    // Chip text swap — fade out first if one is already showing
+                    const showChip = () => { chip.textContent = info; chip.classList.add('chip-on'); };
+                    if (chip.classList.contains('chip-on')) {
+                        chip.classList.remove('chip-on');
+                        panel._ciInTimer = setTimeout(showChip, 200);
+                    } else {
+                        showChip();
+                    }
+
+                    // Hold 2s, then restore uniformly over 200ms (.chart-restore
+                    // keeps the 0-delay transition active during the fade-back)
+                    panel._ciHoldTimer = setTimeout(() => {
+                        chip.classList.remove('chip-on');
+                        panel.classList.remove('chart-focus');
+                        panel.classList.add('chart-restore');
+                        panel.querySelectorAll('.chart-focus-hit').forEach(el => el.classList.remove('chart-focus-hit'));
+                        panel._ciRestoreTimer = setTimeout(() => panel.classList.remove('chart-restore'), 250);
+                    }, 2000);
+                } catch (err) {
+                    if (window.logError) window.logError('chartInfoTaps: ' + (err && err.message ? err.message : err), 'ui');
+                }
+            });
+        };
+
         // --- SCROLL-TRIGGERED CHART ANIMATIONS ---
         // Each chart panel animates only when it scrolls into view,
         // so users actually see every animation instead of missing the
@@ -8357,7 +8460,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.09.03.5';
+        window.BUILD_VERSION = '2026.09.04.1';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

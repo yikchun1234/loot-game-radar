@@ -896,6 +896,9 @@
                     <button onclick="deleteSelectedTrackedDuplicates()" id="dev-tdup-delete-btn" class="px-3 py-1.5 text-[10px] font-bold bg-red-500/20 text-red-500 hover:bg-red-500/30 rounded-lg transition-colors hidden">
                       <i class="ph-bold ph-trash"></i> Delete Selected
                     </button>
+                    <button onclick="mergeAllSafeTrackedDups()" id="dev-tdup-merge-btn" title="Merge every group whose name AND URL match EXACTLY: oldest data wins, key becomes canonical, highest status wins" class="px-3 py-1.5 text-[10px] font-bold bg-green-500/20 text-green-500 hover:bg-green-500/30 rounded-lg transition-colors hidden">
+                      <i class="ph-bold ph-git-merge"></i> Merge All Safe Duplicates
+                    </button>
                   </div>
                   <div id="dev-tracked-dup-report" class="text-xs text-gray-600 dark:text-gray-400">Click "Detect" to group ALL tracked apps with the same name...</div>
                 </div></div>
@@ -5550,6 +5553,7 @@
         window.detectTrackedDuplicates = function() {
             const report = document.getElementById('dev-tracked-dup-report');
             const deleteBtn = document.getElementById('dev-tdup-delete-btn');
+            const mergeBtn = document.getElementById('dev-tdup-merge-btn');
 
             // --- Collect the same union the All Tracked Apps table shows ---
             let publishDates = {};
@@ -5614,7 +5618,10 @@
                 groups[gKey].entries.push({
                     url: url,
                     normalizedId: normalizedId,
-                    originalUrl: claimed ? (claimed.open_giveaway || url) : denormalizeUrl(url),
+                    // 2026.09.04.2: deleted records carry their own originalUrl —
+                    // prefer it over denormalizeUrl so legacy keys (android_<title>)
+                    // show (and safe-merge-match on) the REAL store URL.
+                    originalUrl: claimed ? (claimed.open_giveaway || url) : ((deleted && deleted.originalUrl) || denormalizeUrl(url)),
                     platforms: platforms || '-',
                     claimed: !!claimed,
                     deleted: deleted || null,
@@ -5638,6 +5645,8 @@
 
             if (dupGroups.length === 0) {
                 deleteBtn.classList.add('hidden');
+                if (mergeBtn) mergeBtn.classList.add('hidden');
+                window._tdupMergePlans = [];
                 let okHtml = '<div class="p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-green-500 text-[11px] font-bold">';
                 okHtml += '<i class="ph-bold ph-check-circle mr-1"></i> No same-name duplicates found among ' + allUrlsSet.size + ' tracked apps.';
                 if (noTitleCount > 0) okHtml += ' <span class="text-gray-400 font-normal">(' + noTitleCount + ' entries have no title and were skipped)</span>';
@@ -5647,11 +5656,14 @@
             }
 
             const totalExtra = dupGroups.reduce((sum, [, g]) => sum + g.entries.length - 1, 0);
+            // 2026.09.04.2: safe-merge plans are rebuilt on every render —
+            // group buttons reference them by index.
+            window._tdupMergePlans = [];
             let html = '<div class="flex gap-3 mb-3 flex-wrap">';
             html += `<span class="px-2 py-1 bg-teal-500/10 text-teal-500 rounded text-[10px] font-bold">${dupGroups.length} groups (${totalExtra} same-name entries)</span>`;
             if (noTitleCount > 0) html += `<span class="px-2 py-1 bg-gray-500/10 text-gray-400 rounded text-[10px] font-bold">${noTitleCount} entries without title (skipped)</span>`;
             html += '</div>';
-            html += '<div class="text-[10px] text-gray-400 mb-3">Grouped by identical name + platform across ALL tracked apps (claimed + tracked + deleted). Same name on DIFFERENT platforms = separate giveaways, not grouped. KEEP = the recommended entry. Tap the trash button on ANY card (left or right) to delete that exact entry on the spot — or tick checkboxes and use Delete Selected for a batch. Note: a LIVE entry is still served by an upstream feed — deleting its record will not remove it from the feed (it gets re-tracked on the next refresh); mark it Not Interested instead.</div>';
+            html += '<div class="text-[10px] text-gray-400 mb-3">Grouped by identical name + platform across ALL tracked apps (claimed + tracked + deleted). Same name on DIFFERENT platforms = separate giveaways, not grouped. KEEP = the recommended entry. Tap the trash button on ANY card (left or right) to delete that exact entry on the spot — or tick checkboxes and use Delete Selected for a batch. Groups whose entries share an EXACTLY identical URL get a green MERGE button: the OLDEST record survives (missing fields filled from the newer one), its key is updated to the canonical form, and the highest status wins (claimed &gt; paywall &gt; accidental &gt; expired &gt; failed &gt; tracked). Note: a LIVE entry is still served by an upstream feed — deleting its record will not remove it from the feed (it gets re-tracked on the next refresh); mark it Not Interested instead.</div>';
 
             const fmtDate = ts => ts ? new Date(ts).toLocaleString() : '-';
             // 2026.09.03.1: escape titles embedded in data-title attributes
@@ -5689,11 +5701,23 @@
                 const keep = sorted[0];
                 const extras = sorted.slice(1);
 
+                // 2026.09.04.2: find SAFE merge pairs in this group — entries
+                // whose URL strings match EXACTLY (user rule: 必须一字不差)
+                // but whose storage keys differ (legacy android_/ios_ vs
+                // canonical gplay:...). Plans are stored globally; the group
+                // button references them by index.
+                const groupPlans = buildTdupMergePlans(group.title, sorted);
+                const groupPlanIdxs = [];
+                groupPlans.forEach(gp => { groupPlanIdxs.push(window._tdupMergePlans.length); window._tdupMergePlans.push(gp); });
+
                 html += `<div class="mb-4 p-3 bg-teal-500/5 border border-teal-500/20 rounded-lg">`;
                 html += `<div class="flex items-center gap-2 mb-2">`;
                 html += `<span class="font-bold text-[12px] dark:text-gray-200">${group.title}</span>`;
                 if (group.platforms && group.platforms !== '-') html += `<span class="text-[9px] px-1.5 py-0.5 bg-blue-500/10 text-blue-400 rounded font-bold">${group.platforms}</span>`;
                 html += `<span class="text-[10px] px-1.5 py-0.5 bg-teal-500/10 text-teal-500 rounded font-bold">${sorted.length} entries</span>`;
+                if (groupPlanIdxs.length) {
+                    html += `<button onclick="mergeTrackedDupGroup(this)" data-plan-idxs="${groupPlanIdxs.join(',')}" title="URL matches EXACTLY — safe to merge: oldest data wins, key becomes canonical (gplay form), highest status wins (claimed > paywall > accidental > expired > failed > tracked), the redundant newer record is removed" class="tdup-merge-btn ml-auto px-2 py-0.5 text-[9px] font-bold bg-green-500/15 text-green-500 hover:bg-green-500/30 rounded transition-colors flex-shrink-0"><i class="ph-bold ph-git-merge"></i> MERGE</button>`;
+                }
                 html += `</div>`;
 
                 // Swipeable comparison row, same layout as the claimed-library detector
@@ -5758,6 +5782,15 @@
             } else {
                 deleteBtn.classList.add('hidden');
             }
+            // 2026.09.04.2: batch merge button only when safe pairs exist
+            if (mergeBtn) {
+                if (window._tdupMergePlans.length > 0) {
+                    mergeBtn.classList.remove('hidden');
+                    mergeBtn.title = 'Merge ' + window._tdupMergePlans.length + ' safe duplicate set(s) whose URL matches EXACTLY';
+                } else {
+                    mergeBtn.classList.add('hidden');
+                }
+            }
         };
 
         // Permanently delete the ticked same-name entries (full tracked-app
@@ -5820,6 +5853,213 @@
         // Checkboxes are UNCHECKED by default so nothing gets deleted by accident.
         window.setAllTrackedDupCheckboxes = function(check) {
             document.querySelectorAll('.tdup-checkbox').forEach(cb => { cb.checked = !!check; });
+        };
+
+        // ===== 2026.09.04.2: SAFE MERGE for Same-Name Duplicates =====
+        // User rules (approved design):
+        //  1. Merge ONLY when name AND URL match EXACTLY (一字不差) — any
+        //     mismatch means the records are never touched (data-corruption
+        //     risk).
+        //  2. 旧数据优先: the OLDEST record survives — its deal/tracked/
+        //     deleted dates are kept; only fields the old record is MISSING
+        //     (too old, column didn't exist) are filled from the newer one.
+        //  3. The survivor's key is updated to the canonical form
+        //     (gplay:... / ios:id... etc — the "new version" key).
+        //  4. Status conflicts resolve by rank, HIGHEST wins:
+        //     tracked < failed < expired < accidental < paywall < claimed.
+        //  5. The redundant newer record is removed after the merge.
+        const TDUP_STATUS_RANK = { failed: 1, expired: 2, accidental: 3, paywall: 4 };
+        const tdupRankReason = r => {
+            r = r || 'accidental';
+            return Object.prototype.hasOwnProperty.call(TDUP_STATUS_RANK, r) ? TDUP_STATUS_RANK[r] : 3;
+        };
+
+        // A deleted-history entry belongs to `key` when ANY of its id fields
+        // matches in any format (same matching as permanentlyDeleteTrackedUrl).
+        function tdupHistMatches(d, key) {
+            if (!d || typeof d !== 'object' || !key) return false;
+            const ids = [d.id, d.normalizedId, d.originalUrl];
+            return ids.indexOf(key) > -1 || ids.indexOf(normalizeUrl(key)) > -1 || ids.indexOf(denormalizeUrl(key)) > -1;
+        }
+
+        // Build safe-merge plans for one duplicate group: cluster the entries
+        // by EXACT originalUrl string; a cluster with >= 2 DISTINCT storage
+        // keys is mergeable. Items are sorted oldest-first (earliest known
+        // activity; dateless entries go last) so the oldest data wins.
+        window.buildTdupMergePlans = function(title, entries) {
+            const byUrl = {};
+            (entries || []).forEach(e => {
+                const u = (e && typeof e.originalUrl === 'string') ? e.originalUrl : '';
+                if (u.indexOf('://') > -1) (byUrl[u] = byUrl[u] || []).push(e);
+            });
+            const ageTs = e => {
+                const ds = [e.dealDate, e.trackDate, e.claimedDate, e.deletedDate].filter(t => t > 0);
+                return ds.length ? Math.min.apply(null, ds) : Number.MAX_SAFE_INTEGER;
+            };
+            const plans = [];
+            Object.keys(byUrl).forEach(u => {
+                const list = byUrl[u].slice().sort((a, b) => ageTs(a) - ageTs(b));
+                const keys = [];
+                list.forEach(e => { if (e && e.url && keys.indexOf(e.url) === -1) keys.push(e.url); });
+                if (keys.length < 2) return; // one record (or one key) — nothing to merge
+                plans.push({ title: title, sharedUrl: u, canonKey: normalizeUrl(u) || u, items: keys });
+            });
+            return plans;
+        };
+
+        // Merge the record under bKey INTO the survivor data at aKey and write
+        // the result under canonKey across all three stores (publish_dates,
+        // claimed_v2, deleted_history). aKey = the older/surviving data side.
+        function mergeTrackedDupPairCore(aKey, bKey, sharedUrl, canonKey) {
+            if (!aKey || !bKey || aKey === bKey || !canonKey) return false;
+            const pd = loadSafeStorage('lootradar_publish_dates') || {};
+            let dh = sanitizeHistory(loadSafeStorage('lootradar_deleted_history'));
+            const claimed = state.claimedGames || {};
+
+            const aC = claimed[aKey] || null;
+            const bC = claimed[bKey] || null;
+            // 2026.09.04.2: STRICT key match first — the loose matcher also
+            // compares originalUrl/normalize/denormalize forms, so when the
+            // legacy record stores the canonical URL as originalUrl (exactly
+            // the duplicate case being merged) it matches BOTH keys and find()
+            // would return the SAME record for aD and bD. Loose matching is
+            // only a fallback, and each side must be a distinct record.
+            const tdupStrict = (d, key) => !!d && typeof d === 'object' && (d.id === key || d.normalizedId === key);
+            let aD = dh.find(d => tdupStrict(d, aKey)) || null;
+            let bD = dh.find(d => d !== aD && tdupStrict(d, bKey)) || null;
+            if (!aD) aD = dh.find(d => d !== bD && tdupHistMatches(d, aKey)) || null;
+            if (!bD) bD = dh.find(d => d !== aD && tdupHistMatches(d, bKey)) || null;
+            const ra = aC ? 5 : (aD ? tdupRankReason(aD.reason) : 0);
+            const rb = bC ? 5 : (bD ? tdupRankReason(bD.reason) : 0);
+            const winner = Math.max(ra, rb); // tie -> a (older) side
+
+            // 1) publish_dates (deal/tracked dates): old fields win, gaps fill
+            const aI = pd[aKey] || null;
+            const bI = pd[bKey] || null;
+            if (aI || bI) {
+                const pick = f => (aI && aI[f] !== undefined && aI[f] !== null && aI[f] !== '') ? aI[f] : (bI ? bI[f] : undefined);
+                const mergedInfo = {};
+                ['date', 'createdAt', 'updatedAt', 'source'].forEach(f => { const v = pick(f); if (v !== undefined) mergedInfo[f] = v; });
+                if (Object.keys(mergedInfo).length) pd[canonKey] = mergedInfo;
+                if (aKey !== canonKey) delete pd[aKey];
+                if (bKey !== canonKey) delete pd[bKey];
+                saveSafeStorage('lootradar_publish_dates', pd);
+            }
+
+            const dropHistFor = () => dh.filter(d => !(d && typeof d === 'object' && (tdupHistMatches(d, aKey) || tdupHistMatches(d, bKey) || tdupHistMatches(d, canonKey))));
+            let touchedClaimed = false;
+            let touchedHist = false;
+
+            if (winner === 5) {
+                // CLAIMED wins: one claimed record under canonKey, old fields
+                // first; any deleted-history markers for both keys are removed.
+                const base = Object.assign({}, bC || {}, aC || {});
+                let og = (aC && aC.open_giveaway) || (bC && bC.open_giveaway) || '';
+                if (!og || typeof og !== 'string' || og.indexOf('://') === -1) og = denormalizeUrl(canonKey) || sharedUrl || og;
+                base.open_giveaway = og;
+                base.normalizedId = canonKey;
+                if (aKey !== canonKey) delete claimed[aKey];
+                if (bKey !== canonKey) delete claimed[bKey];
+                claimed[canonKey] = base;
+                state.claimedGames = claimed;
+                touchedClaimed = true;
+                // Both sides claimed = savings were counted twice; deduct the
+                // newer side's value so the wallet matches the single record.
+                if (aC && bC && bC.value && !isNaN(bC.value)) {
+                    state.totalSaved = Math.max(0, state.totalSaved - bC.value);
+                    localStorage.setItem('lootradar_saved_money', state.totalSaved.toString());
+                }
+                const before = dh.length;
+                dh = dropHistFor();
+                touchedHist = dh.length !== before;
+            } else if (winner >= 1) {
+                // A deletion reason wins: one history entry under canonKey.
+                // reason = the winning (higher-rank) side; every other field
+                // old-first, gaps filled from the newer side.
+                const wD = (ra >= rb && aD) ? aD : (bD || aD);
+                const mergedD = Object.assign({}, bD || {}, aD || {});
+                mergedD.reason = (wD && wD.reason) || 'accidental';
+                mergedD.id = canonKey;
+                mergedD.normalizedId = canonKey;
+                mergedD.originalUrl = sharedUrl || (aD && aD.originalUrl) || (bD && bD.originalUrl) || denormalizeUrl(canonKey);
+                mergedD.deletedAt = (aD && aD.deletedAt) || (bD && bD.deletedAt) || mergedD.deletedAt;
+                dh = dropHistFor();
+                dh.push(mergedD);
+                touchedHist = true;
+            } else {
+                // Both tracked-only: no claimed/history records expected —
+                // defensively clear any stale entries under the old keys.
+                const before = dh.length;
+                dh = dropHistFor();
+                touchedHist = dh.length !== before;
+            }
+
+            if (touchedClaimed) saveSafeStorage('lootradar_claimed_v2', claimed);
+            if (touchedHist) {
+                saveSafeStorage('lootradar_deleted_history', dh);
+                state.deletedHistory = dh;
+            }
+            return true;
+        }
+
+        // Fold a whole plan: oldest item absorbs each newer one in turn; the
+        // survivor lives under canonKey after the first fold.
+        function runTdupMergePlan(plan) {
+            if (!plan || !plan.items || plan.items.length < 2) return false;
+            let survivor = plan.items[0];
+            let did = false;
+            for (let i = 1; i < plan.items.length; i++) {
+                if (plan.items[i] === survivor) continue;
+                if (mergeTrackedDupPairCore(survivor, plan.items[i], plan.sharedUrl, plan.canonKey)) did = true;
+                survivor = plan.canonKey;
+            }
+            return did;
+        }
+
+        function executeTdupMergePlans(plans) {
+            let ok = 0;
+            let failed = 0;
+            plans.forEach(p => {
+                try {
+                    if (runTdupMergePlan(p)) ok++;
+                    else failed++;
+                } catch (e) {
+                    failed++;
+                    logError('tdupMerge: ' + e.message, 'dev');
+                }
+            });
+            if (typeof updateWalletUI === 'function') updateWalletUI();
+            if (typeof renderLibrary === 'function') renderLibrary();
+            if (typeof renderGames === 'function') renderGames();
+            renderDevPanel();
+            detectTrackedDuplicates(); // refresh the group list in place
+            alert('Merged ' + ok + ' duplicate set(s).' + (failed > 0 ? ' (' + failed + ' could not be merged — check error log)' : ''));
+        }
+
+        // Per-group MERGE button: merge this group's exact-URL pair(s).
+        window.mergeTrackedDupGroup = function(btn) {
+            const raw = (btn && btn.dataset && btn.dataset.planIdxs) ? String(btn.dataset.planIdxs) : '';
+            const idxs = raw.split(',').map(s => parseInt(s, 10)).filter(n => !isNaN(n));
+            const plans = idxs.map(i => (window._tdupMergePlans || [])[i]).filter(p => p && p.items && p.items.length >= 2);
+            if (!plans.length) {
+                alert('Nothing safe to merge here — URLs must match EXACTLY. Re-run Detect to refresh.');
+                return;
+            }
+            const label = plans.map(p => '"' + p.title + '"').join(', ');
+            if (!confirm('Merge ' + plans.length + ' safe duplicate set(s) in ' + label + '?\n\nThe URLs match EXACTLY. The OLDEST record survives: its dates are kept, missing fields are filled from the newer record, its key becomes the canonical form (gplay:...), and the highest status wins (claimed > paywall > accidental > expired > failed > tracked). The redundant newer record is removed. This CANNOT be undone!')) return;
+            executeTdupMergePlans(plans);
+        };
+
+        // Batch button: merge EVERY safe pair found by the last Detect run.
+        window.mergeAllSafeTrackedDups = function() {
+            const plans = (window._tdupMergePlans || []).filter(p => p && p.items && p.items.length >= 2);
+            if (!plans.length) {
+                alert('No safe merge candidates found. Run Detect first — only entries whose URL strings match EXACTLY can be merged.');
+                return;
+            }
+            const names = plans.slice(0, 5).map(p => '"' + p.title + '"').join(', ') + (plans.length > 5 ? ' …' : '');
+            if (!confirm('Merge ALL ' + plans.length + ' safe duplicate set(s)?\n\n' + names + '\n\nFor each set the URLs match EXACTLY. The OLDEST record survives: its dates are kept, missing fields are filled from the newer record, its key becomes the canonical form, and the highest status wins (claimed > paywall > accidental > expired > failed > tracked). This CANNOT be undone!')) return;
+            executeTdupMergePlans(plans);
         };
 
         // ===== DEVELOPER MODE: Storage Analyzer =====
@@ -8460,7 +8700,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.09.04.1';
+        window.BUILD_VERSION = '2026.09.04.2';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

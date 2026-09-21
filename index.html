@@ -3029,9 +3029,12 @@
         }
 
         // Compact number formatter: 1234 → $1.2k, 1234567 → $1.2m
+        // 2026.09.04.3: TRUNCATE to 1 decimal, never round up — $4,960 must
+        // show "$4.9k", not "$5.0k" (same at every magnitude: 19,950 → $19.9k,
+        // 1,950,000 → $1.9m). The sub-$1000 branch keeps exact cents.
         window.formatCompact = function(val) {
-            if (val >= 1000000) return '$' + (val / 1000000).toFixed(1) + 'm';
-            if (val >= 1000) return '$' + (val / 1000).toFixed(1) + 'k';
+            if (val >= 1000000) return '$' + (Math.floor(val / 100000) / 10).toFixed(1) + 'm';
+            if (val >= 1000) return '$' + (Math.floor(val / 100) / 10).toFixed(1) + 'k';
             return '$' + val.toFixed(2);
         };
 
@@ -8700,7 +8703,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.09.04.2';
+        window.BUILD_VERSION = '2026.09.04.3';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

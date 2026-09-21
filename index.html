@@ -3038,6 +3038,20 @@
             return '$' + val.toFixed(2);
         };
 
+        // Compact COUNT formatter for the donut centers (2026.09.04.4).
+        // User rule: below 10,000 the display stays EXACTLY as before.
+        // At >= 10k it switches to truncated compact form (never rounds up —
+        // same rule as the wallet k/m): 12,345 → "12.3k", 123,456 → "123k",
+        // 1,234,567 → "1.2m". Max output is 5 chars, so the number always
+        // fits inside the donut hole (~88px at the 24px font) — the design
+        // itself never changes.
+        window.formatCountCompact = function(val) {
+            const n = Math.floor(val);
+            if (n < 10000) return String(n);
+            if (n >= 1000000) return n >= 10000000 ? Math.floor(n / 1000000) + 'm' : (Math.floor(n / 100000) / 10).toFixed(1) + 'm';
+            return n >= 100000 ? Math.floor(n / 1000) + 'k' : (Math.floor(n / 100) / 10).toFixed(1) + 'k';
+        };
+
         // ===== NEW ANALYTICS HELPERS (rose/clock geometry; 2026.08.28.3, reworked 2026.08.28.4) =====
         // --- Petal / sector path (pie sector from center, used by the 24-Hour Loot Clock) ---
         function rosePolar(cx, cy, r, deg) {
@@ -4067,7 +4081,7 @@
                                     ${pieHtml}
                                 </svg>
                                 <div id="pie-center-content" class="absolute inset-0 flex flex-col items-center justify-center transition-all duration-200 ease-in-out pointer-events-none">
-                                    <span id="pie-center-count" class="text-2xl font-black dark:text-white">${games.length}</span>
+                                    <span id="pie-center-count" class="text-2xl font-black dark:text-white">${formatCountCompact(games.length)}</span>
                                     <span id="pie-center-label" class="text-[9px] font-bold text-gray-500 uppercase truncate max-w-[80px] px-2 text-center">${t.statsGames}</span>
                                 </div>
                             </div>
@@ -4135,7 +4149,7 @@
                                     ${removalPieHtml}
                                 </svg>
                                 <div id="removal-center-content" class="absolute inset-0 flex flex-col items-center justify-center transition-all duration-200 ease-in-out pointer-events-none">
-                                    <span id="removal-center-count" class="text-2xl font-black dark:text-white">${totalRemovals}</span>
+                                    <span id="removal-center-count" class="text-2xl font-black dark:text-white">${formatCountCompact(totalRemovals)}</span>
                                     <span id="removal-center-label" class="text-[9px] font-bold text-gray-500 uppercase truncate max-w-[80px] px-2 text-center">${t.removed || 'removed'}</span>
                                 </div>
                             </div>
@@ -4378,7 +4392,7 @@
             contentEl.style.transform = 'scale(0.8)';
             
             window.pieSwapTimeout = setTimeout(() => {
-                countEl.innerText = count;
+                countEl.innerText = formatCountCompact(count);
                 labelEl.innerText = label;
                 contentEl.style.opacity = '1';
                 contentEl.style.transform = 'scale(1)';
@@ -4389,7 +4403,7 @@
                 contentEl.style.transform = 'scale(0.8)';
                 
                 window.pieRestoreTimeout = setTimeout(() => {
-                    countEl.innerText = Object.keys(state.claimedGames).length;
+                    countEl.innerText = formatCountCompact(Object.keys(state.claimedGames).length);
                     labelEl.innerText = i18n[state.lang].statsGames; // 🚀 FIXED TRANSLATION RESET!
                     contentEl.style.opacity = '1';
                     contentEl.style.transform = 'scale(1)';
@@ -6922,7 +6936,7 @@
             contentEl.style.transform = 'scale(0.8)';
 
             window.rmSwapTimeout = setTimeout(() => {
-                countEl.innerText = count;
+                countEl.innerText = formatCountCompact(count);
                 labelEl.innerText = label;
                 contentEl.style.opacity = '1';
                 contentEl.style.transform = 'scale(1)';
@@ -6932,7 +6946,7 @@
                 contentEl.style.opacity = '0';
                 contentEl.style.transform = 'scale(0.8)';
                 window.rmRestoreTimeout = setTimeout(() => {
-                    countEl.innerText = (state.deletedHistory || []).length;
+                    countEl.innerText = formatCountCompact((state.deletedHistory || []).length);
                     labelEl.innerText = i18n[state.lang].removed || 'removed';
                     contentEl.style.opacity = '1';
                     contentEl.style.transform = 'scale(1)';
@@ -8703,7 +8717,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.09.04.3';
+        window.BUILD_VERSION = '2026.09.04.4';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

@@ -3870,11 +3870,19 @@
                 const sy = (v) => 12 + (1 - v / maxV) * 175;
                 const gridHtml = [0, 4, 8, 12, 16, 20, 24].map(hk => `<line x1="${sx(hk).toFixed(1)}" y1="12" x2="${sx(hk).toFixed(1)}" y2="187" class="stroke-gray-200 dark:stroke-gray-700" stroke-width="1" stroke-dasharray="3 3"></line><text x="${sx(hk).toFixed(1)}" y="200" text-anchor="middle" class="fill-gray-400" style="font-size:8px;font-weight:700;">${hk}h</text>`).join('');
                 const yTicksHtml = [0.25, 0.5, 0.75, 1].map(f => `<line x1="34" y1="${sy(maxV * f).toFixed(1)}" x2="384" y2="${sy(maxV * f).toFixed(1)}" class="stroke-gray-200 dark:stroke-gray-700" stroke-width="1" stroke-dasharray="3 3"></line><text x="30" y="${(sy(maxV * f) + 3).toFixed(1)}" text-anchor="end" class="fill-gray-400" style="font-size:8px;font-weight:700;">${formatCompact(maxV * f)}</text>`).join('');
+                // 2026.09.22.3: even-paced entrance wave. The old fixed
+                // `Math.min(i * 18, 1600)` stagger hit its cap at dot #89 — with
+                // a 340-game library the first ~89 dots trickled in over 1.6s and
+                // the remaining ~250 ALL popped at once ("开始慢，然后突然全部出
+                // 来"). Now the total delay budget (1600ms) is divided evenly
+                // across however many dots exist, so the wave stays smooth at
+                // any library size (340 dots → 4ms apart, last dot at ~1.36s).
+                const dotStep = scatterPts.length > 1 ? Math.max(1, Math.floor(1600 / (scatterPts.length - 1))) : 0;
                 const dotsHtml = scatterPts.map((p, i) => {
                     // 2026.09.04.1: data-info feeds the tap-to-reveal chip
                     // (title tooltips need hover — phones can't hover)
                     const dotInfo = `${String(p.title || '').replace(/[<>&"]/g, '')} — ${Math.floor(p.hour)}:00 · ${formatCompact(p.v)}`;
-                    return `<circle class="scatter-dot" cx="${sx(p.hour).toFixed(1)}" cy="${sy(p.v).toFixed(1)}" r="4.5" fill="${hourBands[p.band].color}" fill-opacity="0.75" stroke="${hourBands[p.band].color}" stroke-width="1" style="transition-delay: ${Math.min(i * 18, 1600)}ms;" data-info="${dotInfo}"><title>${dotInfo}</title></circle>`;
+                    return `<circle class="scatter-dot" cx="${sx(p.hour).toFixed(1)}" cy="${sy(p.v).toFixed(1)}" r="4.5" fill="${hourBands[p.band].color}" fill-opacity="0.75" stroke="${hourBands[p.band].color}" stroke-width="1" style="transition-delay: ${i * dotStep}ms;" data-info="${dotInfo}"><title>${dotInfo}</title></circle>`;
                 }).join('');
                 scatterSvgHtml = `<svg viewBox="0 0 400 210" class="w-full block">${gridHtml}${yTicksHtml}${dotsHtml}<line x1="34" y1="187" x2="384" y2="187" class="stroke-gray-300 dark:stroke-gray-600" stroke-width="1"></line></svg>`;
             }
@@ -8850,7 +8858,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.09.22.2';
+        window.BUILD_VERSION = '2026.09.22.3';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

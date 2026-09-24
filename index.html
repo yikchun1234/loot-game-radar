@@ -3207,6 +3207,21 @@
             });
             const pathString = linePoints.length > 0 ? `M 0,200 L ${linePoints.join(' L ')}` : '';
 
+            // 2026.09.22.4: data for the draggable date-range bar — the full
+            // cumulative curve (used to rebase filtered views) plus a mini
+            // sparkline of the whole history drawn inside the bar's track.
+            window._wealthBase = {
+                cum: window.lootChartData.map(p => parseFloat(p.value)),
+                dates: window.lootChartData.map(p => p.date)
+            };
+            window._wealthRange = null;
+            const wrSparkMax = Math.max(...window._wealthBase.cum, 1);
+            const wrSparkPath = window._wealthBase.cum.length > 1
+                ? 'M 0,28 L ' + window._wealthBase.cum.map((cv, i) => `${(i / (window._wealthBase.cum.length - 1) * 1000).toFixed(1)},${(28 - (cv / wrSparkMax) * 24).toFixed(1)}`).join(' L ')
+                : '';
+            const wrFirstDate = window._wealthBase.dates.length ? window._wealthBase.dates[0] : '';
+            const wrLastDate = window._wealthBase.dates.length ? window._wealthBase.dates[window._wealthBase.dates.length - 1] : '';
+
             const startDate = games.length > 0 ? gameClaimedDate(games[0]).toLocaleDateString(localeStr, { month: 'short', year: 'numeric' }) : '';
             const midDate = games.length > 2 ? gameClaimedDate(games[Math.floor(games.length/2)]).toLocaleDateString(localeStr, { month: 'short', year: 'numeric' }) : '';
             const endDate = games.length > 0 ? gameClaimedDate(games[games.length-1]).toLocaleDateString(localeStr, { month: 'short', year: 'numeric' }) : '';
@@ -4291,9 +4306,9 @@
                                     </clipPath>
                                 </defs>
                                 <g clip-path="url(#wealthClip)">
-                                    <path d="${pathString} L 1000,200 L 0,200 Z" fill="url(#greenGradient)" opacity="0.2" stroke="none"></path>
+                                    <path id="wealth-area-path" d="${pathString} L 1000,200 L 0,200 Z" fill="url(#greenGradient)" opacity="0.2" stroke="none"></path>
                                 </g>
-                                <path class="wealth-line" pathLength="1" d="${pathString}" fill="none" stroke="#10b981" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
+                                <path id="wealth-line-path" class="wealth-line" pathLength="1" d="${pathString}" fill="none" stroke="#10b981" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></path>
                             </svg>
         
                             <div id="chart-scrubber" class="absolute top-0 bottom-0 w-px bg-green-500 opacity-0 transition-opacity duration-200 pointer-events-none z-20" style="left: 50%;">
@@ -4306,9 +4321,37 @@
                         </div>
         
                         <div class="flex justify-between w-full text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-2 px-1 relative z-10">
-                            <span>${startDate}</span>
-                            <span>${midDate}</span>
-                            <span>${endDate}</span>
+                            <span id="wealth-axis-start">${startDate}</span>
+                            <span id="wealth-axis-mid">${midDate}</span>
+                            <span id="wealth-axis-end">${endDate}</span>
+                        </div>
+
+                        <!-- NEW: Draggable date-range bar (dataZoom-style; 2026.09.22.4).
+                             Drag the two green handles to filter the Lifetime Wealth line
+                             above to that date window — the line rebases to $0 at the
+                             start handle, the big total shows what was earned inside the
+                             window, and both handles carry their date labels. The track
+                             shows a mini sparkline of the full history for context.
+                             Layout-critical props are INLINE (Tailwind CDN async rule). -->
+                        <div id="wealth-range-track" class="relative w-full z-10 select-none" style="height:44px; margin-top:12px; touch-action:none; display:${wrSparkPath ? 'block' : 'none'};">
+                            <svg viewBox="0 0 1000 28" preserveAspectRatio="none" class="absolute left-0 right-0 w-full pointer-events-none" style="top:0; height:28px;">
+                                <path d="${wrSparkPath}" fill="none" stroke="#10b981" stroke-opacity="0.3" stroke-width="2"></path>
+                            </svg>
+                            <div id="wealth-range-dim-l" class="absolute bg-gray-500/15 dark:bg-black/40 pointer-events-none" style="top:0; height:28px; left:0; width:0%;"></div>
+                            <div id="wealth-range-dim-r" class="absolute bg-gray-500/15 dark:bg-black/40 pointer-events-none" style="top:0; height:28px; right:0; width:0%;"></div>
+                            <div id="wealth-range-window" class="absolute border-y-2 border-green-500/80 bg-green-500/10 pointer-events-none" style="top:0; height:28px; left:0%; width:100%;"></div>
+                            <div id="wealth-range-handle-start" class="absolute" style="top:-4px; height:36px; left:0%; transform:translateX(-50%); cursor:ew-resize; touch-action:none; z-index:5;">
+                                <div class="w-3.5 h-full bg-green-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.8)] border-2 border-white dark:border-gray-900 flex items-center justify-center pointer-events-none">
+                                    <div class="w-0.5 h-3 bg-white/90 rounded"></div>
+                                </div>
+                                <span id="wealth-range-label-start" class="absolute text-[9px] font-black text-green-600 dark:text-green-400 whitespace-nowrap pointer-events-none" style="top:100%; margin-top:2px; left:10px;">${wrFirstDate}</span>
+                            </div>
+                            <div id="wealth-range-handle-end" class="absolute" style="top:-4px; height:36px; left:100%; transform:translateX(-50%); cursor:ew-resize; touch-action:none; z-index:5;">
+                                <div class="w-3.5 h-full bg-green-500 rounded-full shadow-[0_0_8px_rgba(16,185,129,0.8)] border-2 border-white dark:border-gray-900 flex items-center justify-center pointer-events-none">
+                                    <div class="w-0.5 h-3 bg-white/90 rounded"></div>
+                                </div>
+                                <span id="wealth-range-label-end" class="absolute text-[9px] font-black text-green-600 dark:text-green-400 whitespace-nowrap pointer-events-none" style="top:100%; margin-top:2px; right:10px;">${wrLastDate}</span>
+                            </div>
                         </div>
                     </div>
 
@@ -4515,6 +4558,10 @@
                     </div>
                 </div>
             `;
+            // 2026.09.22.4: bind the draggable date-range bar under the
+            // Lifetime Wealth line (data-bound guard makes re-renders safe —
+            // each render produces a fresh track element that needs rebinding).
+            if (window.initWealthRange) window.initWealthRange();
         }
         
         // --- DYNAMIC PIE CHART INTERACTION ---
@@ -6784,6 +6831,112 @@
             } catch(e) { return 'error'; }
         }
 
+        // ===== 2026.09.22.4: DRAGGABLE DATE-RANGE BAR FOR LIFETIME WEALTH =====
+        // dataZoom-style slider under the line chart. applyWealthRange(s, e)
+        // filters the cumulative curve to game indices [s..e], rebases it to
+        // $0 at s, rescales y to the window subtotal, rebuilds lootChartData
+        // (so the hover scrubber works on the filtered view), and moves the
+        // handles / dim overlays / date labels / axis row.
+        window.applyWealthRange = function(s, e) {
+            const base = window._wealthBase;
+            if (!base || base.cum.length < 2) return;
+            const n1 = base.cum.length - 1;
+            s = Math.max(0, Math.min(s, n1 - 1));
+            e = Math.max(s + 1, Math.min(e, n1));
+            const full = (s === 0 && e === n1);
+            const prior = s > 0 ? base.cum[s - 1] : 0;
+            const rangeTotal = base.cum[e] - prior;
+            const denom = Math.max(1, rangeTotal);
+            const m = e - s + 1;
+            const pts = [];
+            const chartData = [];
+            for (let k = 0; k < m; k++) {
+                const cv = base.cum[s + k] - prior;
+                const xPct = m > 1 ? k / (m - 1) : 0;
+                pts.push(`${(xPct * 1000).toFixed(1)},${(200 - (cv / denom) * 180).toFixed(1)}`);
+                chartData.push({ xPct: xPct, value: cv.toFixed(2), date: base.dates[s + k] });
+            }
+            const d = `M 0,200 L ${pts.join(' L ')}`;
+            const lineEl = document.getElementById('wealth-line-path');
+            const areaEl = document.getElementById('wealth-area-path');
+            if (lineEl) lineEl.setAttribute('d', d);
+            if (areaEl) areaEl.setAttribute('d', `${d} L 1000,200 L 0,200 Z`);
+            window.lootChartData = chartData;
+            window._wealthRange = { s: s, e: e, full: full, total: rangeTotal };
+            const totalEl = document.getElementById('wealth-total-display');
+            if (totalEl) totalEl.innerText = full ? `$${state.totalSaved.toFixed(2)}` : `$${rangeTotal.toFixed(2)}`;
+            const lp = (s / n1) * 100, rp = (e / n1) * 100;
+            const wrSet = (id, fn) => { const el = document.getElementById(id); if (el) fn(el); };
+            wrSet('wealth-range-window', el => { el.style.left = `${lp}%`; el.style.width = `${rp - lp}%`; });
+            wrSet('wealth-range-dim-l', el => { el.style.width = `${lp}%`; });
+            wrSet('wealth-range-dim-r', el => { el.style.width = `${100 - rp}%`; });
+            wrSet('wealth-range-handle-start', el => { el.style.left = `${lp}%`; });
+            wrSet('wealth-range-handle-end', el => { el.style.left = `${rp}%`; });
+            // handle date labels flip to the inner side near the panel edges
+            // (the panel is overflow-hidden — outside labels would be clipped)
+            wrSet('wealth-range-label-start', el => {
+                el.innerText = base.dates[s];
+                if (lp > 75) { el.style.left = ''; el.style.right = '10px'; }
+                else { el.style.right = ''; el.style.left = '10px'; }
+            });
+            wrSet('wealth-range-label-end', el => {
+                el.innerText = base.dates[e];
+                if (rp < 25) { el.style.right = ''; el.style.left = '10px'; }
+                else { el.style.left = ''; el.style.right = '10px'; }
+            });
+            wrSet('wealth-axis-start', el => { el.innerText = base.dates[s]; });
+            wrSet('wealth-axis-mid', el => { el.innerText = base.dates[Math.floor((s + e) / 2)]; });
+            wrSet('wealth-axis-end', el => { el.innerText = base.dates[e]; });
+        };
+
+        window.initWealthRange = function() {
+            const track = document.getElementById('wealth-range-track');
+            if (!track || track.dataset.bound === '1') return;
+            const base = window._wealthBase;
+            if (!base || base.cum.length < 2) { track.style.display = 'none'; return; }
+            track.dataset.bound = '1';
+            const n1 = base.cum.length - 1;
+            const cur = () => window._wealthRange || { s: 0, e: n1 };
+            const posToIdx = (clientX) => {
+                const r = track.getBoundingClientRect();
+                if (!r.width) return 0;
+                return Math.round(Math.max(0, Math.min(1, (clientX - r.left) / r.width)) * n1);
+            };
+            const wrDragify = (handleId, side) => {
+                const h = document.getElementById(handleId);
+                if (!h) return;
+                h.addEventListener('pointerdown', (ev) => {
+                    ev.preventDefault();
+                    ev.stopPropagation();
+                    if (h.setPointerCapture) { try { h.setPointerCapture(ev.pointerId); } catch (err) { /* older browsers */ } }
+                    const move = (mv) => {
+                        const idx = posToIdx(mv.clientX);
+                        const c = cur();
+                        if (side === 'start') window.applyWealthRange(Math.min(idx, c.e - 1), c.e);
+                        else window.applyWealthRange(c.s, Math.max(idx, c.s + 1));
+                    };
+                    const up = () => {
+                        h.removeEventListener('pointermove', move);
+                        h.removeEventListener('pointerup', up);
+                        h.removeEventListener('pointercancel', up);
+                    };
+                    h.addEventListener('pointermove', move);
+                    h.addEventListener('pointerup', up);
+                    h.addEventListener('pointercancel', up);
+                });
+            };
+            wrDragify('wealth-range-handle-start', 'start');
+            wrDragify('wealth-range-handle-end', 'end');
+            // tapping the bare track snaps the NEAREST handle to that spot
+            track.addEventListener('pointerdown', (ev) => {
+                if (ev.target !== track) return;
+                const idx = posToIdx(ev.clientX);
+                const c = cur();
+                if (Math.abs(idx - c.s) <= Math.abs(idx - c.e)) window.applyWealthRange(Math.min(idx, c.e - 1), c.e);
+                else window.applyWealthRange(c.s, Math.max(idx, c.s + 1));
+            });
+        };
+
         // --- LINE CHART SCRUBBER LOGIC ---
         window.handleChartHover = function(e) {
             if (!window.lootChartData || window.lootChartData.length === 0) return;
@@ -6815,7 +6968,10 @@
                 dateEl.innerText = closest.date;
                 
                 // Calculate the exact Y position of the dot on the line
-                const yPosPct = (200 - ((closest.value / Math.max(1, state.totalSaved)) * 180)) / 200 * 100;
+                // (2026.09.22.4: when a date-range filter is active the curve is
+                // rebased to the window subtotal, not the lifetime total)
+                const wrDenom = (window._wealthRange && !window._wealthRange.full) ? Math.max(1, window._wealthRange.total) : Math.max(1, state.totalSaved);
+                const yPosPct = (200 - ((closest.value / wrDenom) * 180)) / 200 * 100;
                 dotEl.style.top = `${yPosPct}%`;
                 
                 // Dynamically update the giant title number!
@@ -6828,8 +6984,12 @@
             if(scrubber) scrubber.style.opacity = '0';
 
             // Restore the giant total number when they move their mouse away
+            // (2026.09.22.4: restores to the filtered window subtotal when a
+            // date-range filter is active, otherwise the lifetime total)
             const wealthTotal = document.getElementById('wealth-total-display');
-            if(wealthTotal) wealthTotal.innerText = `$${state.totalSaved.toFixed(2)}`;
+            if(wealthTotal) wealthTotal.innerText = (window._wealthRange && !window._wealthRange.full)
+                ? `$${window._wealthRange.total.toFixed(2)}`
+                : `$${state.totalSaved.toFixed(2)}`;
         };
 
         // ===== 2026.09.04.1: TAP-TO-REVEAL CHART INFO =====
@@ -8858,7 +9018,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.09.22.3';
+        window.BUILD_VERSION = '2026.09.22.4';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

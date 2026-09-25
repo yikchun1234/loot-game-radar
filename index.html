@@ -368,7 +368,7 @@
                  Full-width opaque bg so cards don't show through when it pins under the header. -->
             <div id="feed-search-row" class="bg-light-bg/95 dark:bg-dark-bg/95 backdrop-blur-md" style="position:sticky; top:60px; z-index:30;">
               <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-                <div class="relative flex items-center gap-2 bg-white dark:bg-dark-card rounded-2xl px-3 py-2.5 border border-light-border dark:border-gray-700 shadow-sm focus-within:ring-2 focus-within:ring-amber-500/50 dark:focus-within:ring-neon-blue/50 transition-all">
+                <div class="relative flex items-center gap-2 bg-light-surface dark:bg-dark-card rounded-2xl px-3 py-2.5 border border-light-border dark:border-gray-700 shadow-sm focus-within:ring-2 focus-within:ring-amber-500/50 dark:focus-within:ring-neon-blue/50 transition-all">
                   <i class="ph-bold ph-magnifying-glass text-gray-400 dark:text-gray-500 text-lg shrink-0"></i>
                   <input id="feed-search-input" type="text" autocomplete="off" autocorrect="off" spellcheck="false" oninput="onFeedSearchInput(this.value)" class="flex-1 bg-transparent outline-none text-sm font-medium dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 min-w-0" style="border:none;">
                   <span id="feed-search-count" class="hidden text-[11px] font-bold text-amber-600 dark:text-amber-400 whitespace-nowrap shrink-0"></span>
@@ -724,7 +724,7 @@
 
                 <!-- Search (2026.09.24.2): always visible above filter/sort/view -->
                 <div class="relative mb-3">
-                    <div class="relative flex items-center gap-2 bg-white dark:bg-dark-card rounded-2xl px-3 py-2.5 border border-light-border dark:border-gray-700 shadow-sm focus-within:ring-2 focus-within:ring-amber-500/50 dark:focus-within:ring-neon-blue/50 transition-all">
+                    <div class="relative flex items-center gap-2 bg-light-surface dark:bg-dark-card rounded-2xl px-3 py-2.5 border border-light-border dark:border-gray-700 shadow-sm focus-within:ring-2 focus-within:ring-amber-500/50 dark:focus-within:ring-neon-blue/50 transition-all">
                         <i class="ph-bold ph-magnifying-glass text-gray-400 dark:text-gray-500 text-lg shrink-0"></i>
                         <input id="lib-search-input" type="text" autocomplete="off" autocorrect="off" spellcheck="false" oninput="onLibSearchInput(this.value)" class="flex-1 bg-transparent outline-none text-sm font-bold dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 min-w-0" style="border:none;">
                         <span id="lib-search-count" class="hidden text-[11px] font-bold text-amber-600 dark:text-amber-400 whitespace-nowrap shrink-0"></span>
@@ -8671,6 +8671,104 @@
             }
         }
 
+        // ===== 2026.09.25.1 — typewriter placeholder animation (both search boxes) =====
+        // Language-neutral example pool: game names, stores, platforms, years, months,
+        // genre keywords and multi-token combos — everything gameMatchesQuery supports.
+        // Shuffled every cycle so the order is random, never the same twice in a row.
+        const SEARCH_TW_POOL = [
+            'celeste', 'hollow knight', 'zelda', 'witcher', 'cyberpunk', 'doom', 'terraria',
+            'stardew', 'dead cells', 'bioshock', 'batman', 'fall guys', 'among us', 'minecraft',
+            'rocket league', 'borderlands', 'tomb raider', 'elden ring', 'hades', 'cuphead',
+            'limbo', 'subnautica', 'overcooked',
+            'epic', 'steam', 'gog', 'humble', 'itch.io', 'amazon', 'prime gaming', 'ubisoft',
+            'xbox', 'playstation', 'nintendo',
+            'pc', 'android', 'ios', 'switch',
+            '2026', '2025', 'sep', 'september', 'jan', 'december', '9', '2026-09-15',
+            'rpg', 'puzzle', 'action', 'adventure', 'strategy', 'shooter', 'platformer',
+            'horror', 'racing', 'simulation', 'multiplayer', 'co-op', 'indie',
+            'hollow 2026', 'celeste pc', 'epic rpg', 'doom 2025', 'steam puzzle', 'pc september'
+        ];
+        const SEARCH_TW_CARET = '▌';
+        // Pure state machine: st = {order, pos, chars, phase}; phases gap→type→hold→del→gap.
+        // Kept DOM-free so the test suite can eval it in a sandbox.
+        function searchTwShuffle(pool) {
+            const a = pool.map((_, i) => i);
+            for (let i = a.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                const tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+            }
+            return a;
+        }
+        function searchTwAdvance(st, pool) {
+            const word = pool[st.order[st.pos]] || '';
+            const n = { order: st.order, pos: st.pos, chars: st.chars, phase: st.phase };
+            if (st.phase === 'gap') { n.phase = 'type'; n.chars = Math.min(1, word.length); }
+            else if (st.phase === 'type') {
+                if (st.chars < word.length) n.chars = st.chars + 1;
+                else n.phase = 'hold';
+            } else if (st.phase === 'hold') { n.phase = 'del'; n.chars = Math.max(0, word.length - 1); }
+            else if (st.phase === 'del') {
+                if (st.chars > 1) n.chars = st.chars - 1;
+                else {
+                    n.chars = 0; n.phase = 'gap';
+                    n.pos = (st.pos + 1) % st.order.length;
+                    if (n.pos === 0) n.order = searchTwShuffle(pool); // reshuffle each cycle
+                }
+            }
+            return n;
+        }
+        function searchTwRender(st, pool) {
+            const word = pool[st.order[st.pos]] || '';
+            if (st.phase === 'gap') return SEARCH_TW_CARET;
+            return word.slice(0, st.chars) + SEARCH_TW_CARET;
+        }
+        function searchTwDelay(phase) {
+            return phase === 'type' ? 65 : phase === 'hold' ? 1800 : phase === 'del' ? 32 : 350;
+        }
+        let _searchTw = null;      // current machine state
+        let _searchTwTimer = null; // setTimeout handle
+        function searchTwStaticPh(id) {
+            const t = i18n[state.lang] || {};
+            return id === 'feed-search-input' ? (t.searchPh || 'Search games, source, date…') : (t.searchPhLib || 'Search my library…');
+        }
+        function searchTwStep() {
+            try {
+                if (document.hidden) { _searchTwTimer = setTimeout(searchTwStep, 600); return; } // throttle in background tabs
+                _searchTw = searchTwAdvance(_searchTw, SEARCH_TW_POOL);
+                const text = searchTwRender(_searchTw, SEARCH_TW_POOL);
+                ['feed-search-input', 'lib-search-input'].forEach(id => {
+                    const inp = document.getElementById(id);
+                    if (!inp) return;
+                    if (inp.value || document.activeElement === inp) {
+                        // focused or has content → show the static localized placeholder,
+                        // never animate over a real search (also a fallback if the focus
+                        // event was missed, e.g. programmatic focus).
+                        const stat = searchTwStaticPh(id);
+                        if (inp.getAttribute('placeholder') !== stat) inp.setAttribute('placeholder', stat);
+                        return;
+                    }
+                    inp.setAttribute('placeholder', text);
+                });
+                _searchTwTimer = setTimeout(searchTwStep, searchTwDelay(_searchTw.phase));
+            } catch (e) { console.warn('search typewriter tick failed', e); }
+        }
+        function initSearchTypewriter() {
+            try {
+                if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; // static localized placeholder stays
+                _searchTw = { order: searchTwShuffle(SEARCH_TW_POOL), pos: 0, chars: 0, phase: 'gap' };
+                ['feed-search-input', 'lib-search-input'].forEach(id => {
+                    const inp = document.getElementById(id);
+                    if (!inp || inp.dataset.twBound === '1') return;
+                    inp.dataset.twBound = '1';
+                    inp.addEventListener('focus', () => { if (!inp.value) inp.setAttribute('placeholder', searchTwStaticPh(id)); });
+                    inp.addEventListener('blur', () => { if (!inp.value && _searchTw) inp.setAttribute('placeholder', searchTwRender(_searchTw, SEARCH_TW_POOL)); });
+                });
+                if (_searchTwTimer) clearTimeout(_searchTwTimer);
+                _searchTwTimer = setTimeout(searchTwStep, searchTwDelay('gap'));
+            } catch (e) { console.warn('search typewriter init failed', e); }
+        }
+        document.addEventListener('DOMContentLoaded', initSearchTypewriter);
+
         function renderGames() {
             validatePlatformTab();
             const renderStart = performance.now();
@@ -9243,7 +9341,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.09.24.2';
+        window.BUILD_VERSION = '2026.09.25.1';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

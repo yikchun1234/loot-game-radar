@@ -169,8 +169,18 @@
            pins under the header (scrolling) do we paint an opaque bg + blur so feed cards
            don't show through behind it. Toggled by .search-row-pinned from JS. */
         #feed-search-row { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
-        #feed-search-row.search-row-pinned { background: rgba(247, 245, 240, 0.95); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); }
-        .dark #feed-search-row.search-row-pinned { background: rgba(11, 12, 16, 0.95); }
+        #feed-search-bar { background: transparent; }
+        /* 2026.09.25.4: when pinned, frost the WHOLE row (backdrop-blur covers the 8px gap
+           strip too, so scrolling cards behind read as frosted spacing, not sharp slivers)
+           and drop the opaque bar 8px below the header — 8px == the box's own py-2 padding,
+           so the vertical rhythm is uniform and the bar no longer glues to the header.
+           The 8px lives as PADDING-TOP on the row, not margin-top on the bar: a child
+           margin would collapse out through the borderless row and shift the whole sticky
+           row down at rest too (sentinel diff would read >2 → row stuck "pinned" forever).
+           Padding is inside the border box → no collapse, and the blur covers it anyway. */
+        #feed-search-row.search-row-pinned { -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); padding-top: 8px; }
+        #feed-search-row.search-row-pinned #feed-search-bar { background: rgba(247, 245, 240, 0.95); box-shadow: 0 6px 16px -8px rgba(31, 40, 51, 0.25); }
+        .dark #feed-search-row.search-row-pinned #feed-search-bar { background: rgba(11, 12, 16, 0.95); box-shadow: 0 6px 16px -8px rgba(0, 0, 0, 0.6); }
 
         .neon-text { text-shadow: 0 0 10px rgba(0, 243, 255, 0.5), 0 0 20px rgba(0, 243, 255, 0.3); }
         #ptr-indicator { height: 0; overflow: hidden; transition: height 0.2s ease-out; display: flex; align-items: center; justify-content: center; color: #b45309; font-weight: bold; }
@@ -378,6 +388,13 @@
                  sentinel.top) grows > 1 → we know it's pinned (robust to any clamp point). -->
             <div id="feed-search-pin-sentinel" style="height:1px;"></div>
             <div id="feed-search-row" style="position:sticky; top:60px; z-index:30;">
+              <!-- 2026.09.25.4: full-width bar layer. At rest it paints nothing (the whole
+                   row is transparent). When pinned, the row frosts (backdrop-blur) and grows
+                   8px of padding-top (padding, NOT child margin — margins collapse out of the
+                   borderless row and would push the sticky row down at rest too), and THIS
+                   bar paints the opaque bg, so there is a frosted 8px gap between the header
+                   and the bar instead of gluing to it. -->
+              <div id="feed-search-bar">
               <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
                 <div class="relative flex items-center gap-2 bg-transparent dark:bg-dark-card rounded-2xl px-3 py-2.5 border border-light-border dark:border-gray-700 shadow-sm focus-within:ring-2 focus-within:ring-amber-500/50 dark:focus-within:ring-neon-blue/50 transition-all">
                   <i class="ph-bold ph-magnifying-glass text-gray-400 dark:text-gray-500 text-lg shrink-0"></i>
@@ -387,6 +404,7 @@
                     <i class="ph-bold ph-x text-gray-400 text-sm"></i>
                   </button>
                 </div>
+              </div>
               </div>
             </div>
 
@@ -9378,7 +9396,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.09.25.3';
+        window.BUILD_VERSION = '2026.09.25.4';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

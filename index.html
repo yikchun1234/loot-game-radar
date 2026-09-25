@@ -368,7 +368,7 @@
                  Full-width opaque bg so cards don't show through when it pins under the header. -->
             <div id="feed-search-row" class="bg-light-bg/95 dark:bg-dark-bg/95 backdrop-blur-md" style="position:sticky; top:60px; z-index:30;">
               <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
-                <div class="relative flex items-center gap-2 bg-light-surface dark:bg-dark-card rounded-2xl px-3 py-2.5 border border-light-border dark:border-gray-700 shadow-sm focus-within:ring-2 focus-within:ring-amber-500/50 dark:focus-within:ring-neon-blue/50 transition-all">
+                <div class="relative flex items-center gap-2 bg-transparent dark:bg-dark-card rounded-2xl px-3 py-2.5 border border-light-border dark:border-gray-700 shadow-sm focus-within:ring-2 focus-within:ring-amber-500/50 dark:focus-within:ring-neon-blue/50 transition-all">
                   <i class="ph-bold ph-magnifying-glass text-gray-400 dark:text-gray-500 text-lg shrink-0"></i>
                   <input id="feed-search-input" type="text" autocomplete="off" autocorrect="off" spellcheck="false" oninput="onFeedSearchInput(this.value)" class="flex-1 bg-transparent outline-none text-sm font-medium dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 min-w-0" style="border:none;">
                   <span id="feed-search-count" class="hidden text-[11px] font-bold text-amber-600 dark:text-amber-400 whitespace-nowrap shrink-0"></span>
@@ -724,7 +724,7 @@
 
                 <!-- Search (2026.09.24.2): always visible above filter/sort/view -->
                 <div class="relative mb-3">
-                    <div class="relative flex items-center gap-2 bg-light-surface dark:bg-dark-card rounded-2xl px-3 py-2.5 border border-light-border dark:border-gray-700 shadow-sm focus-within:ring-2 focus-within:ring-amber-500/50 dark:focus-within:ring-neon-blue/50 transition-all">
+                    <div class="relative flex items-center gap-2 bg-transparent dark:bg-dark-card rounded-2xl px-3 py-2.5 border border-light-border dark:border-gray-700 shadow-sm focus-within:ring-2 focus-within:ring-amber-500/50 dark:focus-within:ring-neon-blue/50 transition-all">
                         <i class="ph-bold ph-magnifying-glass text-gray-400 dark:text-gray-500 text-lg shrink-0"></i>
                         <input id="lib-search-input" type="text" autocomplete="off" autocorrect="off" spellcheck="false" oninput="onLibSearchInput(this.value)" class="flex-1 bg-transparent outline-none text-sm font-bold dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 min-w-0" style="border:none;">
                         <span id="lib-search-count" class="hidden text-[11px] font-bold text-amber-600 dark:text-amber-400 whitespace-nowrap shrink-0"></span>
@@ -9341,7 +9341,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.09.25.1';
+        window.BUILD_VERSION = '2026.09.25.2';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

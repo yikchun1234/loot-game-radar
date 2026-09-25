@@ -161,6 +161,10 @@
         .dark .game-card { background: linear-gradient(145deg, #1e2532 0%, #11161d 100%); border: 1px solid rgba(255, 255, 255, 0.08); box-shadow: 0 10px 20px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.05); }
         .dark .game-card:hover { border-color: rgba(0, 243, 255, 0.6); box-shadow: 0 20px 40px -10px rgba(0, 243, 255, 0.25), 0 0 30px rgba(0, 243, 255, 0.1), inset 0 1px 0 rgba(255,255,255,0.1); }
 
+        /* 2026.09.24.2: search match highlight inside card titles */
+        mark.search-hl { background: rgba(245, 158, 11, 0.35); color: inherit; border-radius: 3px; padding: 0 1px; box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.25); }
+        .dark mark.search-hl { background: rgba(0, 243, 255, 0.28); box-shadow: 0 0 0 1px rgba(0, 243, 255, 0.3); }
+
         .neon-text { text-shadow: 0 0 10px rgba(0, 243, 255, 0.5), 0 0 20px rgba(0, 243, 255, 0.3); }
         #ptr-indicator { height: 0; overflow: hidden; transition: height 0.2s ease-out; display: flex; align-items: center; justify-content: center; color: #b45309; font-weight: bold; }
         .dark #ptr-indicator { color: #00f3ff; }
@@ -358,6 +362,21 @@
                     <div class="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-3/4 h-[2px] bg-gradient-to-r from-transparent via-amber-500 dark:via-neon-blue to-transparent opacity-80"></div>
                     <div class="absolute -bottom-4 left-1/2 transform -translate-x-1/2 w-16 h-[6px] bg-amber-500 dark:bg-neon-blue blur-[4px] rounded-full"></div>
                 </div>
+            </div>
+
+            <!-- Search Bar (2026.09.24.2): dedicated sticky row between hero and platform tabs.
+                 Full-width opaque bg so cards don't show through when it pins under the header. -->
+            <div id="feed-search-row" class="bg-light-bg/95 dark:bg-dark-bg/95 backdrop-blur-md" style="position:sticky; top:60px; z-index:30;">
+              <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2">
+                <div class="relative flex items-center gap-2 bg-white dark:bg-dark-card rounded-2xl px-3 py-2.5 border border-light-border dark:border-gray-700 shadow-sm focus-within:ring-2 focus-within:ring-amber-500/50 dark:focus-within:ring-neon-blue/50 transition-all">
+                  <i class="ph-bold ph-magnifying-glass text-gray-400 dark:text-gray-500 text-lg shrink-0"></i>
+                  <input id="feed-search-input" type="text" autocomplete="off" autocorrect="off" spellcheck="false" oninput="onFeedSearchInput(this.value)" class="flex-1 bg-transparent outline-none text-sm font-medium dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 min-w-0" style="border:none;">
+                  <span id="feed-search-count" class="hidden text-[11px] font-bold text-amber-600 dark:text-amber-400 whitespace-nowrap shrink-0"></span>
+                  <button id="feed-search-clear" onclick="clearFeedSearch()" class="hidden shrink-0 w-6 h-6 items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Clear" style="border:none; background:transparent;">
+                    <i class="ph-bold ph-x text-gray-400 text-sm"></i>
+                  </button>
+                </div>
+              </div>
             </div>
 
             <!-- Platform Filters -->
@@ -701,6 +720,18 @@
                         </div>
                     </div>
                     
+                </div>
+
+                <!-- Search (2026.09.24.2): always visible above filter/sort/view -->
+                <div class="relative mb-3">
+                    <div class="relative flex items-center gap-2 bg-white dark:bg-dark-card rounded-2xl px-3 py-2.5 border border-light-border dark:border-gray-700 shadow-sm focus-within:ring-2 focus-within:ring-amber-500/50 dark:focus-within:ring-neon-blue/50 transition-all">
+                        <i class="ph-bold ph-magnifying-glass text-gray-400 dark:text-gray-500 text-lg shrink-0"></i>
+                        <input id="lib-search-input" type="text" autocomplete="off" autocorrect="off" spellcheck="false" oninput="onLibSearchInput(this.value)" class="flex-1 bg-transparent outline-none text-sm font-bold dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500 min-w-0" style="border:none;">
+                        <span id="lib-search-count" class="hidden text-[11px] font-bold text-amber-600 dark:text-amber-400 whitespace-nowrap shrink-0"></span>
+                        <button id="lib-search-clear" onclick="clearLibSearch()" class="hidden shrink-0 w-6 h-6 items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors" title="Clear" style="border:none; background:transparent;">
+                            <i class="ph-bold ph-x text-gray-400 text-sm"></i>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Filter | Sort | View Mode (Collapsible on mobile) -->
@@ -1269,6 +1300,7 @@
                 instIos1: "1. Tap the Share icon below", instIos2: "2. Select 'Add to Home Screen'", instGotIt: "Got it!", instAskTomorrow: "Ask again tomorrow!", instNoAsk: "Do not ask again", instNoAskWait: "(tick will enable after 5 days)", installBenefits: "✨ Why install LootRadar?\n🔒 Your claimed history is saved permanently — only on your phone\n💰 Calculate your total lifetime savings\n📦 Switching phones? Transfer your data to a new device anytime", instLocal: "Only stored on your device",
                 sortRecent: "Date: Recently Claimed", sortOldestClaimed: "Date: Oldest Claimed", sortNewest: "Date: Newest Deal", sortOldest: "Date: Oldest Deal", sortPriceHigh: "Price: High to Low", sortPriceLow: "Price: Low to High", sortName: "Name (A-Z)", sortNameZA: "Name (Z-A)",
                 viewGrid: "Grid View", viewList: "List View", getLink: "Get", collapse: "Collapse", expand: "Expand",
+                searchPh: "Search games, source, date…", searchPhLib: "Search my library…", searchResults: "games found", searchNone: "No games match your search", searchClear: "Clear",
                 settingsTitle: "Settings", shareTitle: "Share App", shareDesc: "Share LootRadar with friends! Scan QR code or copy the link.",
                 copyLink: "Copy Link", shareBtn: "Share", copySuccess: "Link copied!", updateAvailable: "New version available — tap to update", quickSettings: "Quick Settings",
                 comingSoon: "Use the header buttons for language and theme. More settings coming soon!",
@@ -1309,6 +1341,7 @@
                 instIos1: "1. 点击浏览器底部的『分享』图标", instIos2: "2. 选择『添加到主屏幕』", instGotIt: "我知道了", instAskTomorrow: "明天再问我！", instNoAsk: "不再询问", instNoAskWait: "（5 天后可勾选）", installBenefits: "✨ 为什么要安装？\n🔒 领取历史永久记录，只保存在您的手机里\n💰 自动计算累计省下的总金额\n📦 换手机？用数据转移随时把资料转到新手机", instLocal: "数据仅存储在您的设备上",
                 sortRecent: "领取日期：最近领取", sortOldestClaimed: "领取日期：最早领取", sortNewest: "促销日期：最新在前", sortOldest: "促销日期：最旧在前", sortPriceHigh: "节省金额：从高到低", sortPriceLow: "节省金额：从低到高", sortName: "名称 (A-Z)", sortNameZA: "名称 (Z-A)",
                 viewGrid: "网格视图", viewList: "列表视图", getLink: "获取", collapse: "收起", expand: "展开",
+                searchPh: "搜索游戏、来源、日期…", searchPhLib: "搜索我的游戏库…", searchResults: "个游戏", searchNone: "没有符合搜索的游戏", searchClear: "清除",
                 settingsTitle: "设置", shareTitle: "分享应用", shareDesc: "分享 LootRadar 给朋友！扫描二维码或复制链接。",
                 copyLink: "复制链接", shareBtn: "分享", copySuccess: "链接已复制！", updateAvailable: "发现新版本 — 点击更新", quickSettings: "快速设置",
                 comingSoon: "使用顶部按钮切换语言和主题。更多设置即将推出！",
@@ -1349,6 +1382,7 @@
                 instIos1: "1. 點擊瀏覽器底部的『分享』圖示", instIos2: "2. 選擇『加入到主畫面』", instGotIt: "我知道了", instAskTomorrow: "明天再問我！", instNoAsk: "不再詢問", instNoAskWait: "（5 天後可勾選）", installBenefits: "✨ 為什麼要安裝？\n🔒 領取歷史永久記錄，只保存在您的手機裡\n💰 自動計算累計省下的總金額\n📦 換手機？用資料轉移隨時把資料轉到新手機", instLocal: "資料僅存儲在您的裝置上",
                 sortRecent: "領取日期：最近領取", sortOldestClaimed: "領取日期：最早領取", sortNewest: "促銷日期：最新在前", sortOldest: "促銷日期：最舊在前", sortPriceHigh: "節省金額：從高到低", sortPriceLow: "節省金額：從低到高", sortName: "名稱 (A-Z)", sortNameZA: "名稱 (Z-A)",
                 viewGrid: "網格檢視", viewList: "清單檢視", getLink: "獲取", collapse: "收起", expand: "展開",
+                searchPh: "搜尋遊戲、來源、日期…", searchPhLib: "搜尋我的遊戲庫…", searchResults: "個遊戲", searchNone: "沒有符合搜尋的遊戲", searchClear: "清除",
                 settingsTitle: "設定", shareTitle: "分享應用", shareDesc: "分享 LootRadar 給朋友！掃描二維碼或複製連結。",
                 copyLink: "複製連結", shareBtn: "分享", copySuccess: "連結已複製！", updateAvailable: "發現新版本 — 點擊更新", quickSettings: "快速設定",
                 comingSoon: "使用頂部按鈕切換語言和主題。更多設定即將推出！",
@@ -1389,6 +1423,7 @@
                 instIos1: "1. Toca el ícono de Compartir abajo", instIos2: "2. Selecciona 'Agregar a inicio'", instGotIt: "¡Entendido!", instAskTomorrow: "¡Pregúntame mañana!", instNoAsk: "No volver a preguntar", instNoAskWait: "(se podrá marcar después de 5 días)", installBenefits: "✨ ¿Por qué instalar LootRadar?\n🔒 Tu historial se guarda para siempre — solo en tu teléfono\n💰 Calcula tu ahorro total de por vida\n📦 ¿Cambias de teléfono? Transfiere tus datos al nuevo cuando quieras", instLocal: "Solo se guarda en tu dispositivo",
                 sortRecent: "Fecha: Recién reclamados", sortOldestClaimed: "Fecha: Más antiguos reclamados", sortNewest: "Fecha: Oferta más reciente", sortOldest: "Fecha: Oferta más antigua", sortPriceHigh: "Precio: Mayor a Menor", sortPriceLow: "Precio: Menor a Mayor", sortName: "Nombre (A-Z)", sortNameZA: "Nombre (Z-A)",
                 viewGrid: "Vista cuadrícula", viewList: "Vista lista", getLink: "Obtener", collapse: "Colapsar", expand: "Expandir",
+                searchPh: "Buscar juegos, fuente, fecha…", searchPhLib: "Buscar en mi biblioteca…", searchResults: "juegos encontrados", searchNone: "Ningún juego coincide con tu búsqueda", searchClear: "Borrar",
                 settingsTitle: "Ajustes", shareTitle: "Compartir App", shareDesc: "¡Comparte LootRadar con amigos! Escanea el QR o copia el enlace.",
                 copyLink: "Copiar Enlace", shareBtn: "Compartir", copySuccess: "¡Enlace copiado!", updateAvailable: "Nueva versión disponible — toca para actualizar", quickSettings: "Ajustes Rápidos",
                 comingSoon: "Usa los botones del header para idioma y tema. ¡Más ajustes pronto!",
@@ -1431,6 +1466,7 @@
                 instIos1: "1. Touchez l'icône Partager ci-dessous", instIos2: "2. Sélectionnez 'Sur l'écran d'accueil'", instGotIt: "J'ai compris", instAskTomorrow: "Redemandez-moi demain !", instNoAsk: "Ne plus demander", instNoAskWait: "(cochable après 5 jours)", installBenefits: "✨ Pourquoi installer LootRadar ?\n🔒 Votre historique est enregistré pour toujours — uniquement sur votre téléphone\n💰 Calculez vos économies totales\n📦 Vous changez de téléphone ? Transférez vos données à tout moment", instLocal: "Stocké uniquement sur votre appareil",
                 sortRecent: "Date: Récemment obtenus", sortOldestClaimed: "Date: Plus anciens obtenus", sortNewest: "Date: Offre la plus récente", sortOldest: "Date: Offre la plus ancienne", sortPriceHigh: "Prix: Décroissant", sortPriceLow: "Prix: Croissant", sortName: "Nom (A-Z)", sortNameZA: "Nom (Z-A)",
                 viewGrid: "Vue grille", viewList: "Vue liste", getLink: "Obtenir", collapse: "Réduire", expand: "Développer",
+                searchPh: "Rechercher jeux, source, date…", searchPhLib: "Rechercher dans ma bibliothèque…", searchResults: "jeux trouvés", searchNone: "Aucun jeu ne correspond à votre recherche", searchClear: "Effacer",
                 settingsTitle: "Paramètres", shareTitle: "Partager l'App", shareDesc: "Partagez LootRadar avec vos amis ! Scannez le QR ou copiez le lien.",
                 copyLink: "Copier le Lien", shareBtn: "Partager", copySuccess: "Lien copié !", updateAvailable: "Nouvelle version disponible — touchez pour mettre à jour", quickSettings: "Paramètres Rapides",
                 comingSoon: "Utilisez les boutons du header pour la langue et le thème. Plus de paramètres bientôt !",
@@ -1473,6 +1509,7 @@
                 instIos1: "1. Tippe unten auf das Teilen-Symbol", instIos2: "2. Wähle 'Zum Home-Bildschirm'", instGotIt: "Verstanden", instAskTomorrow: "Morgen wieder fragen!", instNoAsk: "Nicht mehr fragen", instNoAskWait: "(nach 5 Tagen aktivierbar)", installBenefits: "✨ Warum LootRadar installieren?\n🔒 Dein Verlauf wird dauerhaft gespeichert — nur auf deinem Handy\n💰 Gesamtersparnis automatisch berechnen\n📦 Neues Handy? Übertrage deine Daten jederzeit auf das neue Gerät", instLocal: "Nur auf deinem Gerät gespeichert",
                 sortRecent: "Datum: Kürzlich beansprucht", sortOldestClaimed: "Datum: Älteste beanspruchte", sortNewest: "Datum: Neuestes Angebot", sortOldest: "Datum: Ältestes Angebot", sortPriceHigh: "Preis: Absteigend", sortPriceLow: "Preis: Aufsteigend", sortName: "Name (A-Z)", sortNameZA: "Name (Z-A)",
                 viewGrid: "Rasteransicht", viewList: "Listenansicht", getLink: "Holen", collapse: "Einklappen", expand: "Erweitern",
+                searchPh: "Spiele, Quelle, Datum suchen…", searchPhLib: "Meine Bibliothek durchsuchen…", searchResults: "Spiele gefunden", searchNone: "Keine Spiele entsprechen deiner Suche", searchClear: "Löschen",
                 settingsTitle: "Einstellungen", shareTitle: "App teilen", shareDesc: "Teile LootRadar mit Freunden! QR scannen oder Link kopieren.",
                 copyLink: "Link kopieren", shareBtn: "Teilen", copySuccess: "Link kopiert!", updateAvailable: "Neue Version verfügbar — tippen zum Aktualisieren", quickSettings: "Schnelleinstellungen",
                 comingSoon: "Nutze die Header-Buttons für Sprache und Thema. Weitere Einstellungen folgen!",
@@ -1515,6 +1552,7 @@
                 instIos1: "1. Нажмите иконку 'Поделиться' внизу", instIos2: "2. Выберите 'На экран «Домой»'", instGotIt: "Понятно", instAskTomorrow: "Спросить завтра!", instNoAsk: "Больше не спрашивать", instNoAskWait: "(станет доступно через 5 дней)", installBenefits: "✨ Зачем устанавливать LootRadar?\n🔒 История сохранится навсегда — только на вашем телефоне\n💰 Автоматический подсчёт общей экономии\n📦 Меняете телефон? Перенесите данные на новое устройство в любой момент", instLocal: "Хранится только на вашем устройстве",
                 sortRecent: "Дата: Недавно получены", sortOldestClaimed: "Дата: Ранние полученные", sortNewest: "Дата: Новейшая акция", sortOldest: "Дата: Старейшая акция", sortPriceHigh: "Цена: по убыванию", sortPriceLow: "Цена: по возрастанию", sortName: "Название (А-Я)", sortNameZA: "Название (Я-А)",
                 viewGrid: "Сетка", viewList: "Список", getLink: "Получить", collapse: "Свернуть", expand: "Развернуть",
+                searchPh: "Поиск игр, источника, даты…", searchPhLib: "Поиск в моей библиотеке…", searchResults: "игр найдено", searchNone: "Ни одна игра не соответствует запросу", searchClear: "Очистить",
                 settingsTitle: "Настройки", shareTitle: "Поделиться", shareDesc: "Поделитесь LootRadar с друзьями! Сканируйте QR или скопируйте ссылку.",
                 copyLink: "Копировать", shareBtn: "Поделиться", copySuccess: "Ссылка скопирована!", updateAvailable: "Доступна новая версия — нажмите для обновления", quickSettings: "Быстрые настройки",
                 comingSoon: "Используйте кнопки в шапке для языка и темы. Больше настроек скоро!",
@@ -1557,6 +1595,7 @@
                 instIos1: "1. 下の「共有」アイコンをタップ", instIos2: "2. 「ホーム画面に追加」を選択", instGotIt: "了解", instAskTomorrow: "また明日聞いて！", instNoAsk: "今後表示しない", instNoAskWait: "（5日後にチェック可能）", installBenefits: "✨ なぜインストール？\n🔒 取得履歴は永久に記録され、あなたの端末のみに保存されます\n💰 節約した合計金額を自動計算\n📦 機種変更？データ移行でいつでも新しい端末へ移動できます", instLocal: "データはお使いの端末にのみ保存されます",
                 sortRecent: "日付：最近取得", sortOldestClaimed: "日付：古い取得", sortNewest: "日付：最新のプロモ", sortOldest: "日付：最古のプロモ", sortPriceHigh: "価格: 高い順", sortPriceLow: "価格: 低い順", sortName: "名前 (A-Z)", sortNameZA: "名前 (Z-A)",
                 viewGrid: "グリッド表示", viewList: "リスト表示", getLink: "入手", collapse: "折りたたむ", expand: "展開する",
+                searchPh: "ゲーム・ソース・日付を検索…", searchPhLib: "ライブラリを検索…", searchResults: "件見つかりました", searchNone: "検索に一致するゲームがありません", searchClear: "クリア",
                 settingsTitle: "設定", shareTitle: "アプリを共有", shareDesc: "LootRadarを友達と共有！QRコードをスキャンまたはリンクをコピー。",
                 copyLink: "リンクをコピー", shareBtn: "共有", copySuccess: "リンクをコピーしました！", updateAvailable: "新バージョンがあります — タップして更新", quickSettings: "クイック設定",
                 comingSoon: "ヘッダーのボタンで言語とテーマを変更できます。その他の設定は近日公開！",
@@ -1599,6 +1638,7 @@
                 instIos1: "1. 하단의 '공유' 아이콘을 탭하세요", instIos2: "2. '홈 화면에 추가'를 선택하세요", instGotIt: "확인", instAskTomorrow: "내일 다시 물어보기!", instNoAsk: "다시 묻지 않기", instNoAskWait: "(5일 후 체크 가능)", installBenefits: "✨ 왜 설치해야 하나요?\n🔒 획득 기록은 영구적으로 저장되며, 오직 내 휴대폰에만 보관됩니다\n💰 총 절약 금액을 자동 계산\n📦 휴대폰을 바꾸시나요? 데이터 전송으로 언제든 새 기기로 옮기세요", instLocal: "데이터는 내 기기에만 저장됩니다",
                 sortRecent: "날짜: 최근 획득", sortOldestClaimed: "날짜: 오래된 획득", sortNewest: "날짜: 최신 프로모", sortOldest: "날짜: 오래된 프로모", sortPriceHigh: "가격: 높은순", sortPriceLow: "가격: 낮은순", sortName: "이름 (A-Z)", sortNameZA: "이름 (Z-A)",
                 viewGrid: "그리드 보기", viewList: "리스트 보기", getLink: "받기", collapse: "접기", expand: "펼치기",
+                searchPh: "게임·출처·날짜 검색…", searchPhLib: "내 라이브러리 검색…", searchResults: "개 게임 발견", searchNone: "검색과 일치하는 게임이 없습니다", searchClear: "지우기",
                 settingsTitle: "설정", shareTitle: "앱 공유", shareDesc: "LootRadar를 친구와 공유! QR 코드를 스캔하거나 링크를 복사하세요.",
                 copyLink: "링크 복사", shareBtn: "공유", copySuccess: "링크가 복사되었습니다!", updateAvailable: "새 버전이 있습니다 — 탭하여 업데이트", quickSettings: "빠른 설정",
                 comingSoon: "헤더 버튼으로 언어와 테마를 변경하세요. 더 많은 설정이 곧 제공됩니다!",
@@ -1641,6 +1681,7 @@
                 instIos1: "1. Toque no ícone Compartilhar abaixo", instIos2: "2. Selecione 'Adicionar à Tela de Início'", instGotIt: "Entendi!", instAskTomorrow: "Pergunte-me amanhã!", instNoAsk: "Não perguntar novamente", instNoAskWait: "(disponível após 5 dias)", installBenefits: "✨ Por que instalar o LootRadar?\n🔒 Seu histórico é salvo para sempre — apenas no seu celular\n💰 Calcule sua economia total\n📦 Vai trocar de celular? Transfira seus dados para o novo aparelho quando quiser", instLocal: "Salvo apenas no seu dispositivo",
                 sortRecent: "Data: Recém-resgatados", sortOldestClaimed: "Data: Mais antigos resgatados", sortNewest: "Data: Oferta mais recente", sortOldest: "Data: Oferta mais antiga", sortPriceHigh: "Preço: Maior a Menor", sortPriceLow: "Preço: Menor a Maior", sortName: "Nome (A-Z)", sortNameZA: "Nome (Z-A)",
                 viewGrid: "Visualização grade", viewList: "Visualização lista", getLink: "Obter", collapse: "Recolher", expand: "Expandir",
+                searchPh: "Buscar jogos, fonte, data…", searchPhLib: "Buscar na minha biblioteca…", searchResults: "jogos encontrados", searchNone: "Nenhum jogo corresponde à sua busca", searchClear: "Limpar",
                 settingsTitle: "Configurações", shareTitle: "Compartilhar App", shareDesc: "Compartilhe o LootRadar com amigos! Escaneie o QR ou copie o link.",
                 copyLink: "Copiar Link", shareBtn: "Compartilhar", copySuccess: "Link copiado!", updateAvailable: "Nova versão disponível — toque para atualizar", quickSettings: "Configurações Rápidas",
                 comingSoon: "Use os botões do header para idioma e tema. Mais configurações em breve!",
@@ -1876,7 +1917,10 @@
           libSort: localStorage.getItem('lootradar_lib_sort') || 'claimed_date_desc',
           libFilter: 'All',
           libView: localStorage.getItem('lootradar_lib_view') || 'grid',
-          deletedHistory: sanitizeHistory(loadSafeStorage('lootradar_deleted_history'))
+          deletedHistory: sanitizeHistory(loadSafeStorage('lootradar_deleted_history')),
+          // 2026.09.24.2: transient search queries — NEVER persisted, a refresh clears them
+          searchQuery: '',
+          libSearch: ''
         };
 
         // 2026.09.02.4: ONE-SHOT RESCUE from the last Cloud Sync export.
@@ -8160,12 +8204,19 @@
             // ----------------------------------
             
             // 2. Filter games by platform if a filter is active
-            const filteredGames = libraryGames.filter(game => {
+            let filteredGames = libraryGames.filter(game => {
                 if (state.libFilter === 'All') return true;
                 if (!game.platforms) return false;
                 return game.platforms.toLowerCase().includes(state.libFilter.toLowerCase());
             });
-            
+
+            // 2b. Apply search (2026.09.24.2) — same matcher as the main feed.
+            const libQ = (state.libSearch || '').trim();
+            if (libQ) {
+                filteredGames = filteredGames.filter(game => gameMatchesQuery(game, libQ));
+            }
+            updateLibSearchUI(filteredGames.length, libQ);
+
             // 3. Sort games based on selection
             filteredGames.sort((a, b) => {
                 // Recently Claimed / Oldest Claimed (use claimed_date, fallback to date)
@@ -8186,6 +8237,14 @@
             if (filteredGames.length === 0) {
                 grid.innerHTML = '';
                 if (emptyState) {
+                    // 2026.09.24.2: pick the right empty message — search beats platform beats default
+                    const tEmpty = i18n[state.lang] || {};
+                    const uiLibEmpty = document.getElementById('ui-lib-empty');
+                    if (uiLibEmpty) {
+                        uiLibEmpty.textContent = libQ
+                            ? (tEmpty.searchNone || 'No games match your search')
+                            : (state.libFilter !== 'All' ? (tEmpty.libNoFilter || 'No games match this platform.') : (tEmpty.libEmpty || 'Your library is empty.'));
+                    }
                     emptyState.classList.remove('hidden');
                     emptyState.classList.add('flex');
                 }
@@ -8226,7 +8285,7 @@
                         </div>
                         <div class="flex-1 p-3 flex flex-col justify-between min-w-0">
                             <div>
-                                <p class="text-sm font-bold truncate dark:text-gray-200" title="${game.title}">${game.title}</p>
+                                <p class="text-sm font-bold truncate dark:text-gray-200" title="${game.title}">${highlightMatches(game.title, state.libSearch)}</p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-1">
                                     <i class="ph-bold ph-piggy-bank text-green-500"></i>
                                     <span class="text-green-500 dark:text-green-400 font-bold">+${game.worth || 'Free'}</span>
@@ -8264,7 +8323,7 @@
                             </div>
                         </div>
                         <div class="p-2">
-                            <p class="text-xs font-bold truncate dark:text-gray-200" title="${game.title}">${game.title}</p>
+                            <p class="text-xs font-bold truncate dark:text-gray-200" title="${game.title}">${highlightMatches(game.title, state.libSearch)}</p>
                             <p class="text-[10px] text-blue-500 dark:text-neon-blue mt-0.5 flex items-center gap-0.5"><i class="ph-bold ph-arrow-square-out"></i> ${t.getLink}</p>
                             ${game.claimed_date ? `<p class="text-[9px] text-gray-400 mt-0.5"><i class="ph-bold ph-calendar-check"></i> ${new Date(game.claimed_date).toLocaleString()}</p>` : (game.date ? `<p class="text-[9px] text-gray-400 mt-0.5"><i class="ph-bold ph-calendar"></i> ${new Date(game.date).toLocaleString()}</p>` : '')}
                         </div>
@@ -8471,6 +8530,147 @@
 
         }
 
+        // ─── SEARCH (2026.09.24.2) ───────────────────────────────────────────
+        // Shared by the main feed AND the library so both behave identically.
+        // Query splits on whitespace → EVERY token must match (AND); a token
+        // matches if ANY field contains it (OR): title, source, platforms,
+        // description, or date (year / month name / month number / locale / iso).
+        // Case + accent insensitive. Empty query = show everything.
+        function normalizeSearchStr(s) {
+            return (s == null ? '' : String(s)).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        }
+        function gameSearchDateFields(game) {
+            const raw = game.published_date || game.date || game.claimed_date || '';
+            const d = raw ? new Date(raw) : null;
+            if (!d || isNaN(d.getTime())) return null;
+            const months = ['january', 'february', 'march', 'april', 'may', 'june', 'july', 'august', 'september', 'october', 'november', 'december'];
+            return {
+                year: String(d.getFullYear()),
+                monthNum: String(d.getMonth() + 1),
+                monthName: months[d.getMonth()],
+                locale: d.toLocaleDateString().toLowerCase(),
+                iso: d.toISOString().slice(0, 10)
+            };
+        }
+        function gameMatchesQuery(game, query) {
+            const q = normalizeSearchStr((query || '').trim());
+            if (!q) return true;
+            const tokens = q.split(/\s+/).filter(Boolean);
+            if (!tokens.length) return true;
+            if (!game || typeof game !== 'object') return false;
+            const title = normalizeSearchStr(game.title);
+            const source = normalizeSearchStr(game.source);
+            const platforms = normalizeSearchStr(game.platforms);
+            const desc = normalizeSearchStr(game.description);
+            const df = gameSearchDateFields(game);
+            return tokens.every(tok => {
+                if (title.includes(tok)) return true;
+                if (source.includes(tok)) return true;
+                if (platforms.includes(tok)) return true;
+                if (desc.includes(tok)) return true;
+                if (df) {
+                    if (df.year === tok) return true;
+                    if (tok.length >= 2 && df.monthName.startsWith(tok)) return true;
+                    if (df.monthNum === tok) return true;
+                    if (df.locale.includes(tok)) return true;
+                    if (df.iso.includes(tok)) return true;
+                }
+                return false;
+            });
+        }
+        // HTML-escape (also hardens card titles that were previously raw).
+        function escapeSearchHtml(s) {
+            return (s == null ? '' : String(s)).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+        // Case-insensitive highlight of every query token inside `text`,
+        // returning HTML with matches wrapped in <mark class="search-hl">.
+        function highlightMatches(text, query) {
+            const raw = (text == null ? '' : String(text));
+            const q = (query || '').trim();
+            if (!q) return escapeSearchHtml(raw);
+            const tokens = q.toLowerCase().split(/\s+/).filter(t => t.length > 0);
+            if (!tokens.length) return escapeSearchHtml(raw);
+            const lower = raw.toLowerCase();
+            const ranges = [];
+            tokens.forEach(tok => {
+                let idx = lower.indexOf(tok);
+                while (idx !== -1) {
+                    ranges.push([idx, idx + tok.length]);
+                    idx = lower.indexOf(tok, idx + tok.length);
+                }
+            });
+            if (!ranges.length) return escapeSearchHtml(raw);
+            ranges.sort((a, b) => a[0] - b[0]);
+            const merged = [];
+            ranges.forEach(r => {
+                if (merged.length && r[0] <= merged[merged.length - 1][1]) {
+                    merged[merged.length - 1][1] = Math.max(merged[merged.length - 1][1], r[1]);
+                } else merged.push([r[0], r[1]]);
+            });
+            let out = '', last = 0;
+            merged.forEach(([s, e]) => {
+                out += escapeSearchHtml(raw.slice(last, s));
+                out += '<mark class="search-hl">' + escapeSearchHtml(raw.slice(s, e)) + '</mark>';
+                last = e;
+            });
+            out += escapeSearchHtml(raw.slice(last));
+            return out;
+        }
+        // Debounced feed search input handler.
+        let _feedSearchTimer = null;
+        function onFeedSearchInput(val) {
+            state.searchQuery = val || '';
+            const clearBtn = document.getElementById('feed-search-clear');
+            if (clearBtn) { const has = !!state.searchQuery.trim(); clearBtn.classList.toggle('hidden', !has); clearBtn.classList.toggle('flex', has); }
+            if (_feedSearchTimer) clearTimeout(_feedSearchTimer);
+            _feedSearchTimer = setTimeout(() => renderGames(), 200);
+        }
+        function clearFeedSearch() {
+            const inp = document.getElementById('feed-search-input');
+            if (inp) inp.value = '';
+            onFeedSearchInput('');
+            if (_feedSearchTimer) { clearTimeout(_feedSearchTimer); _feedSearchTimer = null; }
+            renderGames();
+            if (inp) inp.focus();
+        }
+        // Update the "N games found" chip under the search box.
+        function updateFeedSearchUI(count, query) {
+            const countEl = document.getElementById('feed-search-count');
+            if (!countEl) return;
+            const t = i18n[state.lang] || {};
+            if (query && query.trim()) {
+                countEl.textContent = `${count} ${t.searchResults || 'games found'}`;
+                countEl.classList.remove('hidden');
+            } else {
+                countEl.classList.add('hidden');
+            }
+        }
+        // Library search handlers.
+        function onLibSearchInput(val) {
+            state.libSearch = val || '';
+            const clearBtn = document.getElementById('lib-search-clear');
+            if (clearBtn) { const has = !!state.libSearch.trim(); clearBtn.classList.toggle('hidden', !has); clearBtn.classList.toggle('flex', has); }
+            renderLibrary(true);
+        }
+        function clearLibSearch() {
+            const inp = document.getElementById('lib-search-input');
+            if (inp) inp.value = '';
+            onLibSearchInput('');
+            if (inp) inp.focus();
+        }
+        // Update the library "N games found" chip.
+        function updateLibSearchUI(count, query) {
+            const countEl = document.getElementById('lib-search-count');
+            if (!countEl) return;
+            const t = i18n[state.lang] || {};
+            if (query && query.trim()) {
+                countEl.textContent = `${count} ${t.searchResults || 'games found'}`;
+                countEl.classList.remove('hidden');
+            } else {
+                countEl.classList.add('hidden');
+            }
+        }
+
         function renderGames() {
             validatePlatformTab();
             const renderStart = performance.now();
@@ -8502,7 +8702,17 @@
                 filteredGames = filteredGames.filter(g => isExpiringSoon(g));
             }
 
+            // 2026.09.24.2: Apply search filter (AND with platform/status/expiring —
+            // it follows the currently selected platform tab; All = search everything).
+            const searchQ = (state.searchQuery || '').trim();
+            if (searchQ) {
+                filteredGames = filteredGames.filter(g => gameMatchesQuery(g, searchQ));
+            }
+            updateFeedSearchUI(filteredGames.length, searchQ);
+
             if (filteredGames.length === 0) {
+                const uiEmpty = document.getElementById('ui-empty');
+                if (uiEmpty) uiEmpty.textContent = searchQ ? (t.searchNone || 'No games match your search') : (t.empty || 'No freebies found right now.');
                 emptyState.classList.remove('hidden');
                 return;
             } else {
@@ -8585,7 +8795,7 @@
                     </div>
                     <div class="p-4 md:p-5 flex flex-col flex-1 min-h-[180px]">
                         <div>
-                            <h3 class="font-display font-bold text-lg leading-[1.3] text-clamp-fix mb-1 dark:text-gray-100 group-hover:text-blue-500 dark:group-hover:text-neon-blue transition-colors">${game.title}</h3>
+                            <h3 class="font-display font-bold text-lg leading-[1.3] text-clamp-fix mb-1 dark:text-gray-100 group-hover:text-blue-500 dark:group-hover:text-neon-blue transition-colors">${highlightMatches(game.title, state.searchQuery)}</h3>
                             <p class="text-sm text-gray-500 dark:text-gray-400 leading-[1.4] text-clamp-fix mb-4">${game.description || ''}</p>
                         </div>
                         <div class="flex items-end justify-between mt-auto relative z-20">
@@ -8711,6 +8921,15 @@
             safeSetText('ui-loading', Array.isArray(t.loading) ? t.loading[0] : t.loading);
             safeSetText('ui-error', t.error);
             safeSetText('ui-empty', t.empty);
+
+            // 2026.09.24.2: localize the search box placeholders + clear-button titles
+            const setPlaceholder = (id, ph) => { const el = document.getElementById(id); if (el) el.setAttribute('placeholder', ph); };
+            setPlaceholder('feed-search-input', t.searchPh || 'Search games, source, date…');
+            setPlaceholder('lib-search-input', t.searchPhLib || 'Search my library…');
+            const feedClear = document.getElementById('feed-search-clear');
+            if (feedClear) feedClear.title = t.searchClear || 'Clear';
+            const libClear = document.getElementById('lib-search-clear');
+            if (libClear) libClear.title = t.searchClear || 'Clear';
 
             const walletContainer = document.getElementById('wallet-container');
             if (walletContainer) walletContainer.title = t.savedSince;
@@ -9024,7 +9243,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.09.24.1';
+        window.BUILD_VERSION = '2026.09.24.2';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

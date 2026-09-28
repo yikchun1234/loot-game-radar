@@ -6429,10 +6429,29 @@
             });
 
             const totalStr = totalSize > 1024 ? (totalSize / 1024).toFixed(1) + ' KB' : totalSize + ' B';
+            // 2026.09.28.4: quota context — localStorage has no queryable quota API
+            // (navigator.storage.estimate() reports the whole-origin DISK quota,
+            // tens of GB, misleading here), so the de-facto per-origin ~5 MB limit
+            // is the honest reference. Bar graded green <70% / yellow ≥70% / red ≥85%;
+            // pct truncated, never rounded up (house convention).
+            const QUOTA_BYTES = 5 * 1024 * 1024;
+            const quotaPct = Math.min((totalSize / QUOTA_BYTES) * 100, 100);
+            const quotaPctStr = quotaPct >= 10 ? String(Math.floor(quotaPct)) : String(Math.floor(quotaPct * 10) / 10);
+            const quotaBarColor = quotaPct >= 85 ? 'bg-red-500' : quotaPct >= 70 ? 'bg-yellow-500' : 'bg-green-500';
+            const quotaBarWidth = Math.max(quotaPct, 1); // min visible sliver
+            const quotaWarnHtml = quotaPct >= 70 ? `
+                <div class="text-[10px] ${quotaPct >= 85 ? 'text-red-500' : 'text-yellow-600 dark:text-yellow-500'} mt-1.5">
+                    Approaching the ~5 MB localStorage limit. <span class="font-mono">lootradar_publish_dates</span> is the only key that never auto-deletes — clearing it (Dev Mode → Clear Selective Data) reclaims the most.
+                </div>` : '';
             rows += `
-                <div class="flex items-center gap-3 text-xs border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
-                    <span class="font-bold text-yellow-500 flex-1">TOTAL STORAGE USED</span>
-                    <span class="font-bold text-yellow-500 w-20 text-right">${totalStr}</span>
+                <div class="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
+                    <div class="flex items-center gap-3 text-xs">
+                        <span class="font-bold text-yellow-500 flex-1">TOTAL STORAGE USED</span>
+                        <span class="font-bold text-yellow-500 text-right">${totalStr} / ~5 MB (${quotaPctStr}%)</span>
+                    </div>
+                    <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full mt-1.5 overflow-hidden">
+                        <div class="h-full ${quotaBarColor} rounded-full" style="width: ${quotaBarWidth}%"></div>
+                    </div>${quotaWarnHtml}
                 </div>`;
             report.innerHTML = rows;
             restoreDevCellStates();
@@ -9416,7 +9435,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.09.28.3';
+        window.BUILD_VERSION = '2026.09.28.4';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

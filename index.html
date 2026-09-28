@@ -4537,6 +4537,17 @@
                         </div>
                     </div>
 
+                    <!-- NEW: Store Activity — monthly stacked claim bars by store
+                         (2026.09.28.1, replaces the publish-date Release Calendar:
+                         published_dates carry the games' original release years
+                         (2018 resurfaces), claimed_date does not; moved above
+                         Rise & Fall of Platforms in 2026.09.28.3) -->
+                    <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 lg:col-span-2">
+                        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">${t.storeActivity || 'Store Activity'}</h3>
+                        <p class="text-[10px] text-gray-400 mb-4">${t.storeActivityDesc || 'Monthly claims stacked by store'}</p>
+                        ${storeActivityHtml}
+                    </div>
+
                     <!-- NEW: Rise & Fall of Platforms (stacked area by platform) -->
                     <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 lg:col-span-2">
                         <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">${t.platformRise || 'Rise & Fall of Platforms'}</h3>
@@ -4615,16 +4626,6 @@
                             <div class="w-3 h-3 bg-rose-600 dark:bg-rose-300 rounded-sm"></div>
                             <span>${t.more || 'More'}</span>
                         </div>
-                    </div>
-
-                    <!-- NEW: Store Activity — monthly stacked claim bars by store
-                         (2026.09.28.1, replaces the publish-date Release Calendar:
-                         published_dates carry the games' original release years
-                         (2018 resurfaces), claimed_date does not) -->
-                    <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 lg:col-span-2">
-                        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">${t.storeActivity || 'Store Activity'}</h3>
-                        <p class="text-[10px] text-gray-400 mb-4">${t.storeActivityDesc || 'Monthly claims stacked by store'}</p>
-                        ${storeActivityHtml}
                     </div>
 
                     <!-- NEW: Top 10 Most Expensive Games -->
@@ -9415,7 +9416,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.09.28.2';
+        window.BUILD_VERSION = '2026.09.28.3';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

@@ -2529,6 +2529,8 @@
               // one numeric id in deleted history did exactly that and bricked
               // the app on every boot (the 2026-09-02 outage).
               try { migrateNormalizedIds(); } catch (e) { window.logError('init migrateNormalizedIds: ' + (e && e.message ? e.message : e), 'storage'); }
+              // 2026.10.05.1: entity-escaped titles → real characters (display + dedupe tally)
+              try { migrateEntityTitles(); } catch (e) { window.logError('init migrateEntityTitles: ' + (e && e.message ? e.message : e), 'storage'); }
               // Merge epic:+gp: pairs of the same game already in the library
               try { migrateCrossSourceDuplicates(); } catch (e) { window.logError('init migrateCrossSourceDuplicates: ' + (e && e.message ? e.message : e), 'storage'); }
 
@@ -6702,6 +6704,8 @@
                             // 2026.09.02.6: guarded — a migration hiccup must not
                             // abort the import after the data is already written.
                             try { migrateNormalizedIds(); } catch (e) { window.logError('import migrateNormalizedIds: ' + (e && e.message ? e.message : e), 'storage'); }
+                            // 2026.10.05.1: imported backups may predate entity decoding
+                            try { migrateEntityTitles(); } catch (e) { window.logError('import migrateEntityTitles: ' + (e && e.message ? e.message : e), 'storage'); }
                             try { migrateCrossSourceDuplicates(); } catch (e) { window.logError('import migrateCrossSourceDuplicates: ' + (e && e.message ? e.message : e), 'storage'); }
 
                             // Refresh all UI
@@ -7506,6 +7510,13 @@
                 // Normalize all URLs first (Worker already does this, but ensure consistency)
                 // Keep original URL in open_giveaway, add normalizedId for deduplication
                 allGames.forEach(g => {
+                    // 2026.10.05.1: sources (Reddit RSS especially) may deliver
+                    // entity-escaped titles — decode ONCE at ingestion so stored
+                    // data, display (highlightMatches re-escapes) and dedupe all
+                    // see the real characters. Description is NOT decoded: it is
+                    // injected raw into innerHTML where entities already render
+                    // correctly, and decoding would allow raw-HTML injection.
+                    if (typeof g.title === 'string') g.title = decodeHtmlEntities(g.title);
                     if (g.open_giveaway) {
                         g.normalizedId = normalizeUrl(g.open_giveaway);
                     }
@@ -7672,6 +7683,44 @@
         }
 
         // Migrate old normalized IDs to full URLs
+        // 2026.10.05.1: convert STORED entity-escaped titles back to real
+        // characters ("Game &amp; Friends" → "Game & Friends") so library
+        // display and Same-Name Duplicates matching tally against the newly
+        // decoded feed titles. Follows the .02.6 rules: junk-tolerant,
+        // guarded at the call site, saves ONLY when something changed.
+        function migrateEntityTitles() {
+            let claimedFixed = 0;
+            const claimedGames = state.claimedGames || {};
+            Object.values(claimedGames).forEach(game => {
+                if (!game || typeof game !== 'object') return;
+                if (typeof game.title === 'string') {
+                    const decoded = decodeHtmlEntities(game.title);
+                    if (decoded !== game.title) { game.title = decoded; claimedFixed++; }
+                }
+            });
+            if (claimedFixed > 0) {
+                saveSafeStorage('lootradar_claimed_v2', claimedGames);
+                console.log(`Decoded HTML entities in ${claimedFixed} library titles`);
+            }
+
+            let histFixed = 0;
+            const deletedHistory = loadSafeStorage('lootradar_deleted_history') || [];
+            if (Array.isArray(deletedHistory)) {
+                deletedHistory.forEach(item => {
+                    if (!item || typeof item !== 'object') return;
+                    if (typeof item.title === 'string') {
+                        const decoded = decodeHtmlEntities(item.title);
+                        if (decoded !== item.title) { item.title = decoded; histFixed++; }
+                    }
+                });
+                if (histFixed > 0) {
+                    saveSafeStorage('lootradar_deleted_history', deletedHistory);
+                    state.deletedHistory = deletedHistory;
+                    console.log(`Decoded HTML entities in ${histFixed} history titles`);
+                }
+            }
+        }
+
         function migrateNormalizedIds() {
             const claimedGames = state.claimedGames || {};
             let needsSave = false;
@@ -7843,8 +7892,41 @@
         // This merges such pairs in the library: keeps the higher-value
         // entry and removes the other (adjusting totalSaved).
         // ---------------------------------------------------------------
+        // ---------------------------------------------------------------
+        // 2026.10.05.1: HTML entity decoding.
+        // Some sources (Reddit RSS especially) deliver titles ALREADY
+        // entity-escaped: "Game &amp; Friends", "Tom Clancy&#39;s". Two bugs:
+        //   1) DISPLAY — highlightMatches/escapeSearchHtml escapes the &
+        //      again → &amp;amp; → the user sees a literal "&amp;".
+        //   2) MATCHING — the library stores the escaped title, so
+        //      cleanTitleForDedupe turns "&amp;" into the WORD "amp" and
+        //      same-name duplicates no longer tally against clean copies.
+        // Fix: decode at ingestion + boot-migrate stored data (see
+        // migrateEntityTitles) + decode again inside cleanTitleForDedupe as
+        // a belt-and-braces fallback for not-yet-migrated comparisons.
+        // &amp; is decoded LAST so "&amp;lt;" yields the literal text
+        // "&lt;" (single pass, never over-decodes).
+        // ---------------------------------------------------------------
+        function decodeHtmlEntities(s) {
+            if (typeof s !== 'string' || s.indexOf('&') === -1) return s;
+            return s
+                .replace(/&#x([0-9a-fA-F]+);/g, (m, h) => {
+                    const code = parseInt(h, 16);
+                    return (isFinite(code) && code > 0 && code <= 0x10FFFF) ? String.fromCodePoint(code) : m;
+                })
+                .replace(/&#(\d+);/g, (m, d) => {
+                    const code = parseInt(d, 10);
+                    return (isFinite(code) && code > 0 && code <= 0x10FFFF) ? String.fromCodePoint(code) : m;
+                })
+                .replace(/&quot;/g, '"')
+                .replace(/&apos;/g, "'")
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/&nbsp;/g, ' ')
+                .replace(/&amp;/g, '&');
+        }
         function cleanTitleForDedupe(t) {
-            return (t || '').toLowerCase()
+            return decodeHtmlEntities(t || '').toLowerCase()
                 .replace(/\(epic games?\)/g, '')
                 .replace(/giveaway/g, '')
                 .replace(/[^a-z0-9]+/g, ' ')
@@ -8353,7 +8435,7 @@
                         </div>
                         <div class="flex-1 p-3 flex flex-col justify-between min-w-0">
                             <div>
-                                <p class="text-sm font-bold truncate dark:text-gray-200" title="${game.title}">${highlightMatches(game.title, state.libSearch)}</p>
+                                <p class="text-sm font-bold truncate dark:text-gray-200" title="${String(game.title || '').replace(/"/g, '&quot;')}">${highlightMatches(game.title, state.libSearch)}</p>
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 flex items-center gap-1">
                                     <i class="ph-bold ph-piggy-bank text-green-500"></i>
                                     <span class="text-green-500 dark:text-green-400 font-bold">+${game.worth || 'Free'}</span>
@@ -8391,7 +8473,7 @@
                             </div>
                         </div>
                         <div class="p-2">
-                            <p class="text-xs font-bold truncate dark:text-gray-200" title="${game.title}">${highlightMatches(game.title, state.libSearch)}</p>
+                            <p class="text-xs font-bold truncate dark:text-gray-200" title="${String(game.title || '').replace(/"/g, '&quot;')}">${highlightMatches(game.title, state.libSearch)}</p>
                             <p class="text-[10px] text-blue-500 dark:text-neon-blue mt-0.5 flex items-center gap-0.5"><i class="ph-bold ph-arrow-square-out"></i> ${t.getLink}</p>
                             ${game.claimed_date ? `<p class="text-[9px] text-gray-400 mt-0.5"><i class="ph-bold ph-calendar-check"></i> ${new Date(game.claimed_date).toLocaleString()}</p>` : (game.date ? `<p class="text-[9px] text-gray-400 mt-0.5"><i class="ph-bold ph-calendar"></i> ${new Date(game.date).toLocaleString()}</p>` : '')}
                         </div>
@@ -9435,7 +9517,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.09.28.4';
+        window.BUILD_VERSION = '2026.10.05.1';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

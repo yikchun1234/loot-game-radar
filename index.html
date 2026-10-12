@@ -1796,7 +1796,13 @@
 
         // --- LOCAL STORAGE COMPRESSION HELPERS ---
         function loadSafeStorage(key) {
-            const raw = localStorage.getItem(key);
+            let raw = null;
+            try { raw = localStorage.getItem(key); } catch (e) { raw = null; }
+            // 2026.10.05.2: if localStorage was full (quota), saveSafeStorage keeps
+            // the newest value in an in-memory override so reads never go stale.
+            if (!raw && window.__opfsOverrides && typeof window.__opfsOverrides[key] === 'string') {
+                raw = window.__opfsOverrides[key];
+            }
             if (!raw) return null;
             // If it starts with { or [, it MIGHT be an old plain-text backup —
             // but LZ-compressed data can also start with those characters, so a
@@ -1826,8 +1832,364 @@
         function saveSafeStorage(key, data) {
             // Compress heavily before saving to bypass the 5MB browser limit
             const compressed = LZString.compressToUTF16(JSON.stringify(data));
-            localStorage.setItem(key, compressed);
+            try {
+                localStorage.setItem(key, compressed);
+                if (window.__opfsOverrides) delete window.__opfsOverrides[key];
+            } catch (e) {
+                // 2026.10.05.2: quota exceeded — keep the value in memory (so
+                // loadSafeStorage still sees it) and in the OPFS snapshot below.
+                (window.__opfsOverrides = window.__opfsOverrides || {})[key] = compressed;
+                try { window.logError('saveSafeStorage quota exceeded [' + key + ']: ' + (e && e.message ? e.message : e), 'storage'); } catch (_) {}
+            }
+            // 2026.10.05.2: dual-write era — mirror into OPFS as well (debounced)
+            try { opfsScheduleSnapshot(1200); } catch (e) {}
         }
+
+        // ===== 2026.10.05.2: OPFS SNAPSHOT MIRROR (dual-write era) =====
+        // localStorage REMAINS the synchronous runtime store: the `state` object
+        // initializes via loadSafeStorage at script-PARSE time — before any async
+        // API could resolve — and 60+ call sites read/write it synchronously.
+        // OPFS receives a verified lz-string-compressed snapshot of EVERY data key:
+        //   • written after every saveSafeStorage (debounced), on a fingerprint
+        //     timer that catches DIRECT localStorage writes (data imports, filters,
+        //     saved_money, error log) and removals, and on pagehide/hidden flush;
+        //   • verified by reading the file back, decompressing and comparing EVERY
+        //     key's value string-for-string — only a verified write counts as
+        //     "in sync" (the user's zero-error migration rule);
+        //   • at boot, if localStorage was wiped/rolled back while the snapshot is
+        //     newer, the snapshot RESTORES localStorage (one-shot sessionStorage-
+        //     guarded reload so parse-time state init sees the restored data).
+        // Any failure falls back to pure-localStorage behavior — the layer can
+        // never kill boot (2026.09.02.6 rule). Plan: keep dual-write ~1 year;
+        // once proven stable the localStorage side gets removed and reads switch
+        // to an OPFS-hydrated in-memory mirror.
+        window.__opfs = {
+            supported: false, active: false,
+            mode: 'localstorage', // 'opfs' = verified & in sync | 'restored' | 'localstorage'
+            seq: 0, snapSeq: -1, snapBytes: 0, snapSavedAt: null, snapKeys: 0,
+            lastError: null, lastWriteAt: null, lastRestoreAt: null, lastAttemptAt: 0,
+            writing: false, pending: false, autoSyncStarted: false, dir: null
+        };
+        const OPFS_SNAPSHOT_FILE = 'lootradar_snapshot.bin';
+        const OPFS_SEQ_KEY = 'lootradar_opfs_seq';
+        const OPFS_RESTORE_GUARD = 'lootradar_opfs_restored';
+        const OPFS_LAST_RESTORE_KEY = 'lootradar_opfs_last_restore';
+        let _opfsFingerprint = null;
+        let _opfsDebounceTimer = null;
+
+        // All data keys worth mirroring: everything lootradar_* plus the
+        // prefix-less Cloud Sync rescue snapshot (sync_last_payload). The seq
+        // bookkeeping key itself is excluded (it is derived, not data).
+        function opfsCollectKeys() {
+            const keys = {};
+            try {
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    if (!k || k === OPFS_SEQ_KEY) continue;
+                    if (k.indexOf('lootradar_') === 0 || k === 'sync_last_payload') {
+                        keys[k] = localStorage.getItem(k);
+                    }
+                }
+            } catch (e) { /* private mode etc — mirror what we can */ }
+            // Quota overrides: newest values that never fit into localStorage.
+            // If localStorage caught up (key present again) drop the override;
+            // if the key was deliberately REMOVED, the removal wins — drop too.
+            const ov = window.__opfsOverrides;
+            if (ov) {
+                Object.keys(ov).forEach(function (k) {
+                    let inLs = false;
+                    try { inLs = localStorage.getItem(k) !== null; } catch (e) {}
+                    if (inLs) delete ov[k];
+                    else if (k in keys) keys[k] = ov[k];
+                    else keys[k] = ov[k];
+                });
+            }
+            return keys;
+        }
+
+        // djb2 content hash — the fingerprint must notice value CHANGES that
+        // preserve length (e.g. editing a title), not just size deltas.
+        function opfsHashOf(str) {
+            let h = 5381;
+            for (let i = 0; i < str.length; i++) {
+                h = ((h << 5) + h + str.charCodeAt(i)) >>> 0;
+            }
+            return h.toString(36);
+        }
+
+        function opfsFingerprintOf(keys) {
+            const names = Object.keys(keys).sort();
+            let fp = '';
+            for (let i = 0; i < names.length; i++) {
+                const v = keys[names[i]];
+                fp += names[i] + ':' + (typeof v === 'string' ? v.length + '_' + opfsHashOf(v) : -1) + '|';
+            }
+            return fp;
+        }
+
+        function opfsLocalStorageHasData() {
+            const bulk = ['lootradar_claimed_v2', 'lootradar_deleted_history', 'lootradar_publish_dates'];
+            for (let i = 0; i < bulk.length; i++) {
+                try {
+                    const v = localStorage.getItem(bulk[i]);
+                    if (v && v.length > 2) return true;
+                } catch (e) {}
+            }
+            return false;
+        }
+
+        function opfsScheduleSnapshot(delay) {
+            const st = window.__opfs;
+            if (!st.supported) return;
+            if (_opfsDebounceTimer) clearTimeout(_opfsDebounceTimer);
+            _opfsDebounceTimer = setTimeout(function () {
+                _opfsDebounceTimer = null;
+                opfsWriteSnapshot('scheduled');
+            }, typeof delay === 'number' ? delay : 1200);
+        }
+
+        async function opfsWriteSnapshot(reason) {
+            const st = window.__opfs;
+            if (!st.supported || !st.dir) return false;
+            if (st.writing) { st.pending = true; return false; }
+            st.writing = true;
+            st.lastAttemptAt = Date.now();
+            try {
+                const keys = opfsCollectKeys();
+                const fp = opfsFingerprintOf(keys);
+                if (reason !== 'force' && fp === _opfsFingerprint && st.active && st.snapSeq === st.seq) {
+                    return true; // nothing changed since the last verified write
+                }
+                const seq = st.seq + 1;
+                const payload = JSON.stringify({
+                    magic: 'lootradar-opfs-snapshot',
+                    version: 1,
+                    seq: seq,
+                    savedAt: new Date().toISOString(),
+                    appVersion: window.BUILD_VERSION || '',
+                    keys: keys
+                });
+                const bytes = LZString.compressToUint8Array(payload);
+                const fh = await st.dir.getFileHandle(OPFS_SNAPSHOT_FILE, { create: true });
+                const w = await fh.createWritable();
+                await w.write(bytes);
+                await w.close();
+                // READ-BACK VERIFICATION (zero-error rule): decompress the stored
+                // bytes and compare EVERY key's value string-for-string against
+                // what we intended to store. Unverified writes never count.
+                const rh = await st.dir.getFileHandle(OPFS_SNAPSHOT_FILE);
+                const rf = await rh.getFile();
+                const back = new Uint8Array(await rf.arrayBuffer());
+                const json = LZString.decompressFromUint8Array(back);
+                const parsed = json ? JSON.parse(json) : null;
+                if (!parsed || parsed.magic !== 'lootradar-opfs-snapshot' || parsed.seq !== seq || !parsed.keys) {
+                    throw new Error('read-back failed (bad payload)');
+                }
+                const wantNames = Object.keys(keys);
+                if (Object.keys(parsed.keys).length !== wantNames.length) {
+                    throw new Error('read-back failed (key count)');
+                }
+                for (let i = 0; i < wantNames.length; i++) {
+                    if (parsed.keys[wantNames[i]] !== keys[wantNames[i]]) {
+                        throw new Error('read-back failed (value mismatch: ' + wantNames[i] + ')');
+                    }
+                }
+                st.seq = seq;
+                st.snapSeq = seq;
+                st.snapBytes = back.length;
+                st.snapSavedAt = parsed.savedAt;
+                st.snapKeys = wantNames.length;
+                st.active = true;
+                if (st.mode !== 'restored') st.mode = 'opfs';
+                st.lastWriteAt = new Date().toISOString();
+                st.lastError = null;
+                _opfsFingerprint = fp;
+                try { localStorage.setItem(OPFS_SEQ_KEY, String(seq)); } catch (e) {}
+                try { updateOpfsEngineUI(); } catch (e) {}
+                return true;
+            } catch (e) {
+                st.lastError = (e && e.message) ? e.message : String(e);
+                st.active = false;
+                if (st.mode === 'opfs') st.mode = 'localstorage';
+                try { window.logError('opfsWriteSnapshot: ' + st.lastError, 'storage'); } catch (_) {}
+                try { updateOpfsEngineUI(); } catch (e) {}
+                return false;
+            } finally {
+                st.writing = false;
+                if (st.pending) { st.pending = false; opfsScheduleSnapshot(300); }
+            }
+        }
+
+        function opfsStartAutoSync() {
+            const st = window.__opfs;
+            if (!st.supported || st.autoSyncStarted) return;
+            st.autoSyncStarted = true;
+            // Fingerprint timer: catches every DIRECT localStorage write that
+            // bypasses saveSafeStorage (imports, filters, saved_money, error log)
+            // and every removal (Clear Selective Data). Retries a failed mirror
+            // at most once a minute.
+            setInterval(function () {
+                try {
+                    if (!st.supported || st.writing) return;
+                    if (!st.active && st.lastAttemptAt && Date.now() - st.lastAttemptAt < 60000) return;
+                    const fp = opfsFingerprintOf(opfsCollectKeys());
+                    if (fp !== _opfsFingerprint || !st.active) opfsScheduleSnapshot(200);
+                } catch (e) {}
+            }, 10000);
+            const flush = function () {
+                try {
+                    if (!st.supported || !st.dir) return;
+                    const fp = opfsFingerprintOf(opfsCollectKeys());
+                    if (fp !== _opfsFingerprint) opfsWriteSnapshot('pagehide');
+                } catch (e) {}
+            };
+            window.addEventListener('pagehide', flush);
+            document.addEventListener('visibilitychange', function () { if (document.hidden) flush(); });
+        }
+
+        function opfsRestoreFromSnapshot(snap) {
+            const st = window.__opfs;
+            try {
+                let restored = 0;
+                Object.keys(snap.keys).forEach(function (k) {
+                    if (typeof snap.keys[k] === 'string') {
+                        try { localStorage.setItem(k, snap.keys[k]); restored++; }
+                        catch (e) { try { window.logError('opfs restore setItem [' + k + ']', 'storage'); } catch (_) {} }
+                    }
+                });
+                try { localStorage.setItem(OPFS_SEQ_KEY, String(snap.seq)); } catch (e) {}
+                st.seq = snap.seq;
+                st.snapSeq = snap.seq;
+                st.active = true;
+                st.mode = 'restored';
+                const nowIso = new Date().toISOString();
+                st.lastRestoreAt = nowIso;
+                try { localStorage.setItem(OPFS_LAST_RESTORE_KEY, nowIso); } catch (e) {}
+                try { window.logError('OPFS restore: localStorage was empty or older (snapshot seq ' + snap.seq + '); restored ' + restored + ' keys from OPFS', 'storage'); } catch (_) {}
+                opfsStartAutoSync();
+                _opfsFingerprint = opfsFingerprintOf(snap.keys);
+                // `state` was initialized (empty) at PARSE time — reload ONCE so
+                // the app boots on the restored data. sessionStorage guard makes
+                // the reload loop impossible.
+                let guard = null;
+                try { guard = sessionStorage.getItem(OPFS_RESTORE_GUARD); } catch (e) {}
+                if (guard !== '1') {
+                    try { sessionStorage.setItem(OPFS_RESTORE_GUARD, '1'); } catch (e) {}
+                    location.reload();
+                    return;
+                }
+                // Already reloaded once for this disaster — proceed without looping.
+                try { sessionStorage.removeItem(OPFS_RESTORE_GUARD); } catch (e) {}
+            } catch (e) {
+                st.lastError = (e && e.message) ? e.message : String(e);
+                st.active = false;
+                st.mode = 'localstorage';
+                try { window.logError('opfsRestoreFromSnapshot: ' + st.lastError, 'storage'); } catch (_) {}
+            }
+        }
+
+        async function initStorageLayer() {
+            const st = window.__opfs;
+            if (!(navigator.storage && typeof navigator.storage.getDirectory === 'function')) {
+                st.supported = false;
+                st.mode = 'localstorage';
+                st.lastError = 'OPFS not supported by this browser';
+                return;
+            }
+            st.supported = true;
+            st.dir = await navigator.storage.getDirectory();
+            try { st.seq = parseInt(localStorage.getItem(OPFS_SEQ_KEY) || '0', 10) || 0; } catch (e) { st.seq = 0; }
+            try { st.lastRestoreAt = localStorage.getItem(OPFS_LAST_RESTORE_KEY) || null; } catch (e) {}
+            // Read the existing snapshot (null on first run: NotFoundError)
+            let snap = null;
+            try {
+                const fh = await st.dir.getFileHandle(OPFS_SNAPSHOT_FILE);
+                const f = await fh.getFile();
+                const buf = new Uint8Array(await f.arrayBuffer());
+                const json = LZString.decompressFromUint8Array(buf);
+                const parsed = json ? JSON.parse(json) : null;
+                if (parsed && parsed.magic === 'lootradar-opfs-snapshot' && parsed.keys && typeof parsed.seq === 'number') {
+                    snap = parsed;
+                    st.snapSeq = parsed.seq;
+                    st.snapBytes = buf.length;
+                    st.snapSavedAt = parsed.savedAt || null;
+                    st.snapKeys = Object.keys(parsed.keys).length;
+                }
+            } catch (e) { snap = null; }
+            const lsHasData = opfsLocalStorageHasData();
+            if (snap && (snap.seq > st.seq || (!lsHasData && st.snapKeys > 0))) {
+                // localStorage was wiped/rolled back — OPFS holds the newer (or only) copy
+                opfsRestoreFromSnapshot(snap);
+                return;
+            }
+            // Normal boot: clear the one-shot reload guard (only lives between a
+            // restore and its reload) and adopt the synced snapshot when seqs match.
+            try { sessionStorage.removeItem(OPFS_RESTORE_GUARD); } catch (e) {}
+            if (snap && snap.seq === st.seq) {
+                st.active = true;
+                st.mode = 'opfs';
+                _opfsFingerprint = opfsFingerprintOf(snap.keys);
+            }
+            opfsStartAutoSync();
+            // First-run migration OR catch-up write (both read-back verified)
+            opfsScheduleSnapshot(400);
+        }
+
+        // --- Dev Mode: STORAGE ENGINE indicator (answers "am I on OPFS or localStorage?") ---
+        function opfsEngineHtml() {
+            const st = window.__opfs;
+            let badge, badgeCls, detail;
+            if (st.mode === 'opfs' && st.active) {
+                badge = 'DUAL ✔ localStorage + OPFS in sync';
+                badgeCls = 'bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/40';
+                detail = 'Every save is recorded in BOTH stores. The OPFS snapshot passed read-back verification (all keys compared string-for-string).';
+            } else if (st.mode === 'restored') {
+                badge = 'RESTORED FROM OPFS';
+                badgeCls = 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/40';
+                detail = 'localStorage was empty or older this boot — your data was recovered from the verified OPFS snapshot.';
+            } else if (!st.supported) {
+                badge = 'localStorage ONLY';
+                badgeCls = 'bg-gray-500/15 text-gray-500 dark:text-gray-400 border-gray-500/40';
+                detail = 'This browser has no OPFS support. Your data is safe in localStorage; use Export for backups.';
+            } else {
+                badge = 'localStorage (OPFS mirror pending)';
+                badgeCls = 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 border-yellow-500/40';
+                detail = st.lastError ? ('Last OPFS error: ' + st.lastError) : 'Snapshot write in progress…';
+            }
+            const sizeStr = st.snapBytes > 1024 ? (st.snapBytes / 1024).toFixed(1) + ' KB' : st.snapBytes + ' B';
+            const snapStr = st.snapSeq >= 0 ? (sizeStr + ' · seq ' + st.snapSeq + ' · ' + st.snapKeys + ' keys') : 'none yet';
+            const savedStr = st.snapSavedAt ? new Date(st.snapSavedAt).toLocaleString() : '—';
+            const restoreStr = st.lastRestoreAt ? new Date(st.lastRestoreAt).toLocaleString() : 'never';
+            return `
+                <div class="mb-3 p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60">
+                    <div class="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
+                        <span class="text-[10px] font-black tracking-wider text-gray-500 dark:text-gray-400">STORAGE ENGINE</span>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${badgeCls}">${badge}</span>
+                    </div>
+                    <div class="text-[10px] text-gray-500 dark:text-gray-400 mb-1.5">${detail}</div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-0.5 text-[10px] font-mono text-gray-500 dark:text-gray-400">
+                        <span>OPFS snapshot: ${snapStr}</span>
+                        <span>localStorage seq: ${st.seq}</span>
+                        <span>Snapshot saved: ${savedStr}</span>
+                        <span>Last OPFS restore: ${restoreStr}</span>
+                    </div>
+                    <div class="flex gap-2 mt-2">
+                        <button onclick="opfsManualResync()" class="text-[10px] font-bold px-2.5 py-1 rounded bg-cyan-600 text-white hover:bg-cyan-500">Re-sync OPFS now</button>
+                    </div>
+                </div>`;
+        }
+        function updateOpfsEngineUI() {
+            const el = document.getElementById('dev-opfs-engine');
+            if (el) el.innerHTML = opfsEngineHtml();
+        }
+        window.opfsManualResync = function () {
+            const st = window.__opfs;
+            if (!st.supported) return;
+            Promise.resolve()
+                .then(function () { return opfsWriteSnapshot('force'); })
+                .then(function () { updateOpfsEngineUI(); })
+                .catch(function () { updateOpfsEngineUI(); });
+        };
 
         // 2026.09.02.2: corrupted-storage hardening. If a saved array/object
         // ever contains junk (null entries, strings, wrong shape), the render
@@ -6455,7 +6817,10 @@
                         <div class="h-full ${quotaBarColor} rounded-full" style="width: ${quotaBarWidth}%"></div>
                     </div>${quotaWarnHtml}
                 </div>`;
-            report.innerHTML = rows;
+            // 2026.10.05.2: STORAGE ENGINE header — tells the user whether the
+            // active data lives in localStorage only or is dual-written + verified
+            // in OPFS (answers "现在是用 opfs 数据还是 local storage 数据").
+            report.innerHTML = '<div id="dev-opfs-engine">' + opfsEngineHtml() + '</div>' + rows;
             restoreDevCellStates();
         }
 
@@ -9517,7 +9882,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.10.05.1';
+        window.BUILD_VERSION = '2026.10.05.2';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;
@@ -9560,7 +9925,21 @@
             logError(event.reason || 'Unhandled Promise Rejection', 'Promise');
         });
 
-        window.addEventListener('DOMContentLoaded', init);
+        // 2026.10.05.2: bring up the OPFS mirror layer BEFORE the app inits.
+        // Any failure must never kill boot — fall back to pure localStorage and
+        // run init() regardless (2026.09.02.6 boot-kill rule).
+        window.addEventListener('DOMContentLoaded', function () {
+            Promise.resolve()
+                .then(function () { return initStorageLayer(); })
+                .catch(function (e) {
+                    try { window.logError('initStorageLayer: ' + (e && e.message ? e.message : e), 'storage'); } catch (_) {}
+                    try {
+                        window.__opfs.mode = 'localstorage';
+                        window.__opfs.lastError = (e && e.message) ? e.message : String(e);
+                    } catch (_) {}
+                })
+                .then(function () { init(); });
+        });
     </script>
 </body>
 </html>

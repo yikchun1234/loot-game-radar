@@ -33,17 +33,24 @@
 ### ✨ Features
 * 🌍 **Universal Tracking:** Automatically scrapes and aggregates free game deals from Steam, Epic Games, Prime Gaming, GOG, Ubisoft, iOS, Android, and Consoles. Powered by **Cloudflare Worker API** with multi-source data: **AppSales** (Android) + **CheapCharts** (iOS) + **NewMobileLife RSS** (iOS free apps) + **Epic Games Store API** + **GamerPower** (PC). Features **URL normalization & ID-based deduplication** (converts full store URLs to short IDs like `gplay:com.example.app`, `ios:id123`, `epic:slug`, `gp:slug`) with persistent publish date tracking across data sources — plus **cross-source duplicate merging**: when the same Epic giveaway appears from both the Epic Store API and GamerPower, the entries are merged into one card automatically (feed, library, and re-claim protection included)!
 * 💰 **My Loot Library & Wallet:** Keep a permanent record of every game you claim. The app automatically calculates your **Total Lifetime Savings**. Manage your library with precision by removing expired, failed, or paywalled games (featuring custom visual UI states) to keep your financial stats 100% accurate, with full support to reclaim them later! Features **Grid/List View toggle**, **clickable cards** (link directly to store pages), **collapsible dropdowns** on mobile for space-saving, and smart sort options including **Date: Recently Claimed** (default), **Date: Oldest Claimed**, **Date: Newest/Oldest Deal**, **Price**, and **Name A-Z/Z-A**. Delete reasons include expired, failed, paywall, not interested, and duplicate — with **duplicate items** instantly removed without history tracking.
-* 🎯 **Smart Feed Filter & Status Marking:** Filter the main feed by any combination of **six item statuses** — 🟡 Unclaimed, 🟢 Claimed, 🟠 Expired, 🔴 Failed, 🌸 Paywall, ⚪ Not Interested — with live per-status count chips, one-tap **Select All / None** pills, and an **Expiring Soon** toggle. Every card carries a ✏️ **mark-status button** that opens the same reason picker as the library: the card stays right on the feed wearing its new status and can always be filtered back. Two safety nets make sure **items can never get lost in your own filter**: claiming something your filter hides pops a glowing, no-timeout **confirm card** ("Keep it?" — Yes keeps, No changes status), and marking a status that's currently filtered off automatically unhides it.
-* 📊 **Loot Analytics Dashboard:** A zero-dependency, 100% Vanilla JS and SVG-powered statistics dashboard. Features: interactive **Donut Charts** for platform breakdown & removal reasons, **scrollable Monthly Activity Bar Chart** with **tap-to-reveal animations**, **Monthly Savings Bar**, **Claim Activity & Release Time Heatmaps** (GitHub-style), **Top 10 Most Valuable Claims**, **Price Distribution Histogram**, **Savings Forecast** line chart, stat cards (**Average Claim Value, Claim Streak, Claim Reaction Time, Best Haul Day**), **Gamer Profile Radar**, **Claim Speed Distribution**, **Monthly Trend Comparison** (year-over-year or month-over-month, bucketed by claim date), and a Robinhood-style **Wealth Growth Line Chart** with an interactive date scrubber.
+* 🎯 **Smart Feed Filter & Status Marking:** Filter the main feed by any combination of **six item statuses** — 🟡 Unclaimed, 🟢 Claimed, 🟠 Expired, 🔴 Failed, 🌸 Paywall, ⚪ Not Interested — with live per-status count chips, one-tap **Select All / None** pills, and an **Expiring Soon** toggle. Your filter selection can **persist across restarts** (opt-in "Remember filters" checkbox, default: everything open). Every card carries a ✏️ **mark-status button** that opens the same reason picker as the library: the card stays right on the feed wearing its new status and can always be filtered back. Two safety nets make sure **items can never get lost in your own filter**: claiming something your filter hides pops a glowing, no-timeout **confirm card** ("Keep it?" — Yes keeps, No changes status), and marking a status that's currently filtered off automatically unhides it.
+* 🔎 **Instant Search (Feed + Library):** A dedicated **sticky search row** (frosted-glass seam, never overlaps the header) with a typewriter-animated placeholder cycling through a large random pool. Searches titles across the main feed and your library in real time, with **matched cards highlighted** so results pop visually.
+* 📊 **Loot Analytics Dashboard:** A zero-dependency, 100% Vanilla JS and SVG-powered statistics dashboard. Features: interactive **Donut Charts** for platform breakdown & removal reasons, **scrollable Monthly Activity Bar Chart** with **tap-to-reveal animations**, **Monthly Savings Bar**, **Store Activity** monthly stacked bars (free-game releases per store, per month), **Keep Rate** stat card, **Claim Time & Removal Calendar Heatmaps** (GitHub-style), **Top 10 Most Valuable Claims**, **Price Distribution Histogram**, **Savings Forecast** line chart, stat cards (**Average Claim Value, Claim Streak, Claim Reaction Time, Best Haul Day**), **Gamer Profile Radar**, **Claim Speed Distribution**, **Monthly Trend Comparison** (year-over-year or month-over-month, bucketed by claim date), and a Robinhood-style **Wealth Growth Line Chart** with an interactive date scrubber and a **draggable date-range bar** to zoom any period.
 * ⚙️ **Settings Panel:** Unified settings hub with **QR Code sharing** (scan to share app with friends), **Language selector**, **Theme toggle** (Light/Dark), and **Device Sync** controls. Features native Web Share API support on mobile for one-tap sharing.
 * 🗜️ **Extreme Storage Optimization:** Utilizes **LZ-String UTF-16 Compression** directly on local storage, shrinking save data by up to 90%. This bypasses standard 5MB browser limits, allowing users to effortlessly store over **100,000+ items** locally. Features seamless background "Auto-Healing" to upgrade legacy V1 saves without data loss.
+* 🛟 **OPFS Snapshot Mirror (Dual-Write Durability):** Every save is recorded in **BOTH** localStorage and an **lz-string-compressed OPFS snapshot file** (Origin Private File System — the browser's private, quota-generous storage). The layer is built for zero data loss:
+  * **Read-back verification** — every snapshot write is decompressed and compared key-by-key, string-for-string; only a verified write counts as "in sync".
+  * **OPFS-first boot** — on every launch the snapshot is read *before the app initializes* and treated as the authoritative copy: if localStorage was wiped or rolled back, data is **automatically restored from OPFS**. localStorage only takes over when the snapshot has a problem (unsupported browser, missing/corrupt file, or stale mirror), and the catch-up write re-mirrors immediately.
+  * **Triple write triggers** — debounced save hook, a 10-second fingerprint timer (djb2 content hash) that catches even direct storage edits, and a pagehide/visibility flush.
+  * **Quota safety** — if localStorage is full, values survive in an in-memory override map and still make it into the snapshot.
+  * **Transparent to the user** — Dev Mode shows a **STORAGE ENGINE** panel with a **DATA SOURCE** readout ("boot read: OPFS ✔ read first — …"), sync badge, snapshot size/seq/timestamps and a manual Re-sync button. Export/Import JSON format is unchanged.
 * ☁️ **Cloud Sync (PIN Transfer):** Securely migrate your claimed games library, deleted item history, and total savings to another device in seconds using a 15-minute 5-digit PIN (Powered by Cloudflare Workers & highly-compressed payloads).
 * 📱 **Native App Experience & Fluid UI:** Fully installable as a PWA on iOS and Android. Features mobile-native interactions like **Pull-to-Refresh**, context-aware **Scroll-to-Top**, and desktop-optimized **Mouse Drag-to-Scroll** navigation. Wrapped in a slick glassmorphism UI with flawless Z-index sliding animations. **Collapsible dropdown filters** on mobile save screen space while maintaining easy access. A built-in **new-version notifier** checks `version.txt` in the background and shows a tap-to-update toast, so installed PWA users always pick up fresh deploys.
 * 🌐 **International Support (10 Languages):** Fully localized in English, 简体中文, 繁體中文, Español, Français, Deutsch, Русский, 日本語, 한국어, and Português (Including dynamic translations for all charts, analytics, and delete reasons).
 * 🛡️ **Advanced Security:** Built-in Domain Lockdown and Anti-Debugger/Inspect Element blockers to prevent unauthorized scraping or cloning of the app.
 * 🌓 **Dynamic Theming:** Seamless Light and Dark mode toggling.
 * ⚡ **Lightning Fast Performance:** Highly optimized DOM rendering uses Document Fragments, **Pre-rendered Modals** (zero layout recalculation on open), **CSS Grid-based animations** with cubic-bezier easing, and decoupled CSS transitions to instantly load, filter, and render hundreds of games with zero layout thrashing or lag. **Loading spinners** during library setup provide smooth feedback.
-* 🛠️ **Hidden Developer Mode:** Tap the "Loot Analytics" title 5 times to reveal 5 tabs of debugging tools with **collapsible sections** (chevron toggle, smooth CSS Grid animation): **Data Debugging** (Storage Analyzer with key descriptions + compression stats, Data Health Report, Duplicates Detector with CONVERT/MERGE orphan handling, Current Feed Order + Deleted History diagnostics), **Performance** (Render Metrics, Network Log), **Testing** (Data Simulator, Manual Refresh), **Data Management** (Comprehensive Export/Import, Clear Selective Data with clear labels), and **Error Tracking** (Error Log with stack traces). Every data table is **click-to-sortable** on any column, and the **All Tracked Apps** table shows status, normalized ID, deal date, **track date**, and **claimed date** for every entry ever seen. Perfect for troubleshooting and monitoring data flow.
+* 🛠️ **Hidden Developer Mode:** Tap the header title, the wallet pill, or the "Loot Analytics" title 5 times to reveal 5 tabs of debugging tools with **collapsible sections** (chevron toggle, smooth CSS Grid animation): **Data Debugging** (Storage Analyzer with a **STORAGE ENGINE panel** — sync badge, **DATA SOURCE** boot readout showing whether your data came from OPFS or localStorage, snapshot size/seq/timestamps, Re-sync button — plus per-key descriptions, compression stats and a **~5 MB quota progress bar**; Data Health Report; Duplicates Detector with CONVERT/MERGE orphan handling; Current Feed Order + Deleted History diagnostics), **Performance** (Render Metrics, Network Log), **Testing** (Data Simulator, Manual Refresh), **Data Management** (Comprehensive Export/Import, Clear Selective Data with clear labels), and **Error Tracking** (Error Log with stack traces). Every data table is **click-to-sortable** on any column, and the **All Tracked Apps** table shows status, normalized ID, deal date, **track date**, and **claimed date** for every entry ever seen. Perfect for troubleshooting and monitoring data flow.
 
 ---
 
@@ -70,7 +77,7 @@ You can install LootRadar to use exactly like a native mobile app!
 
 ### 📖 How to Use
 
-1. **Scan for Loot:** Open the app to trigger an automatic scan of current free games. Use the platform tabs and the **funnel filter** to narrow the feed by any combination of statuses (Unclaimed, Claimed, Expired, Failed, Paywall, Not Interested) or to deals **Expiring Soon**.
+1. **Scan for Loot:** Open the app to trigger an automatic scan of current free games. Use the platform tabs, the **funnel filter** (any combination of statuses — Unclaimed, Claimed, Expired, Failed, Paywall, Not Interested — or **Expiring Soon**), and the **sticky search row** to instantly find a title across the feed and your library.
 2. **Claim Games:** Tap the **Claim Now** button on any game card to be taken directly to the store page. If your current filter would hide the claimed card, a glowing **confirm card** asks you to keep it or change its status — so it can never get lost.
 3. **Mark Status Anytime:** Tap the ✏️ button on any card to set a status (Expired, Failed, Paywall, Not Interested). The card stays on the feed wearing its new status — mark first, filter it back any time.
 4. **Track Savings:** Once claimed, the game moves to your "Loot Library" and its original price is added to your total savings wallet.
@@ -104,7 +111,7 @@ After deployment, note your Worker URL (e.g., `loot-api.YOUR_SUBDOMAIN.workers.d
 Open `index.html` and find/replace the Worker URL:
 
 ```javascript
-// Find this line (around line 1750):
+// Search for "api/all-games" in index.html (line numbers drift between versions):
 const workerRes = await fetch('https://loot-api.yikchun1234.workers.dev/api/all-games');
 
 // Replace with your Worker URL:
@@ -202,19 +209,27 @@ flowchart LR
         D --> S --> L
     end
 
-    subgraph Storage["💾 localStorage (compressed)"]
+    subgraph Storage["💾 localStorage (LZ-String compressed)"]
         direction TB
         CG["✅ claimed_games"]
         PD["📅 publish_dates"]
         DH["🗑️ deleted_history"]
     end
 
+    subgraph OPFS["📦 OPFS snapshot mirror"]
+        direction TB
+        SN["lootradar_snapshot.bin<br/>(compressed, read-back verified)"]
+    end
+
     Worker -->|JSON data| Frontend
-    Frontend -->|save| Storage
+    Frontend -->|save (sync)| Storage
+    Storage -->|dual-write: debounced hook + 10s fingerprint timer + pagehide flush| OPFS
+    OPFS -.->|boot: read first — restore if localStorage lost/stale| Storage
 
     style Worker fill:#f38020,color:#fff,stroke:#333
     style Frontend fill:#38bdf8,color:#fff,stroke:#333
     style Storage fill:#22c55e,color:#fff,stroke:#333
+    style OPFS fill:#8b5cf6,color:#fff,stroke:#333
 ```
 
 ---

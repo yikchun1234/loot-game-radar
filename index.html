@@ -1856,9 +1856,16 @@
         //   • verified by reading the file back, decompressing and comparing EVERY
         //     key's value string-for-string — only a verified write counts as
         //     "in sync" (the user's zero-error migration rule);
-        //   • at boot, if localStorage was wiped/rolled back while the snapshot is
-        //     newer, the snapshot RESTORES localStorage (one-shot sessionStorage-
-        //     guarded reload so parse-time state init sees the restored data).
+        //   • OPFS-FIRST BOOT (2026.10.05.4): initStorageLayer reads the snapshot
+        //     BEFORE the app initializes and treats it as the authoritative copy —
+        //     newer snapshot (or wiped localStorage) → RESTORE + one-shot guarded
+        //     reload; equal seqs → fingerprint-verify both copies are identical and
+        //     declare OPFS the boot source. localStorage only takes over when the
+        //     snapshot has a PROBLEM: unsupported browser, missing/corrupt file, or
+        //     a stale snapshot (localStorage holds newer un-mirrored edits — falling
+        //     back protects them; the catch-up write re-mirrors immediately).
+        //     Every boot decision is recorded in st.bootSource / st.bootReason and
+        //     shown in Dev Mode → Storage Analyzer → DATA SOURCE.
         // Any failure falls back to pure-localStorage behavior — the layer can
         // never kill boot (2026.09.02.6 rule). Plan: keep dual-write ~1 year;
         // once proven stable the localStorage side gets removed and reads switch
@@ -1868,7 +1875,10 @@
             mode: 'localstorage', // 'opfs' = verified & in sync | 'restored' | 'localstorage'
             seq: 0, snapSeq: -1, snapBytes: 0, snapSavedAt: null, snapKeys: 0,
             lastError: null, lastWriteAt: null, lastRestoreAt: null, lastAttemptAt: 0,
-            writing: false, pending: false, autoSyncStarted: false, dir: null
+            writing: false, pending: false, autoSyncStarted: false, dir: null,
+            // 2026.10.05.4: OPFS-first boot authority — which store the boot
+            // actually trusted, and why (surfaced in Dev Mode DATA SOURCE).
+            bootSource: null, bootReason: ''
         };
         const OPFS_SNAPSHOT_FILE = 'lootradar_snapshot.bin';
         const OPFS_SEQ_KEY = 'lootradar_opfs_seq';
@@ -2094,16 +2104,24 @@
                 st.supported = false;
                 st.mode = 'localstorage';
                 st.lastError = 'OPFS not supported by this browser';
+                st.bootSource = 'localstorage';
+                st.bootReason = 'OPFS unsupported in this browser — localStorage is the only store';
                 return;
             }
             st.supported = true;
             st.dir = await navigator.storage.getDirectory();
             try { st.seq = parseInt(localStorage.getItem(OPFS_SEQ_KEY) || '0', 10) || 0; } catch (e) { st.seq = 0; }
             try { st.lastRestoreAt = localStorage.getItem(OPFS_LAST_RESTORE_KEY) || null; } catch (e) {}
-            // Read the existing snapshot (null on first run: NotFoundError)
+            // OPFS-FIRST BOOT (2026.10.05.4): the snapshot is read and evaluated
+            // BEFORE anything else — it is the authoritative copy of the user's
+            // data. localStorage only becomes the source when the snapshot has a
+            // "problem": missing, corrupt, or older than localStorage (un-mirrored
+            // newer edits — falling back protects them from being rolled back).
             let snap = null;
+            let snapFileFound = false;
             try {
                 const fh = await st.dir.getFileHandle(OPFS_SNAPSHOT_FILE);
+                snapFileFound = true;
                 const f = await fh.getFile();
                 const buf = new Uint8Array(await f.arrayBuffer());
                 const json = LZString.decompressFromUint8Array(buf);
@@ -2116,19 +2134,48 @@
                     st.snapKeys = Object.keys(parsed.keys).length;
                 }
             } catch (e) { snap = null; }
-            const lsHasData = opfsLocalStorageHasData();
-            if (snap && (snap.seq > st.seq || (!lsHasData && st.snapKeys > 0))) {
-                // localStorage was wiped/rolled back — OPFS holds the newer (or only) copy
-                opfsRestoreFromSnapshot(snap);
-                return;
-            }
-            // Normal boot: clear the one-shot reload guard (only lives between a
-            // restore and its reload) and adopt the synced snapshot when seqs match.
-            try { sessionStorage.removeItem(OPFS_RESTORE_GUARD); } catch (e) {}
-            if (snap && snap.seq === st.seq) {
-                st.active = true;
-                st.mode = 'opfs';
-                _opfsFingerprint = opfsFingerprintOf(snap.keys);
+            if (snap) {
+                const lsHasData = opfsLocalStorageHasData();
+                if (snap.seq > st.seq || (!lsHasData && st.snapKeys > 0)) {
+                    // OPFS is newer (or localStorage was wiped/rolled back) → OPFS WINS
+                    st.bootSource = 'opfs';
+                    st.bootReason = 'snapshot (seq ' + snap.seq + ') newer than localStorage (seq ' + st.seq + ') — data restored from OPFS';
+                    opfsRestoreFromSnapshot(snap);
+                    return;
+                }
+                // Normal boot: clear the one-shot reload guard (only lives between a
+                // restore and its reload).
+                try { sessionStorage.removeItem(OPFS_RESTORE_GUARD); } catch (e) {}
+                if (snap.seq === st.seq) {
+                    // Same generation — verify the two copies are truly identical.
+                    const snapFp = opfsFingerprintOf(snap.keys);
+                    const lsFp = opfsFingerprintOf(opfsCollectKeys());
+                    if (lsFp === snapFp) {
+                        // Identical: the data the app runs on IS the OPFS snapshot.
+                        st.active = true;
+                        st.mode = 'opfs';
+                        _opfsFingerprint = snapFp;
+                        st.bootSource = 'opfs';
+                        st.bootReason = 'snapshot seq ' + snap.seq + ' read first and verified identical to localStorage';
+                        opfsStartAutoSync();
+                        return;
+                    }
+                    // Same seq but content drift = localStorage moved after the last
+                    // verified mirror (e.g. a save whose snapshot write failed). The
+                    // snapshot is STALE — that is an OPFS problem, so localStorage
+                    // keeps the newer edits and the catch-up write re-mirrors them.
+                    st.bootSource = 'localstorage';
+                    st.bootReason = 'snapshot seq ' + snap.seq + ' stale (localStorage has newer un-mirrored edits) — re-mirroring to OPFS';
+                } else {
+                    st.bootSource = 'localstorage';
+                    st.bootReason = 'snapshot older than localStorage (seq ' + snap.seq + ' < ' + st.seq + ') — rebuilding mirror';
+                }
+            } else {
+                try { sessionStorage.removeItem(OPFS_RESTORE_GUARD); } catch (e) {}
+                st.bootSource = 'localstorage';
+                st.bootReason = snapFileFound
+                    ? 'snapshot file corrupt/unreadable — localStorage in charge, rebuilding mirror'
+                    : 'no snapshot yet (first run) — localStorage in charge, creating mirror';
             }
             opfsStartAutoSync();
             // First-run migration OR catch-up write (both read-back verified)
@@ -2164,6 +2211,8 @@
             const snapStr = st.snapSeq >= 0 ? (sizeStr + ' · seq ' + st.snapSeq + ' · ' + st.snapKeys + ' keys') : 'none yet';
             const savedStr = st.snapSavedAt ? new Date(st.snapSavedAt).toLocaleString() : '—';
             const restoreStr = st.lastRestoreAt ? new Date(st.lastRestoreAt).toLocaleString() : 'never';
+            const bootSrc = st.bootSource === 'opfs' ? '<b>OPFS</b> ✔ read first' : (st.bootSource === 'localstorage' ? '<b>localStorage</b> (OPFS fallback)' : '—');
+            const bootLine = 'boot read: ' + bootSrc + (st.bootReason ? ' — ' + st.bootReason : '');
             return `
                 <div class="mb-3 p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60">
                     <div class="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
@@ -2172,6 +2221,7 @@
                     </div>
                     <div class="mb-1.5 px-2 py-1.5 rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/60">
                         <div class="text-[9px] font-black tracking-wider text-gray-400 dark:text-gray-500 mb-0.5">DATA SOURCE — where your data comes from right now</div>
+                        <div class="text-[10px] font-mono text-gray-700 dark:text-gray-300">${bootLine}</div>
                         <div class="text-[10px] font-mono text-gray-700 dark:text-gray-300">${sourceLine}</div>
                     </div>
                     <div class="text-[10px] text-gray-500 dark:text-gray-400 mb-1.5">${detail}</div>
@@ -9890,7 +9940,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.10.05.3';
+        window.BUILD_VERSION = '2026.10.05.4';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

@@ -2138,23 +2138,27 @@
         // --- Dev Mode: STORAGE ENGINE indicator (answers "am I on OPFS or localStorage?") ---
         function opfsEngineHtml() {
             const st = window.__opfs;
-            let badge, badgeCls, detail;
+            let badge, badgeCls, detail, sourceLine;
             if (st.mode === 'opfs' && st.active) {
                 badge = 'DUAL ✔ localStorage + OPFS in sync';
                 badgeCls = 'bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/40';
                 detail = 'Every save is recorded in BOTH stores. The OPFS snapshot passed read-back verification (all keys compared string-for-string).';
+                sourceLine = 'reads/writes: <b>localStorage</b> · backup: <b>OPFS</b> (verified — auto-restores if localStorage is lost)';
             } else if (st.mode === 'restored') {
                 badge = 'RESTORED FROM OPFS';
                 badgeCls = 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/40';
                 detail = 'localStorage was empty or older this boot — your data was recovered from the verified OPFS snapshot.';
+                sourceLine = 'reads/writes: <b>localStorage</b> — this session\'s data came <b>from OPFS</b> (restored at boot)';
             } else if (!st.supported) {
                 badge = 'localStorage ONLY';
                 badgeCls = 'bg-gray-500/15 text-gray-500 dark:text-gray-400 border-gray-500/40';
                 detail = 'This browser has no OPFS support. Your data is safe in localStorage; use Export for backups.';
+                sourceLine = 'reads/writes: <b>localStorage</b> · backup: <b>none</b> (no OPFS in this browser — use Export)';
             } else {
                 badge = 'localStorage (OPFS mirror pending)';
                 badgeCls = 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 border-yellow-500/40';
                 detail = st.lastError ? ('Last OPFS error: ' + st.lastError) : 'Snapshot write in progress…';
+                sourceLine = 'reads/writes: <b>localStorage</b> · backup: OPFS mirror <b>not verified yet</b>';
             }
             const sizeStr = st.snapBytes > 1024 ? (st.snapBytes / 1024).toFixed(1) + ' KB' : st.snapBytes + ' B';
             const snapStr = st.snapSeq >= 0 ? (sizeStr + ' · seq ' + st.snapSeq + ' · ' + st.snapKeys + ' keys') : 'none yet';
@@ -2165,6 +2169,10 @@
                     <div class="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
                         <span class="text-[10px] font-black tracking-wider text-gray-500 dark:text-gray-400">STORAGE ENGINE</span>
                         <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border ${badgeCls}">${badge}</span>
+                    </div>
+                    <div class="mb-1.5 px-2 py-1.5 rounded border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900/60">
+                        <div class="text-[9px] font-black tracking-wider text-gray-400 dark:text-gray-500 mb-0.5">DATA SOURCE — where your data comes from right now</div>
+                        <div class="text-[10px] font-mono text-gray-700 dark:text-gray-300">${sourceLine}</div>
                     </div>
                     <div class="text-[10px] text-gray-500 dark:text-gray-400 mb-1.5">${detail}</div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-0.5 text-[10px] font-mono text-gray-500 dark:text-gray-400">
@@ -9882,7 +9890,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.10.05.2';
+        window.BUILD_VERSION = '2026.10.05.3';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

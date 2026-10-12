@@ -221,10 +221,10 @@ flowchart LR
         SN["lootradar_snapshot.bin<br/>(compressed, read-back verified)"]
     end
 
-    Worker -->|JSON data| Frontend
-    Frontend -->|save (sync)| Storage
-    Storage -->|dual-write: debounced hook + 10s fingerprint timer + pagehide flush| OPFS
-    OPFS -.->|boot: read first — restore if localStorage lost/stale| Storage
+    Worker -->|"JSON data"| Frontend
+    Frontend -->|"save (sync)"| Storage
+    Storage -->|"dual-write: debounced hook + 10s fingerprint timer + pagehide flush"| OPFS
+    OPFS -.->|"boot: read first, restore if localStorage lost/stale"| Storage
 
     style Worker fill:#f38020,color:#fff,stroke:#333
     style Frontend fill:#38bdf8,color:#fff,stroke:#333

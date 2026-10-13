@@ -7041,24 +7041,52 @@
                 'lootradar_remember_filters'
             ];
 
+            // 2026.10.05.5: override-aware faithful readers. When localStorage
+            // hits its ~5MB quota, saveSafeStorage keeps the newest value in the
+            // in-memory __opfsOverrides map (and mirrors it into the OPFS
+            // snapshot) instead of losing it. An override entry only exists when
+            // the last write FAILED, so it is always strictly newer than the
+            // stale value localStorage may still hold for that key. Reading raw
+            // localStorage alone would therefore export a stale/missing value for
+            // exactly the big keys that overflow the quota. Prefer the override
+            // so this JSON backup stays 100% faithful even over quota.
+            const readRawFaithful = function(key) {
+                if (window.__opfsOverrides && typeof window.__opfsOverrides[key] === 'string') {
+                    return window.__opfsOverrides[key];   // newest — last write overflowed
+                }
+                try { return localStorage.getItem(key); } catch (e) { return null; }
+            };
+            // Same precedence, decompressed to a JS value for the readable fields.
+            const readValueFaithful = function(key) {
+                const raw = readRawFaithful(key);
+                if (!raw) return null;
+                if (raw.startsWith('{') || raw.startsWith('[')) {
+                    try { return JSON.parse(raw); } catch (e) { /* fall through to LZ */ }
+                }
+                try { return JSON.parse(LZString.decompressFromUTF16(raw)); } catch (e) { return null; }
+            };
+
             const data = {
                 version: '2.0',
                 export_date: new Date().toISOString(),
                 localStorage: {}
             };
 
-            // Export all localStorage keys
+            // Export all localStorage keys (override-aware — see readRawFaithful)
             allKeys.forEach(key => {
-                const value = localStorage.getItem(key);
+                const value = readRawFaithful(key);
                 if (value !== null) {
                     data.localStorage[key] = value;
                 }
             });
 
-            // Also export decompressed data for readability
+            // Also export decompressed data for readability. Use the live
+            // in-memory `state` where we hold it (always newest, immune to the
+            // quota staleness entirely); fall back to an override-aware read for
+            // publish_dates, which has no dedicated state field.
             data.claimed_games = state.claimedGames;
-            data.publish_dates = loadSafeStorage('lootradar_publish_dates');
-            data.deleted_history = loadSafeStorage('lootradar_deleted_history');
+            data.publish_dates = readValueFaithful('lootradar_publish_dates');
+            data.deleted_history = state.deletedHistory;
             data.total_saved = state.totalSaved;
 
             const json = JSON.stringify(data, null, 2);
@@ -9940,7 +9968,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.10.05.4';
+        window.BUILD_VERSION = '2026.10.05.5';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

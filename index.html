@@ -1841,6 +1841,17 @@
         Object.assign(i18n.ja, { wrappedTitle: "ルート Wrapped", wrappedDesc: "あなたの無料ゲーム年間記録をシェアカードに", wrappedBtn: "カードを生成", wrappedEmpty: "この年の取得はまだありません", wrappedDownload: "PNGを保存", wrappedShare: "共有", wGames: "本のゲームを取得", wSaved: "合計節約額", wFavStore: "お気に入りストア", wFastest: "最速取得", wMidnight: "深夜の急襲", wBestDay: "ベストデー", wBiggest: "最大の収穫", wFooterTag: "LootRadar で記録" });
         Object.assign(i18n.ko, { wrappedTitle: "Loot Wrapped", wrappedDesc: "무료 게임으로 보낸 1년 — 공유 카드로", wrappedBtn: "내 카드 만들기", wrappedEmpty: "올해 아직 획득 기록이 없습니다", wrappedDownload: "PNG 저장", wrappedShare: "공유", wGames: "게임 획득", wSaved: "총 절약액", wFavStore: "최애 스토어", wFastest: "최단 시간 획득", wMidnight: "심야 습격", wBestDay: "최고의 날", wBiggest: "최대 획득", wFooterTag: "LootRadar로 기록" });
         Object.assign(i18n.pt, { wrappedTitle: "Loot Wrapped", wrappedDesc: "Seu ano em jogos grátis — em um cartão compartilhável", wrappedBtn: "Gerar Meu Cartão", wrappedEmpty: "Ainda não há resgates neste ano", wrappedDownload: "Baixar PNG", wrappedShare: "Compartilhar", wGames: "JOGOS RESGATADOS", wSaved: "TOTAL ECONOMIZADO", wFavStore: "LOJA FAVORITA", wFastest: "RESGATE MAIS RÁPIDO", wMidnight: "ATAQUES DA MEIA-NOITE", wBestDay: "MELHOR DIA", wBiggest: "MAIOR RESGATE", wFooterTag: "registrado com LootRadar" });
+        // Wrapped Lifetime i18n keys (2026.10.14.1)
+        Object.assign(i18n.en, { wrappedLifetime: "Lifetime", wSince: "SINCE" });
+        Object.assign(i18n['zh-CN'], { wrappedLifetime: "生涯总计", wSince: "始于" });
+        Object.assign(i18n['zh-TW'], { wrappedLifetime: "生涯總計", wSince: "始於" });
+        Object.assign(i18n.es, { wrappedLifetime: "Toda la carrera", wSince: "DESDE" });
+        Object.assign(i18n.fr, { wrappedLifetime: "Depuis toujours", wSince: "DEPUIS" });
+        Object.assign(i18n.de, { wrappedLifetime: "Gesamt", wSince: "SEIT" });
+        Object.assign(i18n.ru, { wrappedLifetime: "За всё время", wSince: "С" });
+        Object.assign(i18n.ja, { wrappedLifetime: "全期間", wSince: "開始" });
+        Object.assign(i18n.ko, { wrappedLifetime: "전체 기간", wSince: "시작" });
+        Object.assign(i18n.pt, { wrappedLifetime: "Desde sempre", wSince: "DESDE" });
 
         // Platform enable-toggle i18n keys (2026.10.05.8)
         Object.assign(i18n.en, { platTogglesTitle: "Platforms", platTogglesDesc: "Turn off a platform to hide its tab and its games from the feed." });
@@ -2697,17 +2708,23 @@
         }
 
         window.computeWrappedStats = function (year) {
+            // 2026.10.14.1: year === 'lifetime' aggregates ALL years — the
+            // monthly strip sums the same calendar month across years and
+            // firstClaim (earliest valid claim date) powers the card's
+            // "SINCE <date>" line. Year-mode behavior is unchanged.
+            const isLifetime = year === 'lifetime';
             const games = Object.values(state.claimedGames || {});
-            const s = { year: year, claims: 0, saved: 0, stores: {}, fastest: null, midnight: 0, days: {}, biggest: null, months: new Array(12).fill(0) };
+            const s = { year: year, isLifetime: isLifetime, claims: 0, saved: 0, stores: {}, fastest: null, midnight: 0, days: {}, biggest: null, months: new Array(12).fill(0), firstClaim: null };
             games.forEach(g => {
                 const d = new Date(g.claimed_date || g.date);
-                if (isNaN(d.getTime()) || d.getFullYear() !== year) return;
+                if (isNaN(d.getTime()) || (!isLifetime && d.getFullYear() !== year)) return;
                 s.claims++;
                 const v = g.value || 0;
                 s.saved += v;
                 const store = wrappedStoreOf(g);
                 s.stores[store] = (s.stores[store] || 0) + 1;
                 s.months[d.getMonth()]++;
+                if (!s.firstClaim || d.getTime() < s.firstClaim.getTime()) s.firstClaim = d;
                 // fastest publish → claim reaction (same diff >= 0 rule as the
                 // reaction-time stat card)
                 const pub = new Date(g.date);
@@ -2716,7 +2733,7 @@
                     if (diff >= 0 && (!s.fastest || diff < s.fastest.ms)) s.fastest = { ms: diff, title: g.title || '' };
                 }
                 if (d.getHours() < 6) s.midnight++;   // same "Night" band as Midnight Hunter (h < 6)
-                const dayKey = year + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                const dayKey = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
                 const day = s.days[dayKey] || (s.days[dayKey] = { count: 0, value: 0 });
                 day.count++; day.value += v;
                 if (v > 0 && (!s.biggest || v > s.biggest.value)) s.biggest = { title: g.title || '', value: v };
@@ -2786,12 +2803,28 @@
             // header
             tracked('LOOTRADAR PRESENTS', W / 2, 108, 28, 10, 700, 'rgba(255,255,255,0.85)');
             center(t.wrappedTitle || 'LOOT WRAPPED', 208, 88, 900);
-            // year pill
+            // year pill (2026.10.14.1: lifetime mode draws the LIFETIME label
+            // width-fitted inside the pill + a "SINCE <first claim>" line below)
             ctx.fillStyle = 'rgba(255,255,255,0.18)';
             ctx.beginPath();
             if (ctx.roundRect) { ctx.roundRect(W / 2 - 110, 240, 220, 78, 39); } else { ctx.rect(W / 2 - 110, 240, 220, 78); }
             ctx.fill();
-            center(String(s.year), 296, 52, 900);
+            if (s.isLifetime) {
+                // adaptive size ladder: long labels (es/fr/ru) shrink to fit the pill
+                let lifeTxt = t.wrappedLifetime || 'LIFETIME';
+                let lifeSize = 40;
+                ctx.font = '900 ' + lifeSize + 'px ' + FONT;
+                while (lifeSize > 22 && ctx.measureText(lifeTxt).width > 196) {
+                    lifeSize -= 2;
+                    ctx.font = '900 ' + lifeSize + 'px ' + FONT;
+                }
+                center(fit(lifeTxt, 196), 296, lifeSize, 900);
+                if (s.firstClaim) {
+                    tracked((t.wSince || 'SINCE') + '  ' + s.firstClaim.toLocaleDateString(localeStr, { year: 'numeric', month: 'short', day: 'numeric' }), W / 2, 372, 26, 5, 700, 'rgba(255,255,255,0.85)');
+                }
+            } else {
+                center(String(s.year), 296, 52, 900);
+            }
             // hero: claims + saved
             center(String(s.claims), 560, 210, 900);
             tracked(t.wGames || 'GAMES CLAIMED', W / 2, 618, 34, 6, 700, 'rgba(255,255,255,0.92)');
@@ -2832,7 +2865,9 @@
                 if (ctx.roundRect) { ctx.roundRect(x, mbY + mbH - h, mbW, h, 6); } else { ctx.rect(x, mbY + mbH - h, mbW, h); }
                 ctx.fill();
                 ctx.font = '700 22px ' + FONT; ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.textAlign = 'center';
-                ctx.fillText(new Date(s.year, m, 1).toLocaleString(localeStr, { month: 'narrow' }), x + mbW / 2, mbY + mbH + 30);
+                // 2026.10.14.1: month names are year-independent — use a dummy
+                // leap-safe year in lifetime mode so Invalid Date can't throw
+                ctx.fillText(new Date(s.isLifetime ? 2000 : s.year, m, 1).toLocaleString(localeStr, { month: 'narrow' }), x + mbW / 2, mbY + mbH + 30);
             }
             // footer
             tracked('gamelootradar.us.ci', W / 2, H - 44, 28, 4, 800, 'rgba(255,255,255,0.9)');
@@ -2842,7 +2877,9 @@
         window.openWrappedModal = function () {
             const sel = document.getElementById('wrapped-year-select');
             if (!sel) return;
-            const year = parseInt(sel.value, 10);
+            // 2026.10.14.1: sel.value can be 'lifetime' (all-time card)
+            const isLifetime = sel.value === 'lifetime';
+            const year = isLifetime ? 'lifetime' : parseInt(sel.value, 10);
             const t = i18n[state.lang] || {};
             const localeStr = (state.lang === 'zh-CN' || state.lang === 'zh-TW') ? state.lang : 'en-US';
             const s = window.computeWrappedStats(year);
@@ -2850,7 +2887,7 @@
             const modal = document.getElementById('wrapped-modal');
             const dlBtn = document.getElementById('wrapped-dl-btn');
             const shareBtn = document.getElementById('wrapped-share-btn');
-            document.getElementById('wrapped-modal-title').innerHTML = '<i class="ph-fill ph-sparkle" style="color:#f59e0b;"></i> ' + (t.wrappedTitle || 'Loot Wrapped') + ' ' + year;
+            document.getElementById('wrapped-modal-title').innerHTML = '<i class="ph-fill ph-sparkle" style="color:#f59e0b;"></i> ' + (t.wrappedTitle || 'Loot Wrapped') + ' ' + (isLifetime ? (t.wrappedLifetime || 'Lifetime') : year);
             document.getElementById('wrapped-dl-label').textContent = t.wrappedDownload || 'Download PNG';
             document.getElementById('wrapped-share-label').textContent = t.wrappedShare || 'Share';
             wrap.innerHTML = '';
@@ -2914,7 +2951,9 @@
                 const blob = await window.wrappedCanvasToBlob();
                 const file = new File([blob], 'loot-wrapped-' + (window._wrappedYear || '') + '.png', { type: 'image/png' });
                 const t = i18n[state.lang] || {};
-                await navigator.share({ files: [file], title: (t.wrappedTitle || 'Loot Wrapped') + ' ' + (window._wrappedYear || '') });
+                // 2026.10.14.1: lifetime mode shares as "Loot Wrapped Lifetime"
+                const label = window._wrappedYear === 'lifetime' ? (t.wrappedLifetime || 'Lifetime') : (window._wrappedYear || '');
+                await navigator.share({ files: [file], title: (t.wrappedTitle || 'Loot Wrapped') + ' ' + label });
             } catch (e) {
                 // user cancelled (AbortError) → do nothing; anything else → fall
                 // back to download so the share button is never a dead end
@@ -5063,7 +5102,13 @@
                 const d = gameClaimedDate(g);
                 return isNaN(d.getTime()) ? null : d.getFullYear();
             }).filter(y => y))].sort((a, b) => b - a);
-            const wrappedYearOptions = wrappedYears.map(y => `<option value="${y}">${y}</option>`).join('');
+            // 2026.10.14.1: "Lifetime" appears ONLY once claims span ≥2 calendar
+            // years (single-year lifetime == that year's card, so it'd be noise);
+            // listed LAST so the default selection stays the latest year.
+            const wrappedLifetimeOpt = wrappedYears.length >= 2
+                ? `<option value="lifetime">${t.wrappedLifetime || 'Lifetime'}</option>`
+                : '';
+            const wrappedYearOptions = wrappedYears.map(y => `<option value="${y}">${y}</option>`).join('') + wrappedLifetimeOpt;
             const wrappedPanelHtml = `
                 <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 lg:col-span-2 relative overflow-hidden" style="background:linear-gradient(135deg, rgba(245,158,11,0.14), rgba(225,29,72,0.10));">
                     <div class="absolute -top-8 -right-8 w-28 h-28 rounded-full blur-2xl pointer-events-none" style="background:rgba(245,158,11,0.25);"></div>
@@ -10424,7 +10469,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.10.05.8';
+        window.BUILD_VERSION = '2026.10.14.1';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

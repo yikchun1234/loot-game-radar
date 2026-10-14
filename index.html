@@ -182,6 +182,36 @@
         #feed-search-row.search-row-pinned #feed-search-bar { background: rgba(247, 245, 240, 0.95); box-shadow: 0 6px 16px -8px rgba(31, 40, 51, 0.25); }
         .dark #feed-search-row.search-row-pinned #feed-search-bar { background: rgba(11, 12, 16, 0.95); box-shadow: 0 6px 16px -8px rgba(0, 0, 0, 0.6); }
 
+        /* ── Wrapped countdown: airport split-flap board (2026.10.14.3) ──
+           Four warm-dark cards (days/hours/mins/secs) with a physical seam
+           line across the middle; on every value change the card does a
+           rotateX flip-out → swap → flip-in, like an airport departure board. */
+        .wcd-row { display: flex; align-items: flex-start; gap: 6px; }
+        .wcd-unit { perspective: 320px; display: flex; flex-direction: column; align-items: center; gap: 3px; }
+        .wcd-card {
+            position: relative; min-width: 40px; padding: 5px 7px; border-radius: 8px;
+            background: linear-gradient(180deg, #3f3a36 0%, #2b2724 49.5%, #221f1c 50.5%, #171412 100%);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            transform-style: preserve-3d; will-change: transform;
+        }
+        .wcd-card::after { /* the flap seam */
+            content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px;
+            background: rgba(0, 0, 0, 0.55); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08);
+            pointer-events: none;
+        }
+        .wcd-num {
+            display: block; text-align: center; font-size: 17px; line-height: 1.05; font-weight: 900;
+            font-variant-numeric: tabular-nums; color: #fbbf24; letter-spacing: 0.5px;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+        }
+        .wcd-label { font-size: 7.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #be123c; }
+        .dark .wcd-label { color: #fb7185; }
+        @keyframes wcdFlipOut { from { transform: rotateX(0deg); } to { transform: rotateX(-88deg); } }
+        @keyframes wcdFlipIn { from { transform: rotateX(88deg); } to { transform: rotateX(0deg); } }
+        @media (prefers-reduced-motion: reduce) {
+            .wcd-card { animation: none !important; }
+        }
+
         .neon-text { text-shadow: 0 0 10px rgba(0, 243, 255, 0.5), 0 0 20px rgba(0, 243, 255, 0.3); }
         #ptr-indicator { height: 0; overflow: hidden; transition: height 0.2s ease-out; display: flex; align-items: center; justify-content: center; color: #b45309; font-weight: bold; }
         .dark #ptr-indicator { color: #00f3ff; }
@@ -1863,6 +1893,17 @@
         Object.assign(i18n.ja, { wrappedCdLabel: "終了までのカウントダウン" });
         Object.assign(i18n.ko, { wrappedCdLabel: "마감 전 공유" });
         Object.assign(i18n.pt, { wrappedCdLabel: "Compartilhe antes do fim" });
+        // Flip-board unit labels (2026.10.14.3): days / hrs / min / sec
+        Object.assign(i18n.en, { wrappedCdD: "Days", wrappedCdH: "Hrs", wrappedCdM: "Min", wrappedCdS: "Sec" });
+        Object.assign(i18n['zh-CN'], { wrappedCdD: "天", wrappedCdH: "时", wrappedCdM: "分", wrappedCdS: "秒" });
+        Object.assign(i18n['zh-TW'], { wrappedCdD: "天", wrappedCdH: "時", wrappedCdM: "分", wrappedCdS: "秒" });
+        Object.assign(i18n.es, { wrappedCdD: "Días", wrappedCdH: "Hrs", wrappedCdM: "Min", wrappedCdS: "Seg" });
+        Object.assign(i18n.fr, { wrappedCdD: "Jours", wrappedCdH: "Hrs", wrappedCdM: "Min", wrappedCdS: "Sec" });
+        Object.assign(i18n.de, { wrappedCdD: "Tage", wrappedCdH: "Std", wrappedCdM: "Min", wrappedCdS: "Sek" });
+        Object.assign(i18n.ru, { wrappedCdD: "Дни", wrappedCdH: "Час", wrappedCdM: "Мин", wrappedCdS: "Сек" });
+        Object.assign(i18n.ja, { wrappedCdD: "日", wrappedCdH: "時間", wrappedCdM: "分", wrappedCdS: "秒" });
+        Object.assign(i18n.ko, { wrappedCdD: "일", wrappedCdH: "시", wrappedCdM: "분", wrappedCdS: "초" });
+        Object.assign(i18n.pt, { wrappedCdD: "Dias", wrappedCdH: "Hrs", wrappedCdM: "Min", wrappedCdS: "Seg" });
 
         // Platform enable-toggle i18n keys (2026.10.05.8)
         Object.assign(i18n.en, { platTogglesTitle: "Platforms", platTogglesDesc: "Turn off a platform to hide its tab and its games from the feed." });
@@ -2996,23 +3037,51 @@
             modal.classList.remove('flex');
         };
 
-        // "Share before close" countdown (2026.10.14.2): one guarded 1s timer;
-        // each tick re-reads the DOM so panel re-renders never orphan it, and
-        // it no-ops when the element is gone (panel hidden / modal closed).
+        // "Share before close" countdown (2026.10.14.2, flip board 2026.10.14.3):
+        // one guarded 1s timer; each tick re-reads the DOM so panel re-renders
+        // never orphan it, and it no-ops when the board is gone (panel hidden).
+        // Pure ms → padded {dd,hh,mm,ss} parts (unit-testable).
+        function wrappedCdParts(ms) {
+            if (!(ms > 0)) ms = 0;
+            return {
+                dd: String(Math.floor(ms / 86400000)).padStart(2, '0'),
+                hh: String(Math.floor(ms / 3600000) % 24).padStart(2, '0'),
+                mm: String(Math.floor(ms / 60000) % 60).padStart(2, '0'),
+                ss: String(Math.floor(ms / 1000) % 60).padStart(2, '0')
+            };
+        }
+        // Airport split-flap swap: flip the card edge-on (rotateX -88°), swap
+        // the digits mid-flip, flip back. Busy-guard keeps overlapping calls
+        // (fast re-renders) from stacking animations on one card.
+        function wcdFlipSet(el, val) {
+            if (!el || el.textContent === val) return;
+            const card = el.closest ? el.closest('.wcd-card') : null;
+            if (!card || el.dataset.wcdBusy === '1') { el.textContent = val; return; }
+            el.dataset.wcdBusy = '1';
+            card.style.animation = 'wcdFlipOut .16s ease-in forwards';
+            setTimeout(() => {
+                el.textContent = val;
+                card.style.animation = 'wcdFlipIn .16s ease-out forwards';
+            }, 160);
+            setTimeout(() => {
+                card.style.animation = '';
+                delete el.dataset.wcdBusy;
+            }, 340);
+        }
         function startWrappedCountdown() {
             if (window._wrappedCdTimer) return;
-            window._wrappedCdTimer = setInterval(() => {
-                const el = document.getElementById('wrapped-countdown');
-                if (!el) return;
+            const tick = () => {
+                const root = document.getElementById('wrapped-countdown');
+                if (!root) return;
                 const now = new Date();
-                let ms = wrappedCloseTarget(now).getTime() - now.getTime();
-                if (ms < 0) ms = 0;
-                const dd = Math.floor(ms / 86400000);
-                const hh = String(Math.floor(ms / 3600000) % 24).padStart(2, '0');
-                const mm = String(Math.floor(ms / 60000) % 60).padStart(2, '0');
-                const ss = String(Math.floor(ms / 1000) % 60).padStart(2, '0');
-                el.textContent = dd + 'd ' + hh + ':' + mm + ':' + ss;
-            }, 1000);
+                const p = wrappedCdParts(wrappedCloseTarget(now).getTime() - now.getTime());
+                wcdFlipSet(document.getElementById('wcd-days'), p.dd);
+                wcdFlipSet(document.getElementById('wcd-hours'), p.hh);
+                wcdFlipSet(document.getElementById('wcd-mins'), p.mm);
+                wcdFlipSet(document.getElementById('wcd-secs'), p.ss);
+            };
+            window._wrappedCdTimer = setInterval(tick, 1000);
+            tick();
         }
 
         window.wrappedCanvasToBlob = function () {
@@ -5208,10 +5277,18 @@
                         <div class="flex-1">
                             <h3 class="text-xs font-bold uppercase tracking-widest mb-1" style="color:#d97706;">${t.wrappedTitle || 'Loot Wrapped'}</h3>
                             <p class="text-[10px] text-gray-500 dark:text-gray-400">${t.wrappedDesc || 'Your year in free games — as a shareable card'}</p>
-                            <div class="flex items-center gap-1.5 mt-2">
-                                <i class="ph-fill ph-hourglass-medium text-[11px]" style="color:#be123c;"></i>
-                                <span class="text-[9px] font-bold uppercase tracking-widest" style="color:#be123c;">${t.wrappedCdLabel || 'Share before close'}</span>
-                                <span id="wrapped-countdown" class="text-[11px] font-black tabular-nums" style="color:#9f1239;">--</span>
+                            <div class="mt-2">
+                                <div class="flex items-center gap-1.5">
+                                    <i class="ph-fill ph-hourglass-medium text-[11px]" style="color:#be123c;"></i>
+                                    <span class="text-[9px] font-bold uppercase tracking-widest" style="color:#be123c;">${t.wrappedCdLabel || 'Share before close'}</span>
+                                </div>
+                                <!-- 2026.10.14.3: airport split-flap board (days/hrs/min/secs) -->
+                                <div id="wrapped-countdown" class="wcd-row mt-1.5">
+                                    <div class="wcd-unit"><div class="wcd-card"><span class="wcd-num" id="wcd-days">--</span></div><span class="wcd-label">${t.wrappedCdD || 'Days'}</span></div>
+                                    <div class="wcd-unit"><div class="wcd-card"><span class="wcd-num" id="wcd-hours">--</span></div><span class="wcd-label">${t.wrappedCdH || 'Hrs'}</span></div>
+                                    <div class="wcd-unit"><div class="wcd-card"><span class="wcd-num" id="wcd-mins">--</span></div><span class="wcd-label">${t.wrappedCdM || 'Min'}</span></div>
+                                    <div class="wcd-unit"><div class="wcd-card"><span class="wcd-num" id="wcd-secs">--</span></div><span class="wcd-label">${t.wrappedCdS || 'Sec'}</span></div>
+                                </div>
                             </div>
                         </div>
                         <div class="flex items-center gap-2 w-full sm:w-auto">
@@ -10567,7 +10644,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.10.14.2';
+        window.BUILD_VERSION = '2026.10.14.3';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

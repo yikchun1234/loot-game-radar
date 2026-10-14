@@ -2700,7 +2700,7 @@
         };
 
         window.drawWrappedCard = function (canvas, s, t, localeStr) {
-            const W = canvas.width, H = canvas.height;   // 1080 × 1350
+            const W = canvas.width, H = canvas.height;   // 1080 × 1650 (2026.10.05.7: extended down — bottom sections were cramped at 1350)
             const ctx = canvas.getContext('2d');
             const FONT = 'system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Noto Sans", sans-serif';
             ctx.clearRect(0, 0, W, H);
@@ -2784,14 +2784,14 @@
                 bestDaySub = s.bestDay.count + ' × · $' + Math.floor(s.bestDay.value).toLocaleString('en-US');
             }
             chip(80 + cw + 28, cy2, cw, chh, t.wBestDay || 'BEST DAY', bestDayStr, bestDaySub);
-            // biggest haul row
+            // biggest haul row (2026.10.05.7: 1128/1182 → 1306/1362 — was overlapping the chip row that ends at 1228)
             if (s.biggest) {
-                tracked(t.wBiggest || 'BIGGEST HAUL', W / 2, 1128, 26, 6, 700, 'rgba(255,255,255,0.75)');
+                tracked(t.wBiggest || 'BIGGEST HAUL', W / 2, 1306, 26, 6, 700, 'rgba(255,255,255,0.75)');
                 ctx.font = '800 44px ' + FONT; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center';
-                ctx.fillText(fit(s.biggest.title, W - 320) + '  ·  $' + s.biggest.value.toFixed(2), W / 2, 1182);
+                ctx.fillText(fit(s.biggest.title, W - 320) + '  ·  $' + s.biggest.value.toFixed(2), W / 2, 1362);
             }
-            // monthly bars (language-neutral month initials)
-            const mbY = 1236, mbH = 62, mbW = (W - 120 * 2 - 11 * 10) / 12;
+            // monthly bars (language-neutral month initials) — 2026.10.05.7: mbY 1236 → 1420
+            const mbY = 1420, mbH = 62, mbW = (W - 120 * 2 - 11 * 10) / 12;
             const mMax = Math.max.apply(null, s.months.concat([1]));
             for (let m = 0; m < 12; m++) {
                 const x = 120 + m * (mbW + 10);
@@ -2831,7 +2831,7 @@
             } else {
                 const canvas = document.createElement('canvas');
                 canvas.id = 'wrapped-canvas';
-                canvas.width = 1080; canvas.height = 1350;
+                canvas.width = 1080; canvas.height = 1650;
                 canvas.style.width = '100%'; canvas.style.borderRadius = '20px';
                 wrap.appendChild(canvas);
                 window.drawWrappedCard(canvas, s, t, localeStr);
@@ -10301,7 +10301,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.10.05.6';
+        window.BUILD_VERSION = '2026.10.05.7';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

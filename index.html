@@ -650,6 +650,32 @@
         </div>
     </div>
 
+    <!-- Loot Wrapped preview modal (2026.10.05.6): canvas card + download/share.
+         z-index inline (65) — must sit ABOVE stats-modal (z-60, where the panel
+         lives) but below delete-confirm (z-70); inline so the Tailwind CDN's
+         async class compilation can never leave it unlayered. -->
+    <div id="wrapped-modal" class="hidden fixed inset-0 items-center justify-center p-4 bg-black/70 backdrop-blur-sm" style="z-index:65;">
+        <div class="w-full max-w-md rounded-3xl p-4 relative bg-white dark:bg-slate-900 border border-gray-100 dark:border-gray-800 shadow-xl animate-[pop_0.3s_ease-out_forwards]" style="max-height:92vh; overflow-y:auto;">
+            <div class="flex justify-between items-center mb-3">
+                <h3 id="wrapped-modal-title" class="text-lg font-display font-black dark:text-white flex items-center gap-2">
+                    <i class="ph-fill ph-sparkle" style="color:#f59e0b;"></i> Loot Wrapped
+                </h3>
+                <button onclick="closeWrappedModal()" class="w-8 h-8 flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 transition-transform active:scale-90">
+                    <i class="ph-bold ph-x"></i>
+                </button>
+            </div>
+            <div id="wrapped-canvas-wrap" class="flex justify-center"></div>
+            <div class="flex gap-2 mt-4">
+                <button id="wrapped-dl-btn" onclick="downloadWrappedCard()" class="flex-1 py-3 rounded-xl font-bold text-sm text-white transition-all active:scale-95 shadow-md flex items-center justify-center gap-2" style="background:linear-gradient(135deg,#f59e0b,#e11d48);">
+                    <i class="ph-bold ph-download-simple"></i> <span id="wrapped-dl-label">Download PNG</span>
+                </button>
+                <button id="wrapped-share-btn" onclick="shareWrappedCard()" class="flex-1 py-3 rounded-xl font-bold text-sm bg-light-surface dark:bg-gray-800 hover:bg-light-border dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border border-light-border dark:border-gray-700 transition-all active:scale-95 items-center justify-center gap-2 hidden">
+                    <i class="ph-bold ph-share-network"></i> <span id="wrapped-share-label">Share</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="delete-confirm-modal" class="hidden fixed inset-0 z-[70] items-center justify-center p-4 bg-black/70 backdrop-blur-sm transition-opacity">
         <div class="w-full max-w-sm rounded-3xl p-6 relative overflow-hidden bg-white dark:bg-slate-900 border border-gray-100 dark:border-gray-800 shadow-xl">
             <div class="text-center mb-5">
@@ -1794,6 +1820,18 @@
         Object.assign(i18n.pt, { yearCalendar: "Calendário de Loot", yearCalendarDesc: "Sua atividade de resgate ao longo do ano", hourScatter: "Caçador Noturno", hourScatterDesc: "Hora do dia vs valor do jogo", lootFunnel: "Funil de Loot", lootFunnelDesc: "Rastreado → Removido → Mantido", funnelTracked: "Rastreados", funnelRemoved: "Removidos", funnelKept: "Mantidos", platformRise: "Ascensão e Queda das Plataformas", platformRiseDesc: "Valor mensal resgatado empilhado por plataforma", platformOther: "Outros", lootStreak: "Chama de Sequências", lootStreakDesc: "Cada sequência de dias consecutivos resgatando", streakEmpty: "Ainda sem sequências de vários dias",hourNight: "Noite", hourMorning: "Manhã", hourAfternoon: "Tarde", hourEvening: "Serão", lootClock: "Relógio de Loot 24h", lootClockDesc: "Valor resgatado a cada hora do dia", removalCalendar: "Calendário de Remoção", removalCalendarDesc: "Sua atividade de remoção ao longo do ano", storeActivity: "Atividade por Loja", storeActivityDesc: "Claims mensais empilhados por loja", storeActEmpty: "Ainda sem claims", avgClaimPerDay: "Média de Resgates por Dia", keepRate: "Taxa de Retenção", keepRateKept: "mantidos", keepRatePassed: "descartados", since: "desde", rescueDone: "Dados recuperados! Sua biblioteca foi restaurada do seu último backup." });
         // ------------------------------------------
 
+        // Loot Wrapped i18n keys (2026.10.05.6)
+        Object.assign(i18n.en, { wrappedTitle: "Loot Wrapped", wrappedDesc: "Your year in free games — as a shareable card", wrappedBtn: "Generate My Card", wrappedEmpty: "No claims in this year yet", wrappedDownload: "Download PNG", wrappedShare: "Share", wGames: "GAMES CLAIMED", wSaved: "TOTAL SAVED", wFavStore: "FAVORITE STORE", wFastest: "FASTEST CLAIM", wMidnight: "MIDNIGHT RAIDS", wBestDay: "BEST DAY", wBiggest: "BIGGEST HAUL", wFooterTag: "tracked with LootRadar" });
+        Object.assign(i18n['zh-CN'], { wrappedTitle: "年度白嫖报告", wrappedDesc: "把你的免费游戏年度战绩做成分享卡", wrappedBtn: "生成我的分享卡", wrappedEmpty: "这一年还没有领取记录", wrappedDownload: "下载图片", wrappedShare: "分享", wGames: "款游戏入库", wSaved: "总共省下", wFavStore: "最爱商店", wFastest: "最快手速", wMidnight: "深夜突袭", wBestDay: "最丰收一天", wBiggest: "最大单笔", wFooterTag: "由 LootRadar 记录" });
+        Object.assign(i18n['zh-TW'], { wrappedTitle: "年度白嫖報告", wrappedDesc: "把你的免費遊戲年度戰績做成分享卡", wrappedBtn: "產生我的分享卡", wrappedEmpty: "這一年還沒有領取紀錄", wrappedDownload: "下載圖片", wrappedShare: "分享", wGames: "款遊戲入庫", wSaved: "總共省下", wFavStore: "最愛商店", wFastest: "最快手速", wMidnight: "深夜突襲", wBestDay: "最豐收一天", wBiggest: "最大單筆", wFooterTag: "由 LootRadar 記錄" });
+        Object.assign(i18n.es, { wrappedTitle: "Loot Wrapped", wrappedDesc: "Tu año de juegos gratis — en una tarjeta compartible", wrappedBtn: "Generar Mi Tarjeta", wrappedEmpty: "Aún no hay reclamos este año", wrappedDownload: "Descargar PNG", wrappedShare: "Compartir", wGames: "JUEGOS RECLAMADOS", wSaved: "AHORRO TOTAL", wFavStore: "TIENDA FAVORITA", wFastest: "RECLAMO MÁS RÁPIDO", wMidnight: "INCURSIONES NOCTURNAS", wBestDay: "MEJOR DÍA", wBiggest: "BOTÍN MAYOR", wFooterTag: "registrado con LootRadar" });
+        Object.assign(i18n.fr, { wrappedTitle: "Loot Wrapped", wrappedDesc: "Votre année de jeux gratuits — en carte partageable", wrappedBtn: "Générer Ma Carte", wrappedEmpty: "Pas encore de claim cette année", wrappedDownload: "Télécharger PNG", wrappedShare: "Partager", wGames: "JEUX OBTENUS", wSaved: "TOTAL ÉCONOMISÉ", wFavStore: "BOUTIQUE PRÉFÉRÉE", wFastest: "CLAIM LE PLUS RAPIDE", wMidnight: "RAIDS DE MINUIT", wBestDay: "MEILLEUR JOUR", wBiggest: "PLUS GROS BUTIN", wFooterTag: "suivi avec LootRadar" });
+        Object.assign(i18n.de, { wrappedTitle: "Loot Wrapped", wrappedDesc: "Dein Jahr voller Gratis-Spiele — als Karte zum Teilen", wrappedBtn: "Meine Karte erstellen", wrappedEmpty: "Noch keine Claims in diesem Jahr", wrappedDownload: "PNG herunterladen", wrappedShare: "Teilen", wGames: "SPIELE ERHALTEN", wSaved: "GESAMT GESPART", wFavStore: "LIEBLINGS-STORE", wFastest: "SCHNELLSTER CLAIM", wMidnight: "MITTERNACHTS-RAIDS", wBestDay: "BESTER TAG", wBiggest: "GRÖSSTER FANG", wFooterTag: "getrackt mit LootRadar" });
+        Object.assign(i18n.ru, { wrappedTitle: "Loot Wrapped", wrappedDesc: "Ваш год бесплатных игр — в виде карточки", wrappedBtn: "Создать мою карточку", wrappedEmpty: "В этом году ещё нет получений", wrappedDownload: "Скачать PNG", wrappedShare: "Поделиться", wGames: "ИГР ПОЛУЧЕНО", wSaved: "ВСЕГО СЭКОНОМЛЕНО", wFavStore: "ЛЮБИМЫЙ МАГАЗИН", wFastest: "САМОЕ БЫСТРОЕ", wMidnight: "НОЧНЫЕ РЕЙДЫ", wBestDay: "ЛУЧШИЙ ДЕНЬ", wBiggest: "КРУПНЕЙШАЯ ДОБЫЧА", wFooterTag: "отслежено в LootRadar" });
+        Object.assign(i18n.ja, { wrappedTitle: "ルート Wrapped", wrappedDesc: "あなたの無料ゲーム年間記録をシェアカードに", wrappedBtn: "カードを生成", wrappedEmpty: "この年の取得はまだありません", wrappedDownload: "PNGを保存", wrappedShare: "共有", wGames: "本のゲームを取得", wSaved: "合計節約額", wFavStore: "お気に入りストア", wFastest: "最速取得", wMidnight: "深夜の急襲", wBestDay: "ベストデー", wBiggest: "最大の収穫", wFooterTag: "LootRadar で記録" });
+        Object.assign(i18n.ko, { wrappedTitle: "Loot Wrapped", wrappedDesc: "무료 게임으로 보낸 1년 — 공유 카드로", wrappedBtn: "내 카드 만들기", wrappedEmpty: "올해 아직 획득 기록이 없습니다", wrappedDownload: "PNG 저장", wrappedShare: "공유", wGames: "게임 획득", wSaved: "총 절약액", wFavStore: "최애 스토어", wFastest: "최단 시간 획득", wMidnight: "심야 습격", wBestDay: "최고의 날", wBiggest: "최대 획득", wFooterTag: "LootRadar로 기록" });
+        Object.assign(i18n.pt, { wrappedTitle: "Loot Wrapped", wrappedDesc: "Seu ano em jogos grátis — em um cartão compartilhável", wrappedBtn: "Gerar Meu Cartão", wrappedEmpty: "Ainda não há resgates neste ano", wrappedDownload: "Baixar PNG", wrappedShare: "Compartilhar", wGames: "JOGOS RESGATADOS", wSaved: "TOTAL ECONOMIZADO", wFavStore: "LOJA FAVORITA", wFastest: "RESGATE MAIS RÁPIDO", wMidnight: "ATAQUES DA MEIA-NOITE", wBestDay: "MELHOR DIA", wBiggest: "MAIOR RESGATE", wFooterTag: "registrado com LootRadar" });
+
         // --- LOCAL STORAGE COMPRESSION HELPERS ---
         function loadSafeStorage(key) {
             let raw = null;
@@ -2586,6 +2624,273 @@
             document.getElementById('sync-modal').classList.add('hidden');
             document.getElementById('sync-modal').classList.remove('flex');
         }
+
+        // ===== LOOT WRAPPED (2026.10.05.6): yearly share card =====
+        // Computes one calendar year of stats from state.claimedGames and draws
+        // a warm-gradient shareable card on a 1080×1350 canvas (4:5 portrait —
+        // fits IG/WA stories crops and desktop previews alike). Download PNG or
+        // Web Share (files) with download fallback. Warm palette on purpose:
+        // amber → orange → rose (user dislikes cold blue/indigo).
+        // NOTE: wrappedStoreOf mirrors storeOfClaim nested in renderStats — that
+        // one is pinned inside the F3 slice by storeactivity_test's eval and
+        // can't be hoisted; wrapped_test carries a drift guard asserting both
+        // implementations return identical results on the same fixtures.
+        function wrappedStoreOf(entry) {
+            const id = String((entry && entry.normalizedId) || '');
+            if (id.startsWith('epic:')) return 'Epic Games';
+            if (id.startsWith('steam:')) return 'Steam';
+            if (id.startsWith('gog:')) return 'GOG';
+            if (id.startsWith('gplay:') || id.startsWith('android_')) return 'Google Play';
+            if (id.startsWith('ios:id') || id.startsWith('ios_')) return 'App Store';
+            if (id.startsWith('gp:')) return 'GamerPower';
+            const host = String((entry && entry.open_giveaway) || '').replace(/^https?:\/\//, '').split('/')[0].toLowerCase();
+            if (host.includes('epicgames.com')) return 'Epic Games';
+            if (host.includes('steampowered.com') || host.includes('steamcommunity.com')) return 'Steam';
+            if (host.includes('gog.com')) return 'GOG';
+            if (host.includes('play.google.com')) return 'Google Play';
+            if (host.includes('apple.com')) return 'App Store';
+            if (host.includes('gamerpower.com')) return 'GamerPower';
+            if (host.includes('amazon.')) return 'Amazon';
+            if (host.includes('ubisoft.com')) return 'Ubisoft';
+            if (host.includes('itch.io')) return 'itch.io';
+            return 'Other';
+        }
+
+        // Human-readable short duration (same unit ladder as the reaction-time
+        // stat card: <1h → minutes, <48h → hours, else days).
+        function wrappedDuration(ms) {
+            const hrs = ms / 3600000;
+            if (hrs < 1) return Math.max(1, Math.round(ms / 60000)) + 'm';
+            if (hrs < 48) return hrs.toFixed(1) + 'h';
+            return (hrs / 24).toFixed(1) + 'd';
+        }
+
+        window.computeWrappedStats = function (year) {
+            const games = Object.values(state.claimedGames || {});
+            const s = { year: year, claims: 0, saved: 0, stores: {}, fastest: null, midnight: 0, days: {}, biggest: null, months: new Array(12).fill(0) };
+            games.forEach(g => {
+                const d = new Date(g.claimed_date || g.date);
+                if (isNaN(d.getTime()) || d.getFullYear() !== year) return;
+                s.claims++;
+                const v = g.value || 0;
+                s.saved += v;
+                const store = wrappedStoreOf(g);
+                s.stores[store] = (s.stores[store] || 0) + 1;
+                s.months[d.getMonth()]++;
+                // fastest publish → claim reaction (same diff >= 0 rule as the
+                // reaction-time stat card)
+                const pub = new Date(g.date);
+                if (!isNaN(pub.getTime())) {
+                    const diff = d.getTime() - pub.getTime();
+                    if (diff >= 0 && (!s.fastest || diff < s.fastest.ms)) s.fastest = { ms: diff, title: g.title || '' };
+                }
+                if (d.getHours() < 6) s.midnight++;   // same "Night" band as Midnight Hunter (h < 6)
+                const dayKey = year + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+                const day = s.days[dayKey] || (s.days[dayKey] = { count: 0, value: 0 });
+                day.count++; day.value += v;
+                if (v > 0 && (!s.biggest || v > s.biggest.value)) s.biggest = { title: g.title || '', value: v };
+            });
+            s.favStore = null;
+            let favN = 0;
+            Object.entries(s.stores).forEach(([k, n]) => { if (n > favN) { favN = n; s.favStore = { name: k, count: n }; } });
+            s.bestDay = null;
+            let bestC = 0;
+            Object.entries(s.days).forEach(([k, v]) => { if (v.count > bestC) { bestC = v.count; s.bestDay = { date: k, count: v.count, value: v.value }; } });
+            return s;
+        };
+
+        window.drawWrappedCard = function (canvas, s, t, localeStr) {
+            const W = canvas.width, H = canvas.height;   // 1080 × 1350
+            const ctx = canvas.getContext('2d');
+            const FONT = 'system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Noto Sans", sans-serif';
+            ctx.clearRect(0, 0, W, H);
+            // background: warm sunset gradient
+            const bg = ctx.createLinearGradient(0, 0, W * 0.55, H);
+            bg.addColorStop(0, '#fbbf24'); bg.addColorStop(0.45, '#f97316'); bg.addColorStop(1, '#be123c');
+            ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+            // decorative translucent bubbles
+            ctx.fillStyle = '#ffffff';
+            [[920, 120, 220], [120, 380, 130], [980, 820, 170], [80, 1180, 200]].forEach(([cx, cy, r]) => {
+                ctx.globalAlpha = 0.07; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+            });
+            ctx.globalAlpha = 1;
+            // helpers: letter-spaced small caps + width-clamped ellipsis
+            const tracked = (text, cx, y, size, spacing, weight, color) => {
+                ctx.font = (weight || 700) + ' ' + size + 'px ' + FONT;
+                ctx.fillStyle = color || 'rgba(255,255,255,0.92)';
+                const chars = String(text).split('');
+                let total = 0;
+                chars.forEach(c => { total += ctx.measureText(c).width + spacing; });
+                total -= spacing;
+                let x = cx - total / 2;
+                ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+                chars.forEach(c => { ctx.fillText(c, x, y); x += ctx.measureText(c).width + spacing; });
+            };
+            const fit = (text, maxW) => {
+                let str = String(text || '');
+                if (ctx.measureText(str).width <= maxW) return str;
+                while (str.length > 1 && ctx.measureText(str + '…').width > maxW) str = str.slice(0, -1);
+                return str + '…';
+            };
+            const center = (text, y, size, weight, color) => {
+                ctx.font = (weight || 900) + ' ' + size + 'px ' + FONT;
+                ctx.fillStyle = color || '#ffffff';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+                ctx.fillText(text, W / 2, y);
+            };
+            const chip = (x, y, w, h, label, value, sub) => {
+                ctx.fillStyle = 'rgba(69,26,3,0.24)';
+                ctx.beginPath();
+                if (ctx.roundRect) { ctx.roundRect(x, y, w, h, 26); } else { ctx.rect(x, y, w, h); }
+                ctx.fill();
+                tracked(label, x + w / 2, y + 52, 24, 4, 700, 'rgba(255,255,255,0.75)');
+                ctx.font = '800 46px ' + FONT; ctx.fillStyle = '#ffffff';
+                ctx.textAlign = 'center';
+                ctx.fillText(fit(value, w - 56), x + w / 2, y + 112);
+                if (sub) {
+                    ctx.font = '600 26px ' + FONT; ctx.fillStyle = 'rgba(255,255,255,0.78)';
+                    ctx.fillText(fit(sub, w - 48), x + w / 2, y + 152);
+                }
+            };
+            // header
+            tracked('LOOTRADAR PRESENTS', W / 2, 108, 28, 10, 700, 'rgba(255,255,255,0.85)');
+            center(t.wrappedTitle || 'LOOT WRAPPED', 208, 88, 900);
+            // year pill
+            ctx.fillStyle = 'rgba(255,255,255,0.18)';
+            ctx.beginPath();
+            if (ctx.roundRect) { ctx.roundRect(W / 2 - 110, 240, 220, 78, 39); } else { ctx.rect(W / 2 - 110, 240, 220, 78); }
+            ctx.fill();
+            center(String(s.year), 296, 52, 900);
+            // hero: claims + saved
+            center(String(s.claims), 560, 210, 900);
+            tracked(t.wGames || 'GAMES CLAIMED', W / 2, 618, 34, 6, 700, 'rgba(255,255,255,0.92)');
+            const savedStr = '$' + (s.saved >= 1000 ? Math.floor(s.saved).toLocaleString('en-US') : s.saved.toFixed(2));
+            center(savedStr, 728, 92, 900);
+            tracked(t.wSaved || 'TOTAL SAVED', W / 2, 780, 30, 6, 700, 'rgba(255,255,255,0.88)');
+            // 2×2 stat chips
+            const cw = (W - 80 * 2 - 28) / 2, chh = 184, cy1 = 836, cy2 = cy1 + chh + 24;
+            chip(80, cy1, cw, chh, t.wFavStore || 'FAVORITE STORE',
+                s.favStore ? s.favStore.name : '—',
+                s.favStore ? s.favStore.count + ' ×' : '');
+            chip(80 + cw + 28, cy1, cw, chh, t.wFastest || 'FASTEST CLAIM',
+                s.fastest ? wrappedDuration(s.fastest.ms) : '—',
+                s.fastest ? s.fastest.title : '');
+            chip(80, cy2, cw, chh, t.wMidnight || 'MIDNIGHT RAIDS',
+                String(s.midnight), '00:00 – 06:00');
+            let bestDayStr = '—', bestDaySub = '';
+            if (s.bestDay) {
+                const bd = new Date(s.bestDay.date + 'T12:00:00');
+                bestDayStr = bd.toLocaleDateString(localeStr, { month: 'short', day: 'numeric' });
+                bestDaySub = s.bestDay.count + ' × · $' + Math.floor(s.bestDay.value).toLocaleString('en-US');
+            }
+            chip(80 + cw + 28, cy2, cw, chh, t.wBestDay || 'BEST DAY', bestDayStr, bestDaySub);
+            // biggest haul row
+            if (s.biggest) {
+                tracked(t.wBiggest || 'BIGGEST HAUL', W / 2, 1128, 26, 6, 700, 'rgba(255,255,255,0.75)');
+                ctx.font = '800 44px ' + FONT; ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center';
+                ctx.fillText(fit(s.biggest.title, W - 320) + '  ·  $' + s.biggest.value.toFixed(2), W / 2, 1182);
+            }
+            // monthly bars (language-neutral month initials)
+            const mbY = 1236, mbH = 62, mbW = (W - 120 * 2 - 11 * 10) / 12;
+            const mMax = Math.max.apply(null, s.months.concat([1]));
+            for (let m = 0; m < 12; m++) {
+                const x = 120 + m * (mbW + 10);
+                const h = Math.max(4, (s.months[m] / mMax) * mbH);
+                ctx.fillStyle = s.months[m] === mMax && s.months[m] > 0 ? '#ffffff' : 'rgba(255,255,255,0.55)';
+                ctx.beginPath();
+                if (ctx.roundRect) { ctx.roundRect(x, mbY + mbH - h, mbW, h, 6); } else { ctx.rect(x, mbY + mbH - h, mbW, h); }
+                ctx.fill();
+                ctx.font = '700 22px ' + FONT; ctx.fillStyle = 'rgba(255,255,255,0.8)'; ctx.textAlign = 'center';
+                ctx.fillText(new Date(s.year, m, 1).toLocaleString(localeStr, { month: 'narrow' }), x + mbW / 2, mbY + mbH + 30);
+            }
+            // footer
+            tracked('gamelootradar.us.ci', W / 2, H - 44, 28, 4, 800, 'rgba(255,255,255,0.9)');
+            tracked(t.wFooterTag || 'tracked with LootRadar', W / 2, H - 96, 22, 3, 600, 'rgba(255,255,255,0.65)');
+        };
+
+        window.openWrappedModal = function () {
+            const sel = document.getElementById('wrapped-year-select');
+            if (!sel) return;
+            const year = parseInt(sel.value, 10);
+            const t = i18n[state.lang] || {};
+            const localeStr = (state.lang === 'zh-CN' || state.lang === 'zh-TW') ? state.lang : 'en-US';
+            const s = window.computeWrappedStats(year);
+            const wrap = document.getElementById('wrapped-canvas-wrap');
+            const modal = document.getElementById('wrapped-modal');
+            const dlBtn = document.getElementById('wrapped-dl-btn');
+            const shareBtn = document.getElementById('wrapped-share-btn');
+            document.getElementById('wrapped-modal-title').innerHTML = '<i class="ph-fill ph-sparkle" style="color:#f59e0b;"></i> ' + (t.wrappedTitle || 'Loot Wrapped') + ' ' + year;
+            document.getElementById('wrapped-dl-label').textContent = t.wrappedDownload || 'Download PNG';
+            document.getElementById('wrapped-share-label').textContent = t.wrappedShare || 'Share';
+            wrap.innerHTML = '';
+            window._wrappedYear = year;
+            if (!s.claims) {
+                wrap.innerHTML = '<div class="py-16 text-center text-sm text-gray-400">' + (t.wrappedEmpty || 'No claims in this year yet') + '</div>';
+                dlBtn.classList.add('hidden');
+                shareBtn.classList.add('hidden'); shareBtn.classList.remove('flex');
+            } else {
+                const canvas = document.createElement('canvas');
+                canvas.id = 'wrapped-canvas';
+                canvas.width = 1080; canvas.height = 1350;
+                canvas.style.width = '100%'; canvas.style.borderRadius = '20px';
+                wrap.appendChild(canvas);
+                window.drawWrappedCard(canvas, s, t, localeStr);
+                dlBtn.classList.remove('hidden');
+                // Web Share with files: phones (iOS Safari / Android Chrome).
+                // Probe canShare with a tiny dummy File so desktops that support
+                // share() but not file sharing don't show a dead button.
+                let canShareFile = false;
+                try {
+                    if (navigator.canShare && navigator.share && window.File) {
+                        canShareFile = navigator.canShare({ files: [new File([], 'p.png', { type: 'image/png' })] });
+                    }
+                } catch (e) { canShareFile = false; }
+                if (canShareFile) { shareBtn.classList.remove('hidden'); shareBtn.classList.add('flex'); }
+                else { shareBtn.classList.add('hidden'); shareBtn.classList.remove('flex'); }
+            }
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        };
+
+        window.closeWrappedModal = function () {
+            const modal = document.getElementById('wrapped-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        };
+
+        window.wrappedCanvasToBlob = function () {
+            return new Promise((resolve, reject) => {
+                const canvas = document.getElementById('wrapped-canvas');
+                if (!canvas) { reject(new Error('no canvas')); return; }
+                canvas.toBlob(b => b ? resolve(b) : reject(new Error('toBlob failed')), 'image/png');
+            });
+        };
+
+        window.downloadWrappedCard = async function () {
+            try {
+                const blob = await window.wrappedCanvasToBlob();
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'loot-wrapped-' + (window._wrappedYear || new Date().getFullYear()) + '.png';
+                a.click();
+                URL.revokeObjectURL(url);
+            } catch (e) { try { window.logError('wrapped download: ' + (e && e.message ? e.message : e), 'wrapped'); } catch (_) {} }
+        };
+
+        window.shareWrappedCard = async function () {
+            try {
+                const blob = await window.wrappedCanvasToBlob();
+                const file = new File([blob], 'loot-wrapped-' + (window._wrappedYear || '') + '.png', { type: 'image/png' });
+                const t = i18n[state.lang] || {};
+                await navigator.share({ files: [file], title: (t.wrappedTitle || 'Loot Wrapped') + ' ' + (window._wrappedYear || '') });
+            } catch (e) {
+                // user cancelled (AbortError) → do nothing; anything else → fall
+                // back to download so the share button is never a dead end
+                if (e && e.name === 'AbortError') return;
+                window.downloadWrappedCard();
+            }
+        };
         
         async function handleExportData() {
             const statusEl = document.getElementById('sync-export-status');
@@ -4714,9 +5019,37 @@
             }).join('');
             const clockSvgHtml = `<svg viewBox="0 0 220 210" class="w-full max-w-[280px] mx-auto block"><circle cx="${clockCx}" cy="${clockCy}" r="${clockMaxR + 2}" fill="none" class="stroke-gray-200 dark:stroke-gray-700" stroke-width="1" stroke-dasharray="2 3"></circle>${clockPetalsHtml}${clockTicksHtml}</svg>`;
 
+            // --- Loot Wrapped panel (2026.10.05.6): pick a year → generate a
+            // shareable canvas card. Years = every calendar year that actually
+            // has claims (desc), so the default selection is always meaningful;
+            // a year with no claims never appears. Warm gradient styling inline
+            // (Tailwind CDN compiles new classes asynchronously). ---
+            const wrappedYears = [...new Set(games.map(g => {
+                const d = gameClaimedDate(g);
+                return isNaN(d.getTime()) ? null : d.getFullYear();
+            }).filter(y => y))].sort((a, b) => b - a);
+            const wrappedYearOptions = wrappedYears.map(y => `<option value="${y}">${y}</option>`).join('');
+            const wrappedPanelHtml = `
+                <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 lg:col-span-2 relative overflow-hidden" style="background:linear-gradient(135deg, rgba(245,158,11,0.14), rgba(225,29,72,0.10));">
+                    <div class="absolute -top-8 -right-8 w-28 h-28 rounded-full blur-2xl pointer-events-none" style="background:rgba(245,158,11,0.25);"></div>
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 relative z-10">
+                        <div class="flex-1">
+                            <h3 class="text-xs font-bold uppercase tracking-widest mb-1" style="color:#d97706;">${t.wrappedTitle || 'Loot Wrapped'}</h3>
+                            <p class="text-[10px] text-gray-500 dark:text-gray-400">${t.wrappedDesc || 'Your year in free games — as a shareable card'}</p>
+                        </div>
+                        <div class="flex items-center gap-2 w-full sm:w-auto">
+                            <select id="wrapped-year-select" class="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-card text-gray-800 dark:text-white text-sm font-bold outline-none cursor-pointer" style="min-width:88px;">${wrappedYearOptions}</select>
+                            <button onclick="openWrappedModal()" class="flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-white text-sm font-bold transition-all active:scale-95 shadow-md flex items-center justify-center gap-2" style="background:linear-gradient(135deg,#f59e0b,#e11d48);">
+                                <i class="ph-fill ph-sparkle"></i> ${t.wrappedBtn || 'Generate My Card'}
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+
             // --- RENDER DOM ---
             container.innerHTML = `
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    ${wrappedPanelHtml}
                     <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 flex flex-col items-center justify-center">
                         <h3 class="w-full text-left text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-6">${t.statsPlatform}</h3>
                         <!-- Donut 1: By Game Count -->
@@ -9968,7 +10301,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.10.05.5';
+        window.BUILD_VERSION = '2026.10.05.6';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

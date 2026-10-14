@@ -1264,6 +1264,16 @@
             </div>
           </div>
 
+          <!-- Platforms Section (2026.10.05.8: enable toggles) -->
+          <div class="glass-panel p-6 rounded-3xl shadow-sm border border-light-border dark:border-gray-800">
+            <h3 class="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2 flex items-center gap-2">
+              <i class="ph-fill ph-game-controller text-amber-500"></i>
+              <span id="ui-settings-platforms">Platforms</span>
+            </h3>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-3" id="ui-settings-platforms-desc">Turn off a platform to hide its tab and its games from the feed.</p>
+            <div id="platform-toggles"></div>
+          </div>
+
           <!-- Device Sync Section -->
           <div class="glass-panel p-6 rounded-3xl shadow-sm border border-light-border dark:border-gray-800">
             <h3 class="text-sm font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-4 flex items-center gap-2">
@@ -1832,6 +1842,18 @@
         Object.assign(i18n.ko, { wrappedTitle: "Loot Wrapped", wrappedDesc: "무료 게임으로 보낸 1년 — 공유 카드로", wrappedBtn: "내 카드 만들기", wrappedEmpty: "올해 아직 획득 기록이 없습니다", wrappedDownload: "PNG 저장", wrappedShare: "공유", wGames: "게임 획득", wSaved: "총 절약액", wFavStore: "최애 스토어", wFastest: "최단 시간 획득", wMidnight: "심야 습격", wBestDay: "최고의 날", wBiggest: "최대 획득", wFooterTag: "LootRadar로 기록" });
         Object.assign(i18n.pt, { wrappedTitle: "Loot Wrapped", wrappedDesc: "Seu ano em jogos grátis — em um cartão compartilhável", wrappedBtn: "Gerar Meu Cartão", wrappedEmpty: "Ainda não há resgates neste ano", wrappedDownload: "Baixar PNG", wrappedShare: "Compartilhar", wGames: "JOGOS RESGATADOS", wSaved: "TOTAL ECONOMIZADO", wFavStore: "LOJA FAVORITA", wFastest: "RESGATE MAIS RÁPIDO", wMidnight: "ATAQUES DA MEIA-NOITE", wBestDay: "MELHOR DIA", wBiggest: "MAIOR RESGATE", wFooterTag: "registrado com LootRadar" });
 
+        // Platform enable-toggle i18n keys (2026.10.05.8)
+        Object.assign(i18n.en, { platTogglesTitle: "Platforms", platTogglesDesc: "Turn off a platform to hide its tab and its games from the feed." });
+        Object.assign(i18n['zh-CN'], { platTogglesTitle: "平台显示", platTogglesDesc: "关掉不想看的平台——它的标签页和游戏会从主页隐藏。" });
+        Object.assign(i18n['zh-TW'], { platTogglesTitle: "平台顯示", platTogglesDesc: "關掉不想看的平台——它的標籤頁和遊戲會從主頁隱藏。" });
+        Object.assign(i18n.es, { platTogglesTitle: "Plataformas", platTogglesDesc: "Desactiva una plataforma para ocultar su pestaña y sus juegos del feed." });
+        Object.assign(i18n.fr, { platTogglesTitle: "Plateformes", platTogglesDesc: "Désactivez une plateforme pour masquer son onglet et ses jeux du flux." });
+        Object.assign(i18n.de, { platTogglesTitle: "Plattformen", platTogglesDesc: "Plattform ausschalten, um ihren Tab und ihre Spiele im Feed auszublenden." });
+        Object.assign(i18n.ru, { platTogglesTitle: "Платформы", platTogglesDesc: "Отключите платформу, чтобы скрыть её вкладку и её игры из ленты." });
+        Object.assign(i18n.ja, { platTogglesTitle: "プラットフォーム", platTogglesDesc: "オフにすると、そのタブとゲームがフィードから非表示になります。" });
+        Object.assign(i18n.ko, { platTogglesTitle: "플랫폼", platTogglesDesc: "끄면 해당 탭과 게임이 피드에서 숨겨집니다." });
+        Object.assign(i18n.pt, { platTogglesTitle: "Plataformas", platTogglesDesc: "Desative uma plataforma para ocultar sua aba e seus jogos do feed." });
+
         // --- LOCAL STORAGE COMPRESSION HELPERS ---
         function loadSafeStorage(key) {
             let raw = null;
@@ -2398,6 +2420,15 @@
           ),
           showExpiringOnly: localStorage.getItem('lootradar_remember_filters') === '1'
               && localStorage.getItem('lootradar_expiring_filter') === '1',
+          // 2026.10.05.8: platform enable toggles — disabled platform ids
+          // (Settings → Platforms). NOT gated by remember_filters: this is a
+          // visibility preference like theme/lang, not a feed filter state.
+          disabledPlatforms: (() => {
+              try {
+                  const a = JSON.parse(localStorage.getItem('lootradar_disabled_platforms') || '[]');
+                  return Array.isArray(a) ? a.filter(x => typeof x === 'string' && x !== 'All') : [];
+              } catch (e) { return []; }
+          })(),
           isLoading: false,
           claimedGames: sanitizeClaimed(loadSafeStorage('lootradar_claimed_v2') || loadSafeStorage('lootradar_claimed') || {}),
           totalSaved: parseFloat(localStorage.getItem('lootradar_saved_money')) || 0,
@@ -3745,6 +3776,10 @@
 
           // Update theme button styles
           updateThemeButtons();
+
+          // 2026.10.05.8: build the platform enable toggles (labels follow the
+          // current language, so this re-runs on every open)
+          renderPlatformToggles();
         }
 
         function setTheme(theme) {
@@ -7371,7 +7406,9 @@
                 'lootradar_expiring_filter',
                 'lootradar_platform_tab',
                 // 2026.09.03.4: the opt-in "remember my filters" flag
-                'lootradar_remember_filters'
+                'lootradar_remember_filters',
+                // 2026.10.05.8: platform enable toggles (Settings → Platforms)
+                'lootradar_disabled_platforms'
             ];
 
             // 2026.10.05.5: override-aware faithful readers. When localStorage
@@ -9425,10 +9462,76 @@
         // 2026.09.03.3: the persisted platform tab may name a platform that no
         // longer exists (list changes, stale storage) — fall back to All so a
         // bad value can never crash renderGames (currentPlatObj would be null).
+        // 2026.10.05.8: also fall back when the platform got disabled in
+        // Settings → Platforms (its tab is gone, so the feed must not filter on it).
         function validatePlatformTab() {
-            if (state.currentPlatform !== 'All' && !platforms.some(p => p.id === state.currentPlatform)) {
+            if (state.currentPlatform !== 'All'
+                && (!platforms.some(p => p.id === state.currentPlatform) || !isPlatformEnabled(state.currentPlatform))) {
                 state.currentPlatform = 'All';
             }
+        }
+
+        // ─── PLATFORM ENABLE TOGGLES (2026.10.05.8) ─────────────────────────
+        // Settings → Platforms lets the user switch platforms off. A disabled
+        // platform: (1) its tab disappears from the tab bar, (2) in the All
+        // view its games are hidden UNLESS the game also matches an enabled
+        // platform (a Steam+Xbox game stays when only Console is off), and
+        // (3) games matching NO platform at all are always kept. Persisted in
+        // lootradar_disabled_platforms (plain JSON array of platform ids).
+        function isPlatformEnabled(id) {
+            return (state.disabledPlatforms || []).indexOf(id) === -1;
+        }
+
+        function isGameHiddenByPlatformToggles(game) {
+            const disabled = state.disabledPlatforms || [];
+            if (!disabled.length) return false;
+            let matchesDisabled = false, matchesEnabled = false;
+            for (let i = 0; i < platforms.length; i++) {
+                const plat = platforms[i];
+                if (plat.id === 'All') continue;
+                if (!isPlatformMatch(game, plat.matches, plat.excludes, plat.requires, plat.customRule)) continue;
+                if (disabled.indexOf(plat.id) === -1) matchesEnabled = true;
+                else matchesDisabled = true;
+            }
+            return matchesDisabled && !matchesEnabled;
+        }
+
+        function togglePlatformEnabled(id) {
+            if (id === 'All' || !platforms.some(p => p.id === id)) return;
+            const i = (state.disabledPlatforms || []).indexOf(id);
+            if (i === -1) state.disabledPlatforms.push(id);
+            else state.disabledPlatforms.splice(i, 1);
+            try { localStorage.setItem('lootradar_disabled_platforms', JSON.stringify(state.disabledPlatforms)); } catch (e) { /* quota — in-memory still applies this session */ }
+            validatePlatformTab();
+            renderPlatformToggles();
+            renderTabs();
+            renderGames();
+        }
+
+        function renderPlatformToggles() {
+            const wrap = document.getElementById('platform-toggles');
+            if (!wrap) return;
+            const t = i18n[state.lang] || {};
+            const labelMap = { 'Prime': t.prime, 'Ubisoft': t.ubisoft, 'EpicPhone': t.epicPhone };
+            wrap.innerHTML = '';
+            platforms.forEach(plat => {
+                if (plat.id === 'All') return;
+                const enabled = isPlatformEnabled(plat.id);
+                const label = labelMap[plat.id] || plat.id;
+                const row = document.createElement('div');
+                row.className = 'flex items-center justify-between py-2.5 border-b border-light-border dark:border-gray-800 last:border-b-0';
+                row.innerHTML = `<div class="flex items-center gap-3"><i class="ph-fill ${plat.icon} text-lg ${enabled ? 'text-amber-600 dark:text-neon-blue' : 'text-gray-400 dark:text-gray-600'}"></i><span class="font-bold text-sm ${enabled ? 'text-gray-700 dark:text-gray-200' : 'text-gray-400 dark:text-gray-600'}">${label}</span></div>`;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.setAttribute('role', 'switch');
+                btn.setAttribute('aria-checked', String(enabled));
+                btn.setAttribute('aria-label', label);
+                btn.className = `relative w-12 h-7 rounded-full transition-colors duration-200 flex-shrink-0 ${enabled ? 'bg-amber-500 dark:bg-neon-blue' : 'bg-gray-300 dark:bg-gray-700'}`;
+                btn.innerHTML = `<span class="absolute top-1 ${enabled ? 'left-6' : 'left-1'} w-5 h-5 rounded-full bg-white shadow transition-all duration-200"></span>`;
+                btn.onclick = () => togglePlatformEnabled(plat.id);
+                row.appendChild(btn);
+                wrap.appendChild(row);
+            });
         }
 
         function renderTabs() {
@@ -9439,14 +9542,21 @@
             const now = new Date().getTime();
 
             platforms.forEach(plat => {
+                // 2026.10.05.8: disabled platforms lose their tab entirely
+                if (plat.id !== 'All' && !isPlatformEnabled(plat.id)) return;
                 let hasNew = false, count = 0;
-                if (plat.id === 'All') count = state.games.length;
+                if (plat.id === 'All') {
+                    // 2026.10.05.8: All count = what the All feed will actually show
+                    count = (state.disabledPlatforms && state.disabledPlatforms.length)
+                        ? state.games.filter(g => !isGameHiddenByPlatformToggles(g)).length
+                        : state.games.length;
+                }
                 else {
                     const matchedGames = state.games.filter(g => isPlatformMatch(g, plat.matches, plat.excludes, plat.requires, plat.customRule));
                     count = matchedGames.length;
                     if (count > 0 && (now - new Date(matchedGames[0].published_date).getTime() < 172800000)) hasNew = true;
                 }
-                
+
                 if (count === 0 && plat.id !== 'All') return;
 
                 const isSelected = state.currentPlatform === plat.id;
@@ -9741,6 +9851,14 @@
 
             const currentPlatObj = platforms.find(p => p.id === state.currentPlatform);
             let filteredGames = state.currentPlatform === 'All' ? state.games : state.games.filter(g => isPlatformMatch(g, currentPlatObj.matches, currentPlatObj.excludes, currentPlatObj.requires, currentPlatObj.customRule));
+
+            // 2026.10.05.8: platform enable toggles — in the All view, hide games
+            // that belong to disabled platforms (kept when they also match an
+            // enabled platform). A specific tab is never disabled here because
+            // validatePlatformTab() falls back to All first.
+            if (state.currentPlatform === 'All' && state.disabledPlatforms && state.disabledPlatforms.length) {
+                filteredGames = filteredGames.filter(g => !isGameHiddenByPlatformToggles(g));
+            }
 
             // Title-aware claim protection + status classification: one shared
             // context (claimed title map + merged-away IDs) for the status filter
@@ -10072,6 +10190,11 @@
             safeSetText('ui-theme-dark', t.themeDark);
             safeSetText('ui-settings-sync', t.settingsSync);
             safeSetText('ui-settings-sync-desc', t.settingsSyncDesc);
+            // 2026.10.05.8: platform enable toggles (rebuild so Prime/Ubisoft/
+            // EpicPhone labels follow the new language immediately)
+            safeSetText('ui-settings-platforms', t.platTogglesTitle);
+            safeSetText('ui-settings-platforms-desc', t.platTogglesDesc);
+            renderPlatformToggles();
             safeSetText('ui-settings-export', t.settingsExport);
             safeSetText('ui-settings-import', t.settingsImport);
             safeSetText('ui-install-guide-title', t.installGuideTitle);
@@ -10301,7 +10424,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.10.05.7';
+        window.BUILD_VERSION = '2026.10.05.8';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

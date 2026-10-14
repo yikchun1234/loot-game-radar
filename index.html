@@ -1852,6 +1852,17 @@
         Object.assign(i18n.ja, { wrappedLifetime: "全期間", wSince: "開始" });
         Object.assign(i18n.ko, { wrappedLifetime: "전체 기간", wSince: "시작" });
         Object.assign(i18n.pt, { wrappedLifetime: "Desde sempre", wSince: "DESDE" });
+        // Wrapped season countdown i18n keys (2026.10.14.2)
+        Object.assign(i18n.en, { wrappedCdLabel: "Share before close" });
+        Object.assign(i18n['zh-CN'], { wrappedCdLabel: "分享截止倒计时" });
+        Object.assign(i18n['zh-TW'], { wrappedCdLabel: "分享截止倒數" });
+        Object.assign(i18n.es, { wrappedCdLabel: "Comparte antes del cierre" });
+        Object.assign(i18n.fr, { wrappedCdLabel: "Partagez avant la fin" });
+        Object.assign(i18n.de, { wrappedCdLabel: "Teilen vor dem Ende" });
+        Object.assign(i18n.ru, { wrappedCdLabel: "Успей поделиться" });
+        Object.assign(i18n.ja, { wrappedCdLabel: "終了までのカウントダウン" });
+        Object.assign(i18n.ko, { wrappedCdLabel: "마감 전 공유" });
+        Object.assign(i18n.pt, { wrappedCdLabel: "Compartilhe antes do fim" });
 
         // Platform enable-toggle i18n keys (2026.10.05.8)
         Object.assign(i18n.en, { platTogglesTitle: "Platforms", platTogglesDesc: "Turn off a platform to hide its tab and its games from the feed." });
@@ -2707,6 +2718,57 @@
             return (hrs / 24).toFixed(1) + 'd';
         }
 
+        // ─── WRAPPED SEASON (2026.10.14.2) ───
+        // The panel + card are only available Dec 20 → Jan 15 (local time),
+        // Spotify-Wrapped style: scarcity makes people actually share it.
+        // Dev Mode (5-tap) bypasses the gate so the owner can preview.
+        window.isWrappedSeasonOpen = function (now) {
+            const d = now || new Date();
+            const m = d.getMonth(), day = d.getDate();
+            return (m === 11 && day >= 20) || (m === 0 && day <= 15);
+        };
+        // Close deadline = the NEXT Jan 15 23:59:59 local. (A bare "this year's
+        // Jan 15" reads as already-past for every month after January — the
+        // Dev Mode preview in October would show 0d 00:00:00.)
+        function wrappedCloseTarget(now) {
+            const target = new Date(now.getFullYear(), 0, 15, 23, 59, 59);
+            return target.getTime() < now.getTime()
+                ? new Date(now.getFullYear() + 1, 0, 15, 23, 59, 59)
+                : target;
+        }
+
+        // Precomputed QR matrix (29×29, ECC M) of https://gamelootradar.us.ci/ —
+        // independently verified by jsQR decode in wrapped_test W5. Regenerate
+        // ONLY if the domain changes (node -e with the qrcode package; the test
+        // fails loudly if the embedded matrix no longer decodes to the URL).
+        const WRAPPED_QR = [
+            "11111110001001110001101111111", "10000010011011111000001000001", "10111010110011010001101011101",
+            "10111010111000110101001011101", "10111010101000011001001011101", "10000010100110000110001000001",
+            "11111110101010101010101111111", "00000000101100101001000000000", "10111110010000001110101111100",
+            "11100101110011110111111110001", "01000110100111111100101110000", "10011100111011010010010111010",
+            "10100010000100110100000001100", "10111100000110011011111110001", "10111010010000000110001111100",
+            "11010001010000101000101100010", "00000110100100001100000001100", "11100100011111110111111110101",
+            "10100110011101111010101110100", "10001000110101010000001010010", "10011111111000110110111110111",
+            "00000000100000011110100011111", "11111110010100000101101011100", "10000010110110101001100010010",
+            "10111010101100001010111110101", "10111010111001110110100001100", "10111010100110111100001111110",
+            "10000010000000110111100101010", "11111110100100110001010110100"
+        ];
+        // White rounded card (4-module quiet zone) + dark warm-near-black
+        // modules; scanners need max contrast so pure white bg is deliberate.
+        function drawWrappedQr(ctx, x, y) {
+            const mod = 6, quiet = 24, size = 29 * mod;   // 174px QR inside a 222px card
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            if (ctx.roundRect) { ctx.roundRect(x, y, size + quiet * 2, size + quiet * 2, 24); } else { ctx.rect(x, y, size + quiet * 2, size + quiet * 2); }
+            ctx.fill();
+            ctx.fillStyle = '#1c1917';
+            for (let r = 0; r < WRAPPED_QR.length; r++) {
+                for (let c = 0; c < WRAPPED_QR[r].length; c++) {
+                    if (WRAPPED_QR[r][c] === '1') ctx.fillRect(x + quiet + c * mod, y + quiet + r * mod, mod, mod);
+                }
+            }
+        }
+
         window.computeWrappedStats = function (year) {
             // 2026.10.14.1: year === 'lifetime' aggregates ALL years — the
             // monthly strip sums the same calendar month across years and
@@ -2748,7 +2810,7 @@
         };
 
         window.drawWrappedCard = function (canvas, s, t, localeStr) {
-            const W = canvas.width, H = canvas.height;   // 1080 × 1650 (2026.10.05.7: extended down — bottom sections were cramped at 1350)
+            const W = canvas.width, H = canvas.height;   // 1080 × 1920 (2026.10.14.2: extended for the QR card; exact 9:16 story ratio)
             const ctx = canvas.getContext('2d');
             const FONT = 'system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", "Noto Sans", sans-serif';
             ctx.clearRect(0, 0, W, H);
@@ -2869,6 +2931,10 @@
                 // leap-safe year in lifetime mode so Invalid Date can't throw
                 ctx.fillText(new Date(s.isLifetime ? 2000 : s.year, m, 1).toLocaleString(localeStr, { month: 'narrow' }), x + mbW / 2, mbY + mbH + 30);
             }
+            // QR card (2026.10.14.2): shared cards carry a scannable link so
+            // whoever receives one can start tracking too. Sits between the
+            // month initials (1512) and the footer tag (H−96 = 1824).
+            drawWrappedQr(ctx, W / 2 - 111, 1568);
             // footer
             tracked('gamelootradar.us.ci', W / 2, H - 44, 28, 4, 800, 'rgba(255,255,255,0.9)');
             tracked(t.wFooterTag || 'tracked with LootRadar', W / 2, H - 96, 22, 3, 600, 'rgba(255,255,255,0.65)');
@@ -2877,6 +2943,8 @@
         window.openWrappedModal = function () {
             const sel = document.getElementById('wrapped-year-select');
             if (!sel) return;
+            // 2026.10.14.2: season gate — Dec 20 → Jan 15 only; Dev Mode bypasses
+            if (!window.isWrappedSeasonOpen() && !devModeActive) return;
             // 2026.10.14.1: sel.value can be 'lifetime' (all-time card)
             const isLifetime = sel.value === 'lifetime';
             const year = isLifetime ? 'lifetime' : parseInt(sel.value, 10);
@@ -2887,7 +2955,9 @@
             const modal = document.getElementById('wrapped-modal');
             const dlBtn = document.getElementById('wrapped-dl-btn');
             const shareBtn = document.getElementById('wrapped-share-btn');
-            document.getElementById('wrapped-modal-title').innerHTML = '<i class="ph-fill ph-sparkle" style="color:#f59e0b;"></i> ' + (t.wrappedTitle || 'Loot Wrapped') + ' ' + (isLifetime ? (t.wrappedLifetime || 'Lifetime') : year);
+            // 2026.10.14.2: no year in the modal title (user request) — the card
+            // itself shows the year/LIFETIME pill; lifetime keeps its label
+            document.getElementById('wrapped-modal-title').innerHTML = '<i class="ph-fill ph-sparkle" style="color:#f59e0b;"></i> ' + (t.wrappedTitle || 'Loot Wrapped') + (isLifetime ? ' ' + (t.wrappedLifetime || 'Lifetime') : '');
             document.getElementById('wrapped-dl-label').textContent = t.wrappedDownload || 'Download PNG';
             document.getElementById('wrapped-share-label').textContent = t.wrappedShare || 'Share';
             wrap.innerHTML = '';
@@ -2899,7 +2969,7 @@
             } else {
                 const canvas = document.createElement('canvas');
                 canvas.id = 'wrapped-canvas';
-                canvas.width = 1080; canvas.height = 1650;
+                canvas.width = 1080; canvas.height = 1920;
                 canvas.style.width = '100%'; canvas.style.borderRadius = '20px';
                 wrap.appendChild(canvas);
                 window.drawWrappedCard(canvas, s, t, localeStr);
@@ -2925,6 +2995,25 @@
             modal.classList.add('hidden');
             modal.classList.remove('flex');
         };
+
+        // "Share before close" countdown (2026.10.14.2): one guarded 1s timer;
+        // each tick re-reads the DOM so panel re-renders never orphan it, and
+        // it no-ops when the element is gone (panel hidden / modal closed).
+        function startWrappedCountdown() {
+            if (window._wrappedCdTimer) return;
+            window._wrappedCdTimer = setInterval(() => {
+                const el = document.getElementById('wrapped-countdown');
+                if (!el) return;
+                const now = new Date();
+                let ms = wrappedCloseTarget(now).getTime() - now.getTime();
+                if (ms < 0) ms = 0;
+                const dd = Math.floor(ms / 86400000);
+                const hh = String(Math.floor(ms / 3600000) % 24).padStart(2, '0');
+                const mm = String(Math.floor(ms / 60000) % 60).padStart(2, '0');
+                const ss = String(Math.floor(ms / 1000) % 60).padStart(2, '0');
+                el.textContent = dd + 'd ' + hh + ':' + mm + ':' + ss;
+            }, 1000);
+        }
 
         window.wrappedCanvasToBlob = function () {
             return new Promise((resolve, reject) => {
@@ -5109,13 +5198,21 @@
                 ? `<option value="lifetime">${t.wrappedLifetime || 'Lifetime'}</option>`
                 : '';
             const wrappedYearOptions = wrappedYears.map(y => `<option value="${y}">${y}</option>`).join('') + wrappedLifetimeOpt;
-            const wrappedPanelHtml = `
+            // 2026.10.14.2: the whole panel only exists during the wrapped
+            // season (Dec 20 → Jan 15) or in Dev Mode (owner preview bypass)
+            const wrappedInSeason = window.isWrappedSeasonOpen() || devModeActive;
+            const wrappedPanelHtml = wrappedInSeason ? `
                 <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 lg:col-span-2 relative overflow-hidden" style="background:linear-gradient(135deg, rgba(245,158,11,0.14), rgba(225,29,72,0.10));">
                     <div class="absolute -top-8 -right-8 w-28 h-28 rounded-full blur-2xl pointer-events-none" style="background:rgba(245,158,11,0.25);"></div>
                     <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 relative z-10">
                         <div class="flex-1">
                             <h3 class="text-xs font-bold uppercase tracking-widest mb-1" style="color:#d97706;">${t.wrappedTitle || 'Loot Wrapped'}</h3>
                             <p class="text-[10px] text-gray-500 dark:text-gray-400">${t.wrappedDesc || 'Your year in free games — as a shareable card'}</p>
+                            <div class="flex items-center gap-1.5 mt-2">
+                                <i class="ph-fill ph-hourglass-medium text-[11px]" style="color:#be123c;"></i>
+                                <span class="text-[9px] font-bold uppercase tracking-widest" style="color:#be123c;">${t.wrappedCdLabel || 'Share before close'}</span>
+                                <span id="wrapped-countdown" class="text-[11px] font-black tabular-nums" style="color:#9f1239;">--</span>
+                            </div>
                         </div>
                         <div class="flex items-center gap-2 w-full sm:w-auto">
                             <select id="wrapped-year-select" class="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-card text-gray-800 dark:text-white text-sm font-bold outline-none cursor-pointer" style="min-width:88px;">${wrappedYearOptions}</select>
@@ -5124,7 +5221,8 @@
                             </button>
                         </div>
                     </div>
-                </div>`;
+                </div>` : '';
+            if (wrappedInSeason) startWrappedCountdown();
 
             // --- RENDER DOM ---
             container.innerHTML = `
@@ -10469,7 +10567,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.10.14.1';
+        window.BUILD_VERSION = '2026.10.14.2';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

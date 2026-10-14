@@ -212,6 +212,50 @@
             .wcd-card { animation: none !important; }
         }
 
+        /* ── Custom themed dropdowns (2026.10.14.4) ──
+           Progressive enhancement over the native <select>: the select stays
+           in the DOM as the data layer (hidden); a themed button inherits its
+           layout classes and opens a self-drawn fixed panel. Light = warm
+           amber glass, dark = neon glass — follows the active theme via the
+           .dark ancestor, matching the feed filter panel's design language. */
+        .lr-dd-btn { position: relative; display: block; text-align: left; cursor: pointer; font: inherit; }
+        .lr-dd-btn .lr-dd-label { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .lr-dd-panel {
+            position: fixed; z-index: 4000; box-sizing: border-box;
+            max-height: 288px; overflow-y: auto; overscroll-behavior: contain;
+            padding: 6px; border-radius: 16px;
+            background: rgba(255, 253, 247, 0.96);
+            -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+            border: 1px solid rgba(217, 119, 6, 0.18);
+            box-shadow: 0 18px 40px -12px rgba(120, 53, 15, 0.28), 0 2px 8px rgba(0, 0, 0, 0.06);
+            opacity: 0; transform: translateY(-6px) scale(0.97); transform-origin: top center;
+            transition: opacity 0.16s ease-out, transform 0.16s ease-out;
+            pointer-events: none;
+        }
+        .lr-dd-panel.lr-dd-open { opacity: 1; transform: none; pointer-events: auto; }
+        .dark .lr-dd-panel {
+            background: rgba(13, 15, 22, 0.96);
+            border: 1px solid rgba(0, 243, 255, 0.22);
+            box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.7), 0 0 18px rgba(0, 243, 255, 0.08);
+        }
+        .lr-dd-opt {
+            display: flex; align-items: center; gap: 8px; width: 100%;
+            padding: 10px 12px; border-radius: 12px; cursor: pointer;
+            font-size: 13px; font-weight: 700; line-height: 1.25;
+            color: #3f3a36; background: transparent; border: 0; text-align: left;
+            transition: background 0.12s ease, color 0.12s ease;
+        }
+        .lr-dd-opt:hover, .lr-dd-opt.lr-dd-cursor { background: rgba(245, 158, 11, 0.12); color: #92400e; }
+        .lr-dd-opt[aria-selected="true"] { color: #b45309; }
+        .dark .lr-dd-opt { color: #d7dbe4; }
+        .dark .lr-dd-opt:hover, .dark .lr-dd-opt.lr-dd-cursor { background: rgba(0, 243, 255, 0.10); color: #7df9ff; }
+        .dark .lr-dd-opt[aria-selected="true"] { color: #00f3ff; }
+        .lr-dd-check { margin-left: auto; font-size: 13px; opacity: 0; flex: none; }
+        .lr-dd-opt[aria-selected="true"] .lr-dd-check { opacity: 1; }
+        @media (prefers-reduced-motion: reduce) {
+            .lr-dd-panel { transition: none; }
+        }
+
         .neon-text { text-shadow: 0 0 10px rgba(0, 243, 255, 0.5), 0 0 20px rgba(0, 243, 255, 0.3); }
         #ptr-indicator { height: 0; overflow: hidden; transition: height 0.2s ease-out; display: flex; align-items: center; justify-content: center; color: #b45309; font-weight: bold; }
         .dark #ptr-indicator { color: #00f3ff; }
@@ -3083,6 +3127,176 @@
             window._wrappedCdTimer = setInterval(tick, 1000);
             tick();
         }
+
+        // ─── CUSTOM THEMED DROPDOWNS (2026.10.14.4) ───
+        // The native <select> stays in the DOM as the data layer — its id,
+        // .value, inline onchange and option repopulation all keep working.
+        // A themed button inherits the select's layout classes (icons and
+        // padding stay aligned) and opens a self-drawn fixed panel that
+        // follows the active theme (.dark scoped CSS).
+        const LR_DD_SELECTORS = ['lib-filter-select', 'lib-sort-select', 'lib-view-select', 'settings-lang-select', 'wrapped-year-select'];
+        let lrDdOpenPanel = null;   // { panel, btn, sel, cleanup }
+
+        // Option text carries leading &nbsp; padding for the native select —
+        // collapse nbsp/whitespace runs for the custom UI.
+        function lrDdCleanLabel(txt) {
+            return (txt || '').replace(/[\u00a0\s]+/g, ' ').trim();
+        }
+
+        function lrDdSyncBtn(sel, btn) {
+            const opt = sel.options[sel.selectedIndex];
+            const labelEl = btn.querySelector('.lr-dd-label');
+            if (labelEl) labelEl.textContent = opt ? lrDdCleanLabel(opt.textContent) : '';
+        }
+
+        function lrDdBuildPanel(sel) {
+            const panel = document.createElement('div');
+            panel.className = 'lr-dd-panel';
+            panel.setAttribute('role', 'listbox');
+            Array.from(sel.options).forEach((opt) => {
+                const row = document.createElement('button');
+                row.type = 'button';
+                row.className = 'lr-dd-opt';
+                row.setAttribute('role', 'option');
+                row.dataset.value = opt.value;
+                const label = document.createElement('span');
+                label.textContent = lrDdCleanLabel(opt.textContent);
+                const check = document.createElement('i');
+                check.className = 'ph-bold ph-check lr-dd-check';
+                row.appendChild(label);
+                row.appendChild(check);
+                if (opt.value === sel.value) row.setAttribute('aria-selected', 'true');
+                panel.appendChild(row);
+            });
+            return panel;
+        }
+
+        function lrDdPosition(panel, btn) {
+            const r = btn.getBoundingClientRect();
+            const panelH = panel.offsetHeight;
+            let top = r.bottom + 6;
+            if (top + panelH > window.innerHeight - 8) top = Math.max(8, r.top - panelH - 6);
+            panel.style.top = top + 'px';
+            panel.style.left = r.left + 'px';
+            panel.style.width = r.width + 'px';
+        }
+
+        function lrDdClose() {
+            if (!lrDdOpenPanel) return;
+            const rec = lrDdOpenPanel;
+            lrDdOpenPanel = null;
+            rec.cleanup();
+            rec.btn.setAttribute('aria-expanded', 'false');
+            rec.panel.classList.remove('lr-dd-open');
+            setTimeout(() => rec.panel.remove(), 180);
+        }
+
+        function lrDdOpen(sel, btn) {
+            lrDdClose();
+            const panel = lrDdBuildPanel(sel);   // rebuilt fresh on every open
+            document.body.appendChild(panel);
+            lrDdPosition(panel, btn);
+            requestAnimationFrame(() => requestAnimationFrame(() => panel.classList.add('lr-dd-open')));
+            const rows = () => Array.from(panel.children);
+            const chosen = panel.querySelector('[aria-selected="true"]');
+            if (chosen) chosen.scrollIntoView({ block: 'nearest' });
+            let cursorIdx = chosen ? rows().indexOf(chosen) : -1;
+            const moveCursor = (next) => {
+                const list = rows();
+                if (!list.length) return;
+                if (cursorIdx >= 0 && list[cursorIdx]) list[cursorIdx].classList.remove('lr-dd-cursor');
+                cursorIdx = ((next % list.length) + list.length) % list.length;
+                list[cursorIdx].classList.add('lr-dd-cursor');
+                list[cursorIdx].scrollIntoView({ block: 'nearest' });
+            };
+            const onDocClick = (e) => {
+                if (panel.contains(e.target) || btn.contains(e.target)) return;
+                lrDdClose();
+            };
+            const onKey = (e) => {
+                if (e.key === 'Escape') { lrDdClose(); btn.focus(); }
+                else if (e.key === 'ArrowDown') { e.preventDefault(); moveCursor(cursorIdx + 1); }
+                else if (e.key === 'ArrowUp') { e.preventDefault(); moveCursor(cursorIdx - 1); }
+                else if (e.key === 'Enter' && cursorIdx >= 0) { e.preventDefault(); rows()[cursorIdx].click(); }
+            };
+            const onMove = () => { if (lrDdOpenPanel) lrDdPosition(lrDdOpenPanel.panel, lrDdOpenPanel.btn); };
+            panel.addEventListener('click', (e) => {
+                const row = e.target.closest('.lr-dd-opt');
+                if (!row) return;
+                lrDdClose();
+                if (row.dataset.value !== sel.value) {
+                    sel.value = row.dataset.value;                    // instance setter hook syncs the button
+                    sel.dispatchEvent(new Event('change'));             // fires the inline onchange handler
+                }
+            });
+            document.addEventListener('click', onDocClick, true);
+            document.addEventListener('keydown', onKey, true);
+            window.addEventListener('scroll', onMove, true);
+            window.addEventListener('resize', onMove);
+            btn.setAttribute('aria-expanded', 'true');
+            lrDdOpenPanel = {
+                panel, btn, sel,
+                cleanup: () => {
+                    document.removeEventListener('click', onDocClick, true);
+                    document.removeEventListener('keydown', onKey, true);
+                    window.removeEventListener('scroll', onMove, true);
+                    window.removeEventListener('resize', onMove);
+                }
+            };
+        }
+
+        function lrEnhanceSelect(sel) {
+            if (!sel || sel.dataset.lrEnhanced === '1') return;
+            sel.dataset.lrEnhanced = '1';
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.id = sel.id + '-ddbtn';
+            btn.className = 'lr-dd-btn ' + sel.className;   // inherit layout: icons/padding stay aligned
+            btn.style.cssText = sel.style.cssText;           // wrapped select's inline min-width
+            btn.setAttribute('aria-haspopup', 'listbox');
+            btn.setAttribute('aria-expanded', 'false');
+            const label = document.createElement('span');
+            label.className = 'lr-dd-label';
+            btn.appendChild(label);
+            sel.style.display = 'none';
+            sel.setAttribute('aria-hidden', 'true');
+            sel.parentNode.insertBefore(btn, sel.nextSibling);
+            // Existing code assigns select.value directly (restore paths) with
+            // no event — hook the instance value property so the button label
+            // always follows, without touching any call site.
+            const desc = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
+            Object.defineProperty(sel, 'value', {
+                get() { return desc.get.call(this); },
+                set(v) { desc.set.call(this, v); lrDdSyncBtn(sel, btn); },
+                configurable: true
+            });
+            // Option repopulation (language switch, wrapped years rebuild)
+            new MutationObserver(() => lrDdSyncBtn(sel, btn))
+                .observe(sel, { childList: true, subtree: true, attributes: true });
+            sel.addEventListener('change', () => lrDdSyncBtn(sel, btn));
+            lrDdSyncBtn(sel, btn);
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (lrDdOpenPanel && lrDdOpenPanel.sel === sel) { lrDdClose(); return; }
+                lrDdOpen(sel, btn);
+            });
+        }
+
+        function lrEnhanceAll() {
+            LR_DD_SELECTORS.forEach((id) => lrEnhanceSelect(document.getElementById(id)));
+        }
+
+        // Bootstrap: enhance what's already in the DOM, then watch for
+        // re-created selects (renderStats rebuilds #wrapped-year-select every
+        // render). rAF-debounced; idempotent via the data-lr-enhanced flag.
+        document.addEventListener('DOMContentLoaded', () => {
+            lrEnhanceAll();
+            let lrDdRaf = null;
+            new MutationObserver(() => {
+                if (lrDdRaf) return;
+                lrDdRaf = requestAnimationFrame(() => { lrDdRaf = null; lrEnhanceAll(); });
+            }).observe(document.body, { childList: true, subtree: true });
+        });
 
         window.wrappedCanvasToBlob = function () {
             return new Promise((resolve, reject) => {
@@ -10644,7 +10858,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.10.14.3';
+        window.BUILD_VERSION = '2026.10.14.4';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

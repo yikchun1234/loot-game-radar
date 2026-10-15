@@ -3027,12 +3027,20 @@
 
         window.openWrappedModal = function () {
             const sel = document.getElementById('wrapped-year-select');
-            if (!sel) return;
+            // 2026.10.14.5: single-year mode renders NO dropdown (user directive:
+            // one option => long Generate button instead of a picker). The only
+            // year is read from window._wrappedYears, published by renderStats.
+            // Zero-claim mode also has no dropdown — fall back to the current
+            // year and let the existing wrappedEmpty copy show.
+            const fallbackYears = window._wrappedYears || [];
+            if (!sel && fallbackYears.length > 1) return;   // multi-year without select = stale DOM, bail
             // 2026.10.14.2: season gate — Dec 20 → Jan 15 only; Dev Mode bypasses
             if (!window.isWrappedSeasonOpen() && !devModeActive) return;
             // 2026.10.14.1: sel.value can be 'lifetime' (all-time card)
-            const isLifetime = sel.value === 'lifetime';
-            const year = isLifetime ? 'lifetime' : parseInt(sel.value, 10);
+            const isLifetime = sel ? sel.value === 'lifetime' : false;
+            const year = sel
+                ? (isLifetime ? 'lifetime' : parseInt(sel.value, 10))
+                : (fallbackYears[0] || new Date().getFullYear());
             const t = i18n[state.lang] || {};
             const localeStr = (state.lang === 'zh-CN' || state.lang === 'zh-TW') ? state.lang : 'en-US';
             const s = window.computeWrappedStats(year);
@@ -5481,6 +5489,15 @@
                 ? `<option value="lifetime">${t.wrappedLifetime || 'Lifetime'}</option>`
                 : '';
             const wrappedYearOptions = wrappedYears.map(y => `<option value="${y}">${y}</option>`).join('') + wrappedLifetimeOpt;
+            // 2026.10.14.5: the dropdown only exists when there is something to
+            // choose (≥2 years incl. Lifetime). Single-year users get a long
+            // full-width Generate button instead; _wrappedYears lets
+            // openWrappedModal resolve the year without a select.
+            window._wrappedYears = wrappedYears;
+            const wrappedNeedsSelect = wrappedYears.length >= 2;
+            const wrappedSelectHtml = wrappedNeedsSelect
+                ? `<select id="wrapped-year-select" class="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-card text-gray-800 dark:text-white text-sm font-bold outline-none cursor-pointer" style="min-width:88px;">${wrappedYearOptions}</select>`
+                : '';
             // 2026.10.14.2: the whole panel only exists during the wrapped
             // season (Dec 20 → Jan 15) or in Dev Mode (owner preview bypass)
             const wrappedInSeason = window.isWrappedSeasonOpen() || devModeActive;
@@ -5505,9 +5522,9 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2 w-full sm:w-auto">
-                            <select id="wrapped-year-select" class="px-3 py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-dark-card text-gray-800 dark:text-white text-sm font-bold outline-none cursor-pointer" style="min-width:88px;">${wrappedYearOptions}</select>
-                            <button onclick="openWrappedModal()" class="flex-1 sm:flex-none px-5 py-2.5 rounded-xl text-white text-sm font-bold transition-all active:scale-95 shadow-md flex items-center justify-center gap-2" style="background:linear-gradient(135deg,#f59e0b,#e11d48);">
+                        <div class="flex items-center gap-2 ${wrappedNeedsSelect ? 'w-full sm:w-auto' : 'w-full sm:flex-1'}">
+                            ${wrappedSelectHtml}
+                            <button onclick="openWrappedModal()" class="${wrappedNeedsSelect ? 'flex-1 sm:flex-none' : 'w-full'} px-5 py-2.5 rounded-xl text-white text-sm font-bold transition-all active:scale-95 shadow-md flex items-center justify-center gap-2" style="background:linear-gradient(135deg,#f59e0b,#e11d48);">
                                 <i class="ph-fill ph-sparkle"></i> ${t.wrappedBtn || 'Generate My Card'}
                             </button>
                         </div>
@@ -10858,7 +10875,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.10.14.4';
+        window.BUILD_VERSION = '2026.10.14.5';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

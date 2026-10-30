@@ -182,34 +182,54 @@
         #feed-search-row.search-row-pinned #feed-search-bar { background: rgba(247, 245, 240, 0.95); box-shadow: 0 6px 16px -8px rgba(31, 40, 51, 0.25); }
         .dark #feed-search-row.search-row-pinned #feed-search-bar { background: rgba(11, 12, 16, 0.95); box-shadow: 0 6px 16px -8px rgba(0, 0, 0, 0.6); }
 
-        /* ── Wrapped countdown: airport split-flap board (2026.10.14.3) ──
-           Four warm-dark cards (days/hours/mins/secs) with a physical seam
-           line across the middle; on every value change the card does a
-           rotateX flip-out → swap → flip-in, like an airport departure board. */
+        /* ── Wrapped countdown: airport split-flap board (2026.10.14.3, true
+           half-flap since 2026.10.14.6) ── Four warm-dark cells (days/hours/
+           mins/secs) whose digit is sliced at the seam; on every value change
+           ONLY the top half falls (fold-t, hinged at the seam, ease-in like
+           gravity), revealing the new top, and a heartbeat later the new
+           bottom lands (fold-b) — like an airport departure board. */
         .wcd-row { display: flex; align-items: flex-start; gap: 6px; }
         .wcd-unit { perspective: 320px; display: flex; flex-direction: column; align-items: center; gap: 3px; }
         .wcd-card {
-            position: relative; min-width: 40px; padding: 5px 7px; border-radius: 8px;
-            background: linear-gradient(180deg, #3f3a36 0%, #2b2724 49.5%, #221f1c 50.5%, #171412 100%);
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-            transform-style: preserve-3d; will-change: transform;
+            position: relative; min-width: 40px; border-radius: 8px;
+            background: #221f1c;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+            transform-style: preserve-3d;
         }
+        /* 2026.10.14.6 true split-flap: the digit is sliced at the seam. face-* are
+           the static halves, fold-* are the hinged flaps (only the TOP one ever
+           falls). Each half-window clips the full-size digit and re-paints the
+           card gradient (background-size 100% 200% shares one gradient across the
+           two halves). The invisible .wcd-spacer keeps the card sized. */
+        .wcd-face, .wcd-fold {
+            position: absolute; left: 0; right: 0; height: 50%; overflow: hidden;
+            background: linear-gradient(180deg, #3f3a36 0%, #2b2724 49.5%, #221f1c 50.5%, #171412 100%);
+            background-size: 100% 200%;
+        }
+        .wcd-face-t, .wcd-fold-t { top: 0; background-position: 0 0; border-radius: 8px 8px 0 0; }
+        .wcd-face-b, .wcd-fold-b { top: 50%; background-position: 0 -100%; border-radius: 0 0 8px 8px; }
+        .wcd-fold { z-index: 3; backface-visibility: hidden; }
+        .wcd-fold-t { transform-origin: bottom center; }
+        .wcd-fold-b { transform-origin: top center; transform: rotateX(90deg); } /* at rest: edge-on, invisible */
         .wcd-card::after { /* the flap seam */
-            content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px;
+            content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 1px; z-index: 5;
             background: rgba(0, 0, 0, 0.55); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.08);
             pointer-events: none;
         }
         .wcd-num {
-            display: block; text-align: center; font-size: 17px; line-height: 1.05; font-weight: 900;
+            display: block; padding: 5px 7px; text-align: center; font-size: 17px; line-height: 1.05; font-weight: 900;
             font-variant-numeric: tabular-nums; color: #fbbf24; letter-spacing: 0.5px;
             text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
         }
+        .wcd-spacer { visibility: hidden; }
+        .wcd-face .wcd-num, .wcd-fold .wcd-num { position: absolute; top: 0; left: 0; right: 0; }
+        .wcd-face-b .wcd-num, .wcd-fold-b .wcd-num { top: -100%; } /* shift digit up so the window shows its bottom half */
         .wcd-label { font-size: 7.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #be123c; }
         .dark .wcd-label { color: #fb7185; }
-        @keyframes wcdFlipOut { from { transform: rotateX(0deg); } to { transform: rotateX(-88deg); } }
-        @keyframes wcdFlipIn { from { transform: rotateX(88deg); } to { transform: rotateX(0deg); } }
+        @keyframes wcdFoldTop { from { transform: rotateX(0deg); } to { transform: rotateX(-90deg); } }
+        @keyframes wcdFoldBottom { from { transform: rotateX(90deg); } to { transform: rotateX(0deg); } }
         @media (prefers-reduced-motion: reduce) {
-            .wcd-card { animation: none !important; }
+            .wcd-fold-t, .wcd-fold-b { animation: none !important; }
         }
 
         /* ── Custom themed dropdowns (2026.10.14.4) ──
@@ -3102,23 +3122,52 @@
                 ss: String(Math.floor(ms / 1000) % 60).padStart(2, '0')
             };
         }
-        // Airport split-flap swap: flip the card edge-on (rotateX -88°), swap
-        // the digits mid-flip, flip back. Busy-guard keeps overlapping calls
-        // (fast re-renders) from stacking animations on one card.
-        function wcdFlipSet(el, val) {
-            if (!el || el.textContent === val) return;
-            const card = el.closest ? el.closest('.wcd-card') : null;
-            if (!card || el.dataset.wcdBusy === '1') { el.textContent = val; return; }
-            el.dataset.wcdBusy = '1';
-            card.style.animation = 'wcdFlipOut .16s ease-in forwards';
+        // 2026.10.14.6: TRUE split-flap — only the digit's TOP half rotates.
+        // fold-t carries the OLD top and falls around its bottom edge (the seam,
+        // ease-in = gravity), exposing face-t's NEW top; half a beat later fold-b
+        // (NEW bottom) lands on top of face-b (still showing the OLD bottom), and
+        // face-b swaps to the new digit only once the landing flap covers it.
+        // At rest fold-b stands edge-on (CSS rotateX(90deg)) so it is invisible.
+        // Busy-guard snaps to the settled state if a tick lands mid-flip; reduced
+        // motion never animates.
+        function wcdFlipSet(card, val) {
+            if (!card || card.dataset.wcdVal === val) return;
+            const ft = card.querySelector('.wcd-fold-t');
+            const fb = card.querySelector('.wcd-fold-b');
+            const st = card.querySelector('.wcd-face-t .wcd-num');
+            const sb = card.querySelector('.wcd-face-b .wcd-num');
+            const sp = card.querySelector('.wcd-spacer');
+            if (!ft || !fb || !st || !sb || !sp) { card.dataset.wcdVal = val; return; }
+            const reduceMotion = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)').matches : false;
+            if (card.dataset.wcdBusy === '1' || reduceMotion) {
+                wcdSettled(card, val);
+                return;
+            }
+            card.dataset.wcdBusy = '1';
+            const prev = card.dataset.wcdVal;
+            ft.querySelector('.wcd-num').textContent = prev === undefined ? val : prev; // falling flap keeps the OLD top…
+            st.textContent = val;                                                        // …new top waits underneath
+            fb.querySelector('.wcd-num').textContent = val;                              // landing flap carries the NEW bottom
+            sp.textContent = val;                                                        // invisible layout twin keeps sizing
+            card.dataset.wcdVal = val;
+            ft.style.animation = 'wcdFoldTop .16s ease-in forwards';
+            fb.style.animation = 'wcdFoldBottom .16s ease-out .16s both';
             setTimeout(() => {
-                el.textContent = val;
-                card.style.animation = 'wcdFlipIn .16s ease-out forwards';
-            }, 160);
-            setTimeout(() => {
-                card.style.animation = '';
-                delete el.dataset.wcdBusy;
+                sb.textContent = val;                  // static bottom takes over while flap-b covers it…
+                ft.style.animation = '';               // …and fold-t pops back flat, already showing the new top
+                fb.style.animation = '';               // fold-b returns to its edge-on rest position
+                delete card.dataset.wcdBusy;
             }, 340);
+        }
+        function wcdSettled(card, val) {
+            card.dataset.wcdVal = val;
+            const sp = card.querySelector('.wcd-spacer');
+            if (sp) sp.textContent = val;
+            card.querySelectorAll('.wcd-face .wcd-num, .wcd-fold .wcd-num').forEach(n => { n.textContent = val; });
+            const ft = card.querySelector('.wcd-fold-t'), fb = card.querySelector('.wcd-fold-b');
+            if (ft) ft.style.animation = '';
+            if (fb) fb.style.animation = '';
+            delete card.dataset.wcdBusy;
         }
         function startWrappedCountdown() {
             if (window._wrappedCdTimer) return;
@@ -5513,12 +5562,12 @@
                                     <i class="ph-fill ph-hourglass-medium text-[11px]" style="color:#be123c;"></i>
                                     <span class="text-[9px] font-bold uppercase tracking-widest" style="color:#be123c;">${t.wrappedCdLabel || 'Share before close'}</span>
                                 </div>
-                                <!-- 2026.10.14.3: airport split-flap board (days/hrs/min/secs) -->
+                                <!-- 2026.10.14.6: true split-flap — four clipped half-layers per cell -->
                                 <div id="wrapped-countdown" class="wcd-row mt-1.5">
-                                    <div class="wcd-unit"><div class="wcd-card"><span class="wcd-num" id="wcd-days">--</span></div><span class="wcd-label">${t.wrappedCdD || 'Days'}</span></div>
-                                    <div class="wcd-unit"><div class="wcd-card"><span class="wcd-num" id="wcd-hours">--</span></div><span class="wcd-label">${t.wrappedCdH || 'Hrs'}</span></div>
-                                    <div class="wcd-unit"><div class="wcd-card"><span class="wcd-num" id="wcd-mins">--</span></div><span class="wcd-label">${t.wrappedCdM || 'Min'}</span></div>
-                                    <div class="wcd-unit"><div class="wcd-card"><span class="wcd-num" id="wcd-secs">--</span></div><span class="wcd-label">${t.wrappedCdS || 'Sec'}</span></div>
+                                    <div class="wcd-unit"><div class="wcd-card" id="wcd-days"><span class="wcd-num wcd-spacer">--</span><span class="wcd-face wcd-face-t"><span class="wcd-num">--</span></span><span class="wcd-face wcd-face-b"><span class="wcd-num">--</span></span><span class="wcd-fold wcd-fold-t"><span class="wcd-num">--</span></span><span class="wcd-fold wcd-fold-b"><span class="wcd-num">--</span></span></div><span class="wcd-label">${t.wrappedCdD || 'Days'}</span></div>
+                                    <div class="wcd-unit"><div class="wcd-card" id="wcd-hours"><span class="wcd-num wcd-spacer">--</span><span class="wcd-face wcd-face-t"><span class="wcd-num">--</span></span><span class="wcd-face wcd-face-b"><span class="wcd-num">--</span></span><span class="wcd-fold wcd-fold-t"><span class="wcd-num">--</span></span><span class="wcd-fold wcd-fold-b"><span class="wcd-num">--</span></span></div><span class="wcd-label">${t.wrappedCdH || 'Hrs'}</span></div>
+                                    <div class="wcd-unit"><div class="wcd-card" id="wcd-mins"><span class="wcd-num wcd-spacer">--</span><span class="wcd-face wcd-face-t"><span class="wcd-num">--</span></span><span class="wcd-face wcd-face-b"><span class="wcd-num">--</span></span><span class="wcd-fold wcd-fold-t"><span class="wcd-num">--</span></span><span class="wcd-fold wcd-fold-b"><span class="wcd-num">--</span></span></div><span class="wcd-label">${t.wrappedCdM || 'Min'}</span></div>
+                                    <div class="wcd-unit"><div class="wcd-card" id="wcd-secs"><span class="wcd-num wcd-spacer">--</span><span class="wcd-face wcd-face-t"><span class="wcd-num">--</span></span><span class="wcd-face wcd-face-b"><span class="wcd-num">--</span></span><span class="wcd-fold wcd-fold-t"><span class="wcd-num">--</span></span><span class="wcd-fold wcd-fold-b"><span class="wcd-num">--</span></span></div><span class="wcd-label">${t.wrappedCdS || 'Sec'}</span></div>
                                 </div>
                             </div>
                         </div>
@@ -10875,7 +10924,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.10.14.5';
+        window.BUILD_VERSION = '2026.10.14.6';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

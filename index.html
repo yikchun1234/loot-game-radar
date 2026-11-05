@@ -407,8 +407,45 @@
             transition: opacity 0.2s ease, transform 0.2s ease;
         }
         .chart-info-chip.chip-on { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
-        /* Streak Flame bars reuse .hist-bar (sweep animates data-target-width);
-           Platform Rise stacked area wipes in via the .wealth-clip-rect clipPath */
+        /* ===== LOOT GLOBE (2026.11.05.1) =====
+           Replaces the Streak Flame panel (retired: a leaderboard that scored
+           you for skipping days read as pressure, not celebration).
+           The fullscreen overlay sits at z-index 3500: above every modal but
+           BELOW the z-4000 custom dropdown panel — the group-by <select> is
+           enhanced by the .14.4 dropdown layer and its panel must stay on top
+           of the globe. */
+        .globe-mount-wrap { position: relative; height: 230px; border-radius: 18px; overflow: hidden; background: #faf5ea; border: 1px solid #e8dfcd; }
+        .dark .globe-mount-wrap { background: #171310; border-color: #2c2621; }
+        .globe-mount-wrap canvas { display: block; outline: none; }
+        #globe-full-overlay { position: fixed; inset: 0; z-index: 3500; background: #f6f1e6; color: #44403c; }
+        .dark #globe-full-overlay { background: #0f0c09; color: #e7e5e4; }
+        #globe-full-overlay.globe-off { display: none; }
+        #globe-full-mount { position: absolute; inset: 0; }
+        #globe-full-mount canvas { display: block; outline: none; }
+        #globe-full-head { position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center; gap: 10px; padding: 12px 14px 4px; flex-wrap: wrap; z-index: 2; }
+        #globe-full-foot { position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 16px 16px; z-index: 2; background: linear-gradient(to top, rgba(246,241,230,.95), rgba(246,241,230,0)); }
+        .dark #globe-full-foot { background: linear-gradient(to top, rgba(15,12,9,.92), rgba(15,12,9,0)); }
+        .globe-title { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; opacity: .8; }
+        .globe-btn { display: inline-flex; align-items: center; gap: 6px; border-radius: 9999px; border: 1px solid rgba(180,83,9,.4); background: rgba(255,253,247,.85); color: #b45309; font-weight: 800; font-size: 12px; padding: 7px 13px; cursor: pointer; }
+        .dark .globe-btn { border-color: rgba(0,243,255,.4); background: rgba(13,15,22,.8); color: #00f3ff; }
+        .globe-icon-btn { width: 34px; height: 34px; padding: 0; justify-content: center; font-size: 16px; }
+        #globe-slider { width: 100%; accent-color: #b45309; cursor: pointer; }
+        .dark #globe-slider { accent-color: #00f3ff; }
+        .globe-hub-label { position: absolute; transform: translate(-50%, -50%); font-size: 10px; font-weight: 800; letter-spacing: .04em; pointer-events: none; white-space: nowrap; color: #6b5d49; text-shadow: 0 0 6px rgba(255,255,255,.85); z-index: 1; }
+        .dark .globe-hub-label { color: #d6d3d1; text-shadow: 0 0 7px rgba(0,0,0,.85); }
+        #globe-info-card { position: absolute; left: 14px; bottom: 92px; width: 240px; border-radius: 16px; padding: 12px; background: rgba(255,253,247,.92); border: 1px solid rgba(180,83,9,.35); box-shadow: 0 10px 30px rgba(0,0,0,.12); z-index: 3; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .dark #globe-info-card { background: rgba(13,15,22,.88); border-color: rgba(0,243,255,.3); box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+        #globe-info-card.globe-off { display: none; }
+        #globe-info-card img { width: 100%; height: 108px; object-fit: cover; border-radius: 10px; margin-bottom: 8px; background: rgba(0,0,0,.06); }
+        .globe-info-title { font-size: 13px; font-weight: 800; line-height: 1.25; margin-bottom: 4px; }
+        .globe-info-meta { font-size: 10px; opacity: .75; line-height: 1.5; }
+        .globe-info-worth { font-size: 11px; font-weight: 800; }
+        .globe-info-worth s { opacity: .5; margin-right: 6px; }
+        .globe-info-link { display: inline-block; margin-top: 8px; font-size: 11px; font-weight: 800; color: #b45309; text-decoration: none; }
+        .dark .globe-info-link { color: #00f3ff; }
+        .globe-fallback { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; text-align: center; font-size: 12px; font-weight: 700; opacity: .7; padding: 16px; }
+        .globe-count { font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; opacity: .65; }
+        @media (prefers-reduced-motion: reduce) { .globe-btn, .globe-mount-wrap { transition: none; } }
 
     </style>
 </head>
@@ -1901,27 +1938,38 @@
         Object.assign(i18n.pt, { statsTitle: "Análise de Loot", statsEmpty: "Resgate jogos para gerar suas análises!", statsPlatform: "Loot por Plataforma", statsActivity: "Atividade (Mensal)", statsWealth: "Riqueza Total Gerada", statsGames: "Jogos", statsSaved: "Economizado", statsDate: "Data" });
 
         // New analytics i18n keys
-        Object.assign(i18n.en, { avgClaimValue: "Avg Claim Value", claimStreak: "Claim Streak", days: "days", maxStreak: "Max", claimHeatmap: "Claim Time Heatmap", releaseHeatmap: "Release Time Heatmap", less: "Less", more: "More", top10Expensive: "Top 10 Most Valuable Claims", priceDistribution: "Price Distribution", trendComparison: "Trend Comparison", trendGrowth: "growth", trendSlight: "slight change", trendStable: "stable", trendDecline: "decline", trendGames: "Games", trendSavings: "Savings", thisMonth: "This Month", prevMonth: "Last Month", reactionTime: "Avg Reaction Time", reactionDesc: "publish → claim", bestHaul: "Best Haul Day", monthlySavings: "Monthly Savings", removalReasons: "Removal Reasons", removed: "removed", noRemovals: "No removed items yet.", gamerProfile: "Gamer Profile", profileSpeed: "Speed", profileValue: "Value", profileConsistency: "Consistency", profileDiversity: "Diversity", profileVolume: "Volume", speedDistribution: "Claim Speed", speedBucket1: "< 1 hour", speedBucket2: "1-24 hours", speedBucket3: "1-3 days", speedBucket4: "3+ days" });
-        Object.assign(i18n['zh-CN'], { avgClaimValue: "平均领取价值", claimStreak: "连续领取", days: "天", maxStreak: "最长", claimHeatmap: "领取时间热力图", releaseHeatmap: "发布时间热力图", less: "少", more: "多", top10Expensive: "最有价值的 10 个领取", priceDistribution: "价格分布", trendComparison: "趋势对比", trendGrowth: "增长", trendSlight: "小幅变化", trendStable: "持平", trendDecline: "下降", trendGames: "游戏数量", trendSavings: "节省金额", thisMonth: "本月", prevMonth: "上月", reactionTime: "平均反应时间", reactionDesc: "发布 → 领取", bestHaul: "最佳收获日", monthlySavings: "每月节省", removalReasons: "移除原因", removed: "已移除", noRemovals: "还没有移除记录。", gamerProfile: "玩家画像", profileSpeed: "速度", profileValue: "价值", profileConsistency: "规律性", profileDiversity: "多样性", profileVolume: "数量", speedDistribution: "领取速度", speedBucket1: "1小时内", speedBucket2: "1-24小时", speedBucket3: "1-3天", speedBucket4: "3天以上" });
-        Object.assign(i18n['zh-TW'], { avgClaimValue: "平均領取價值", claimStreak: "連續領取", days: "天", maxStreak: "最長", claimHeatmap: "領取時間熱力圖", releaseHeatmap: "發布時間熱力圖", less: "少", more: "多", top10Expensive: "最有價值的 10 個領取", priceDistribution: "價格分佈", trendComparison: "趨勢對比", trendGrowth: "增長", trendSlight: "小幅變化", trendStable: "持平", trendDecline: "下降", trendGames: "遊戲數量", trendSavings: "節省金額", thisMonth: "本月", prevMonth: "上月", reactionTime: "平均反應時間", reactionDesc: "發布 → 領取", bestHaul: "最佳收穫日", monthlySavings: "每月節省", removalReasons: "移除原因", removed: "已移除", noRemovals: "還沒有移除記錄。", gamerProfile: "玩家輪廓", profileSpeed: "速度", profileValue: "價值", profileConsistency: "規律性", profileDiversity: "多樣性", profileVolume: "數量", speedDistribution: "領取速度", speedBucket1: "< 1 小時", speedBucket2: "1-24 小時", speedBucket3: "1-3 天", speedBucket4: "3+ 天" });
-        Object.assign(i18n.es, { avgClaimValue: "Valor Promedio", claimStreak: "Racha de Reclamos", days: "días", maxStreak: "Máx", claimHeatmap: "Mapa de Tiempo de Reclamo", releaseHeatmap: "Mapa de Lanzamientos", less: "Menos", more: "Más", top10Expensive: "Top 10 Más Valiosos", priceDistribution: "Distribución de Precios", trendComparison: "Comparación de Tendencias", trendGrowth: "crecimiento", trendSlight: "cambio leve", trendStable: "estable", trendDecline: "descenso", trendGames: "Juegos", trendSavings: "Ahorros", thisMonth: "Este Mes", prevMonth: "Mes Pasado", reactionTime: "Tiempo de Reacción", reactionDesc: "publicación → reclamo", bestHaul: "Mejor Día", monthlySavings: "Ahorro Mensual", removalReasons: "Razones de Eliminación", removed: "eliminados", noRemovals: "Aún no hay eliminados.", gamerProfile: "Perfil del Jugador", profileSpeed: "Velocidad", profileValue: "Valor", profileConsistency: "Constancia", profileDiversity: "Diversidad", profileVolume: "Volumen", speedDistribution: "Velocidad de Reclamo", speedBucket1: "< 1 hora", speedBucket2: "1-24 horas", speedBucket3: "1-3 días", speedBucket4: "3+ días" });
-        Object.assign(i18n.fr, { avgClaimValue: "Valeur Moyenne", claimStreak: "Série de Réclamations", days: "jours", maxStreak: "Max", claimHeatmap: "Carte des Heures de Réclamation", releaseHeatmap: "Carte des Sorties", less: "Moins", more: "Plus", top10Expensive: "Top 10 Plus Valoureux", priceDistribution: "Distribution des Prix", trendComparison: "Comparaison des Tendances", trendGrowth: "croissance", trendSlight: "changement léger", trendStable: "stable", trendDecline: "baisse", trendGames: "Jeux", trendSavings: "Économies", thisMonth: "Ce Mois", prevMonth: "Mois Dernier", reactionTime: "Temps de Réaction", reactionDesc: "publication → réclamation", bestHaul: "Meilleur Jour", monthlySavings: "Économies Mensuelles", removalReasons: "Raisons de Retrait", removed: "retirés", noRemovals: "Pas encore d'éléments retirés.", gamerProfile: "Profil du Joueur", profileSpeed: "Vitesse", profileValue: "Valeur", profileConsistency: "Régularité", profileDiversity: "Diversité", profileVolume: "Volume", speedDistribution: "Vitesse de Réclamation", speedBucket1: "< 1 heure", speedBucket2: "1-24 heures", speedBucket3: "1-3 jours", speedBucket4: "3+ jours" });
-        Object.assign(i18n.de, { avgClaimValue: "Durchschnittswert", claimStreak: "Claim-Serie", days: "Tage", maxStreak: "Max", claimHeatmap: "Claim-Zeit Heatmap", releaseHeatmap: "Release-Zeit Heatmap", less: "Weniger", more: "Mehr", top10Expensive: "Top 10 Wertvollste", priceDistribution: "Preisverteilung", trendComparison: "Trendvergleich", trendGrowth: "Wachstum", trendSlight: "leichte Änderung", trendStable: "stabil", trendDecline: "Rückgang", trendGames: "Spiele", trendSavings: "Ersparnis", thisMonth: "Dieser Monat", prevMonth: "Letzter Monat", reactionTime: "Reaktionszeit", reactionDesc: "Veröffentlichung → Claim", bestHaul: "Bester Tag", monthlySavings: "Monatliche Ersparnis", removalReasons: "Entfernungsgründe", removed: "entfernt", noRemovals: "Noch keine Entfernungen.", gamerProfile: "Spielerprofil", profileSpeed: "Tempo", profileValue: "Wert", profileConsistency: "Beständigkeit", profileDiversity: "Vielfalt", profileVolume: "Menge", speedDistribution: "Claim-Tempo", speedBucket1: "< 1 Stunde", speedBucket2: "1-24 Stunden", speedBucket3: "1-3 Tage", speedBucket4: "3+ Tage" });
-        Object.assign(i18n.ru, { avgClaimValue: "Средняя ценность", claimStreak: "Серия получений", days: "дней", maxStreak: "Макс", claimHeatmap: "Карта времени получения", releaseHeatmap: "Карта времени релизов", less: "Меньше", more: "Больше", top10Expensive: "Топ-10 самых ценных", priceDistribution: "Распределение цен", trendComparison: "Сравнение трендов", trendGrowth: "рост", trendSlight: "незначительное изменение", trendStable: "стабильно", trendDecline: "снижение", trendGames: "Игры", trendSavings: "Экономия", thisMonth: "Этот месяц", prevMonth: "Прошлый месяц", reactionTime: "Время Реакции", reactionDesc: "релиз → получение", bestHaul: "Лучший День", monthlySavings: "Экономия в Месяц", removalReasons: "Причины Удаления", removed: "удалено", noRemovals: "Пока нет удалений.", gamerProfile: "Профиль Игрока", profileSpeed: "Скорость", profileValue: "Ценность", profileConsistency: "Постоянство", profileDiversity: "Разнообразие", profileVolume: "Объём", speedDistribution: "Скорость Получения", speedBucket1: "< 1 часа", speedBucket2: "1-24 часа", speedBucket3: "1-3 дня", speedBucket4: "3+ дней" });
-        Object.assign(i18n.ja, { avgClaimValue: "平均取得価値", claimStreak: "連続取得", days: "日", maxStreak: "最長", claimHeatmap: "取得時間ヒートマップ", releaseHeatmap: "リリース時間ヒートマップ", less: "少", more: "多", top10Expensive: "トップ10高価値", priceDistribution: "価格分布", trendComparison: "トレンド比較", trendGrowth: "成長", trendSlight: "微増", trendStable: "横ばい", trendDecline: "減少", trendGames: "ゲーム数", trendSavings: "節約額", thisMonth: "今月", prevMonth: "先月", reactionTime: "平均反応時間", reactionDesc: "公開 → 取得", bestHaul: "ベスト収穫日", monthlySavings: "月間節約額", removalReasons: "削除理由", removed: "削除済み", noRemovals: "まだ削除記録はありません。", gamerProfile: "ゲーマー像", profileSpeed: "スピード", profileValue: "価値", profileConsistency: "安定性", profileDiversity: "多様性", profileVolume: "ボリューム", speedDistribution: "取得速度", speedBucket1: "< 1時間", speedBucket2: "1-24時間", speedBucket3: "1-3日", speedBucket4: "3日以上" });
-        Object.assign(i18n.ko, { avgClaimValue: "평균 획득 가치", claimStreak: "연속 획득", days: "일", maxStreak: "최대", claimHeatmap: "획득 시간 히트맵", releaseHeatmap: "출시 시간 히트맵", less: "적음", more: "많음", top10Expensive: "상위 10개 고가치", priceDistribution: "가격 분포", trendComparison: "트렌드 비교", trendGrowth: "성장", trendSlight: "소폭 변화", trendStable: "안정", trendDecline: "감소", trendGames: "게임", trendSavings: "절약", thisMonth: "이번 달", prevMonth: "지난달", reactionTime: "평균 반응 시간", reactionDesc: "공개 → 획득", bestHaul: "최고 수확일", monthlySavings: "월간 절약", removalReasons: "삭제 사유", removed: "삭제됨", noRemovals: "아직 삭제 기록이 없습니다.", gamerProfile: "게이머 프로필", profileSpeed: "속도", profileValue: "가치", profileConsistency: "꾸준함", profileDiversity: "다양성", profileVolume: "수량", speedDistribution: "수령 속도", speedBucket1: "< 1시간", speedBucket2: "1-24시간", speedBucket3: "1-3일", speedBucket4: "3일 이상" });
-        Object.assign(i18n.pt, { avgClaimValue: "Valor Médio", claimStreak: "Sequência de Resgates", days: "dias", maxStreak: "Máx", claimHeatmap: "Mapa de Horário de Resgate", releaseHeatmap: "Mapa de Lançamentos", less: "Menos", more: "Mais", top10Expensive: "Top 10 Mais Valiosos", priceDistribution: "Distribuição de Preços", trendComparison: "Comparação de Tendências", trendGrowth: "crescimento", trendSlight: "mudança leve", trendStable: "estável", trendDecline: "declínio", trendGames: "Jogos", trendSavings: "Economia", thisMonth: "Este Mês", prevMonth: "Mês Passado", reactionTime: "Tempo de Reação", reactionDesc: "publicação → resgate", bestHaul: "Melhor Dia", monthlySavings: "Economia Mensal", removalReasons: "Razões de Remoção", removed: "removidos", noRemovals: "Ainda não há remoções.", gamerProfile: "Perfil do Jogador", profileSpeed: "Velocidade", profileValue: "Valor", profileConsistency: "Constância", profileDiversity: "Diversidade", profileVolume: "Volume", speedDistribution: "Velocidade de Resgate", speedBucket1: "< 1 hora", speedBucket2: "1-24 horas", speedBucket3: "1-3 dias", speedBucket4: "3+ dias" });
-        // New chart i18n keys (2026.08.28.3; reworked dimensions 2026.08.28.4; waterfall→streak flame + harvest removed 2026.08.28.5)
-        Object.assign(i18n.en, { yearCalendar: "Loot Calendar", yearCalendarDesc: "Your claiming activity across the year", hourScatter: "Midnight Hunter", hourScatterDesc: "Hour of the day vs game value", lootFunnel: "Loot Funnel", lootFunnelDesc: "Tracked → Removed → Kept", funnelTracked: "Tracked", funnelRemoved: "Removed", funnelKept: "Kept", platformRise: "Rise & Fall of Platforms", platformRiseDesc: "Monthly claimed value stacked by platform", platformOther: "Other", lootStreak: "Streak Flame", lootStreakDesc: "Every consecutive-day claiming run you've pulled off", streakEmpty: "No multi-day streaks yet",hourNight: "Night", hourMorning: "Morning", hourAfternoon: "Afternoon", hourEvening: "Evening", lootClock: "24-Hour Loot Clock", lootClockDesc: "Value claimed at each hour of the day", removalCalendar: "Removal Calendar", removalCalendarDesc: "Your removal activity across the year", storeActivity: "Store Activity", storeActivityDesc: "Monthly claims stacked by store", storeActEmpty: "No claims yet", avgClaimPerDay: "Avg Claim per Day", keepRate: "Keep Rate", keepRateKept: "kept", keepRatePassed: "passed", since: "since", rescueDone: "Data recovered! Your library was restored from your last cloud backup." });
-        Object.assign(i18n['zh-CN'], { yearCalendar: "年度领取日历", yearCalendarDesc: "一年来的领取活跃度", hourScatter: "深夜猎人", hourScatterDesc: "领取时刻 × 游戏价值", lootFunnel: "领取漏斗", lootFunnelDesc: "追踪 → 移除 → 保留", funnelTracked: "已追踪", funnelRemoved: "已移除", funnelKept: "已保留", platformRise: "平台兴衰史", platformRiseDesc: "每月领取价值按平台堆叠", platformOther: "其他", lootStreak: "连胜火焰", lootStreakDesc: "你点燃过的每一段连续领取纪录", streakEmpty: "暂无连续多日领取",hourNight: "深夜", hourMorning: "上午", hourAfternoon: "下午", hourEvening: "晚上", lootClock: "24小时掠夺时钟", lootClockDesc: "一天中每个小时的领取价值", removalCalendar: "移除日历", removalCalendarDesc: "一年来的移除记录", storeActivity: "商店活跃度", storeActivityDesc: "每月领取按商店堆叠", storeActEmpty: "还没有领取记录", avgClaimPerDay: "日均领取", keepRate: "保留率", keepRateKept: "保留", keepRatePassed: "舍掉", since: "自", rescueDone: "数据已恢复！你的游戏库已从上次云备份中还原。" });
-        Object.assign(i18n['zh-TW'], { yearCalendar: "年度領取日曆", yearCalendarDesc: "一年來的領取活躍度", hourScatter: "深夜獵人", hourScatterDesc: "領取時刻 × 遊戲價值", lootFunnel: "領取漏斗", lootFunnelDesc: "追蹤 → 移除 → 保留", funnelTracked: "已追蹤", funnelRemoved: "已移除", funnelKept: "已保留", platformRise: "平台興衰史", platformRiseDesc: "每月領取價值按平台堆疊", platformOther: "其他", lootStreak: "連勝火焰", lootStreakDesc: "你點燃過的每一段連續領取紀錄", streakEmpty: "暫無連續多日領取",hourNight: "深夜", hourMorning: "上午", hourAfternoon: "下午", hourEvening: "晚上", lootClock: "24小時掠奪時鐘", lootClockDesc: "一天中每個小時的領取價值", removalCalendar: "移除日曆", removalCalendarDesc: "一年來的移除紀錄", storeActivity: "商店活躍度", storeActivityDesc: "每月領取按商店堆疊", storeActEmpty: "還沒有領取記錄", avgClaimPerDay: "日均領取", keepRate: "保留率", keepRateKept: "保留", keepRatePassed: "捨掉", since: "自", rescueDone: "資料已恢復！你的遊戲庫已從上次雲端備份中還原。" });
-        Object.assign(i18n.es, { yearCalendar: "Calendario de Loot", yearCalendarDesc: "Tu actividad de reclamos durante el año", hourScatter: "Cazador Nocturno", hourScatterDesc: "Hora del día vs valor del juego", lootFunnel: "Embudo de Loot", lootFunnelDesc: "Rastreado → Eliminado → Conservado", funnelTracked: "Rastreados", funnelRemoved: "Eliminados", funnelKept: "Conservados", platformRise: "Auge y Caída de Plataformas", platformRiseDesc: "Valor mensual reclamado apilado por plataforma", platformOther: "Otros", lootStreak: "Llama de Rachas", lootStreakDesc: "Cada racha de días consecutivos que conseguiste", streakEmpty: "Aún sin rachas de varios días",hourNight: "Noche", hourMorning: "Mañana", hourAfternoon: "Tarde", hourEvening: "Velada", lootClock: "Reloj de Loot 24h", lootClockDesc: "Valor reclamado a cada hora del día", removalCalendar: "Calendario de Eliminación", removalCalendarDesc: "Tu actividad de eliminación durante el año", storeActivity: "Actividad por Tienda", storeActivityDesc: "Reclamos mensuales apilados por tienda", storeActEmpty: "Aún no hay reclamos", avgClaimPerDay: "Promedio de Canjes por Día", keepRate: "Tasa de Retención", keepRateKept: "mantenidos", keepRatePassed: "descartados", since: "desde", rescueDone: "¡Datos recuperados! Tu biblioteca se restauró desde tu última copia de seguridad." });
-        Object.assign(i18n.fr, { yearCalendar: "Calendrier du Loot", yearCalendarDesc: "Votre activité de réclamation sur l'année", hourScatter: "Chasseur Nocturne", hourScatterDesc: "Heure de la journée vs valeur du jeu", lootFunnel: "Entonnoir du Loot", lootFunnelDesc: "Suivi → Retiré → Conservé", funnelTracked: "Suivis", funnelRemoved: "Retirés", funnelKept: "Conservés", platformRise: "Grandeur et Décadence des Plateformes", platformRiseDesc: "Valeur mensuelle réclamée empilée par plateforme", platformOther: "Autres", lootStreak: "Flamme des Séries", lootStreakDesc: "Chaque série de jours consécutifs accomplie", streakEmpty: "Pas encore de série multi-jours",hourNight: "Nuit", hourMorning: "Matin", hourAfternoon: "Après-midi", hourEvening: "Soir", lootClock: "Horloge du Loot 24h", lootClockDesc: "Valeur réclamée à chaque heure de la journée", removalCalendar: "Calendrier des Retraits", removalCalendarDesc: "Votre activité de retrait sur l'année", storeActivity: "Activité par Boutique", storeActivityDesc: "Claims mensuels empilés par boutique", storeActEmpty: "Aucun claim pour le moment", avgClaimPerDay: "Moy. d'Obtentions par Jour", keepRate: "Taux de Conservation", keepRateKept: "gardés", keepRatePassed: "passés", since: "depuis", rescueDone: "Données récupérées ! Votre bibliothèque a été restaurée depuis votre dernière sauvegarde." });
-        Object.assign(i18n.de, { yearCalendar: "Loot-Kalender", yearCalendarDesc: "Deine Claim-Aktivität im Jahresverlauf", hourScatter: "Mitternachtsjäger", hourScatterDesc: "Uhrzeit vs Spielwert", lootFunnel: "Loot-Trichter", lootFunnelDesc: "Verfolgt → Entfernt → Behalten", funnelTracked: "Verfolgt", funnelRemoved: "Entfernt", funnelKept: "Behalten", platformRise: "Aufstieg & Fall der Plattformen", platformRiseDesc: "Monatlicher Claim-Wert gestapelt nach Plattform", platformOther: "Andere", lootStreak: "Serien-Flamme", lootStreakDesc: "Jede Serie aufeinanderfolgender Claim-Tage", streakEmpty: "Noch keine Mehrtages-Serie",hourNight: "Nacht", hourMorning: "Morgen", hourAfternoon: "Nachmittag", hourEvening: "Abend", lootClock: "24h-Loot-Uhr", lootClockDesc: "Claim-Wert zu jeder Stunde des Tages", removalCalendar: "Entfernungs-Kalender", removalCalendarDesc: "Deine Entfernungs-Aktivität im Jahresverlauf", storeActivity: "Store-Aktivität", storeActivityDesc: "Monatliche Claims nach Store gestapelt", storeActEmpty: "Noch keine Claims", avgClaimPerDay: "Ø Claims pro Tag", keepRate: "Behalte-Quote", keepRateKept: "behalten", keepRatePassed: "aussortiert", since: "seit", rescueDone: "Daten wiederhergestellt! Deine Bibliothek wurde aus deinem letzten Backup wiederhergestellt." });
-        Object.assign(i18n.ru, { yearCalendar: "Календарь лута", yearCalendarDesc: "Ваша активность получения за год", hourScatter: "Ночной Охотник", hourScatterDesc: "Время суток против ценности игры", lootFunnel: "Воронка лута", lootFunnelDesc: "Отслежено → Удалено → Сохранено", funnelTracked: "Отслежено", funnelRemoved: "Удалено", funnelKept: "Сохранено", platformRise: "Взлёт и Падение Платформ", platformRiseDesc: "Месячная ценность по платформам (стек)", platformOther: "Другие", lootStreak: "Пламя Серий", lootStreakDesc: "Каждая серия дней подряд с получениями", streakEmpty: "Пока нет серий из нескольких дней",hourNight: "Ночь", hourMorning: "Утро", hourAfternoon: "День", hourEvening: "Вечер", lootClock: "24-часовые Часы Лута", lootClockDesc: "Ценность по часам суток", removalCalendar: "Календарь удалений", removalCalendarDesc: "Ваша активность удалений за год", storeActivity: "Активность магазинов", storeActivityDesc: "Месячные получения по магазинам", storeActEmpty: "Пока нет получений", avgClaimPerDay: "Среднее получений в день", keepRate: "Доля оставленных", keepRateKept: "оставлено", keepRatePassed: "удалено", since: "с", rescueDone: "Данные восстановлены! Ваша библиотека восстановлена из последней резервной копии." });
-        Object.assign(i18n.ja, { yearCalendar: "ルートカレンダー", yearCalendarDesc: "1年間の取得アクティビティ", hourScatter: "深夜ハンター", hourScatterDesc: "取得時刻 × ゲーム価値", lootFunnel: "ルートファネル", lootFunnelDesc: "追跡 → 削除 → 保持", funnelTracked: "追跡済み", funnelRemoved: "削除済み", funnelKept: "保持中", platformRise: "プラットフォーム興亡史", platformRiseDesc: "月別取得価値をプラットフォーム別に重ねた図", platformOther: "その他", lootStreak: "連勝フレーム", lootStreakDesc: "達成した連日取得の記録", streakEmpty: "まだ連日取得なし",hourNight: "深夜", hourMorning: "午前", hourAfternoon: "午後", hourEvening: "夜", lootClock: "24時間ルート時計", lootClockDesc: "時間帯別の取得価値", removalCalendar: "削除カレンダー", removalCalendarDesc: "1年間の削除アクティビティ", storeActivity: "ストア別アクティビティ", storeActivityDesc: "月別の受け取りをストア別に積み上げ", storeActEmpty: "まだ受け取りがありません", avgClaimPerDay: "1日平均取得", keepRate: "保留率", keepRateKept: "保持", keepRatePassed: "処分", since: "開始日", rescueDone: "データ復旧！ライブラリは前回のバックアップから復元されました。" });
-        Object.assign(i18n.ko, { yearCalendar: "전리품 캘린더", yearCalendarDesc: "1년간의 획득 활동", hourScatter: "심야 헌터", hourScatterDesc: "획득 시각 × 게임 가치", lootFunnel: "전리품 퍼널", lootFunnelDesc: "추적 → 삭제 → 보관", funnelTracked: "추적됨", funnelRemoved: "삭제됨", funnelKept: "보관 중", platformRise: "플랫폼 흥망사", platformRiseDesc: "월별 획득 가치를 플랫폼별로 쌓은 차트", platformOther: "기타", lootStreak: "연승 불꽃", lootStreakDesc: "달성한 연속 날짜 획득 기록", streakEmpty: "아직 연속 획득 기록 없음",hourNight: "심야", hourMorning: "오전", hourAfternoon: "오후", hourEvening: "저녁", lootClock: "24시간 전리품 시계", lootClockDesc: "시간대별 획득 가치", removalCalendar: "삭제 캘린더", removalCalendarDesc: "1년간의 삭제 활동", storeActivity: "스토어 활동", storeActivityDesc: "월별 클레임을 스토어별로 누적", storeActEmpty: "아직 클레임이 없습니다", avgClaimPerDay: "일평균 획득", keepRate: "보유율", keepRateKept: "유지", keepRatePassed: "제거", since: "시작", rescueDone: "데이터 복구됨! 라이브러리가 마지막 백업에서 복원되었습니다." });
-        Object.assign(i18n.pt, { yearCalendar: "Calendário de Loot", yearCalendarDesc: "Sua atividade de resgate ao longo do ano", hourScatter: "Caçador Noturno", hourScatterDesc: "Hora do dia vs valor do jogo", lootFunnel: "Funil de Loot", lootFunnelDesc: "Rastreado → Removido → Mantido", funnelTracked: "Rastreados", funnelRemoved: "Removidos", funnelKept: "Mantidos", platformRise: "Ascensão e Queda das Plataformas", platformRiseDesc: "Valor mensal resgatado empilhado por plataforma", platformOther: "Outros", lootStreak: "Chama de Sequências", lootStreakDesc: "Cada sequência de dias consecutivos resgatando", streakEmpty: "Ainda sem sequências de vários dias",hourNight: "Noite", hourMorning: "Manhã", hourAfternoon: "Tarde", hourEvening: "Serão", lootClock: "Relógio de Loot 24h", lootClockDesc: "Valor resgatado a cada hora do dia", removalCalendar: "Calendário de Remoção", removalCalendarDesc: "Sua atividade de remoção ao longo do ano", storeActivity: "Atividade por Loja", storeActivityDesc: "Claims mensais empilhados por loja", storeActEmpty: "Ainda sem claims", avgClaimPerDay: "Média de Resgates por Dia", keepRate: "Taxa de Retenção", keepRateKept: "mantidos", keepRatePassed: "descartados", since: "desde", rescueDone: "Dados recuperados! Sua biblioteca foi restaurada do seu último backup." });
+        Object.assign(i18n.en, { avgClaimValue: "Avg Claim Value", claimHeatmap: "Claim Time Heatmap", releaseHeatmap: "Release Time Heatmap", less: "Less", more: "More", top10Expensive: "Top 10 Most Valuable Claims", priceDistribution: "Price Distribution", trendComparison: "Trend Comparison", trendGrowth: "growth", trendSlight: "slight change", trendStable: "stable", trendDecline: "decline", trendGames: "Games", trendSavings: "Savings", thisMonth: "This Month", prevMonth: "Last Month", reactionTime: "Avg Reaction Time", reactionDesc: "publish → claim", bestHaul: "Best Haul Day", monthlySavings: "Monthly Savings", removalReasons: "Removal Reasons", removed: "removed", noRemovals: "No removed items yet.", gamerProfile: "Gamer Profile", profileSpeed: "Speed", profileValue: "Value", profileConsistency: "Consistency", profileDiversity: "Diversity", profileVolume: "Volume", speedDistribution: "Claim Speed", speedBucket1: "< 1 hour", speedBucket2: "1-24 hours", speedBucket3: "1-3 days", speedBucket4: "3+ days" });
+        Object.assign(i18n['zh-CN'], { avgClaimValue: "平均领取价值", claimHeatmap: "领取时间热力图", releaseHeatmap: "发布时间热力图", less: "少", more: "多", top10Expensive: "最有价值的 10 个领取", priceDistribution: "价格分布", trendComparison: "趋势对比", trendGrowth: "增长", trendSlight: "小幅变化", trendStable: "持平", trendDecline: "下降", trendGames: "游戏数量", trendSavings: "节省金额", thisMonth: "本月", prevMonth: "上月", reactionTime: "平均反应时间", reactionDesc: "发布 → 领取", bestHaul: "最佳收获日", monthlySavings: "每月节省", removalReasons: "移除原因", removed: "已移除", noRemovals: "还没有移除记录。", gamerProfile: "玩家画像", profileSpeed: "速度", profileValue: "价值", profileConsistency: "规律性", profileDiversity: "多样性", profileVolume: "数量", speedDistribution: "领取速度", speedBucket1: "1小时内", speedBucket2: "1-24小时", speedBucket3: "1-3天", speedBucket4: "3天以上" });
+        Object.assign(i18n['zh-TW'], { avgClaimValue: "平均領取價值", claimHeatmap: "領取時間熱力圖", releaseHeatmap: "發布時間熱力圖", less: "少", more: "多", top10Expensive: "最有價值的 10 個領取", priceDistribution: "價格分佈", trendComparison: "趨勢對比", trendGrowth: "增長", trendSlight: "小幅變化", trendStable: "持平", trendDecline: "下降", trendGames: "遊戲數量", trendSavings: "節省金額", thisMonth: "本月", prevMonth: "上月", reactionTime: "平均反應時間", reactionDesc: "發布 → 領取", bestHaul: "最佳收穫日", monthlySavings: "每月節省", removalReasons: "移除原因", removed: "已移除", noRemovals: "還沒有移除記錄。", gamerProfile: "玩家輪廓", profileSpeed: "速度", profileValue: "價值", profileConsistency: "規律性", profileDiversity: "多樣性", profileVolume: "數量", speedDistribution: "領取速度", speedBucket1: "< 1 小時", speedBucket2: "1-24 小時", speedBucket3: "1-3 天", speedBucket4: "3+ 天" });
+        Object.assign(i18n.es, { avgClaimValue: "Valor Promedio", claimHeatmap: "Mapa de Tiempo de Reclamo", releaseHeatmap: "Mapa de Lanzamientos", less: "Menos", more: "Más", top10Expensive: "Top 10 Más Valiosos", priceDistribution: "Distribución de Precios", trendComparison: "Comparación de Tendencias", trendGrowth: "crecimiento", trendSlight: "cambio leve", trendStable: "estable", trendDecline: "descenso", trendGames: "Juegos", trendSavings: "Ahorros", thisMonth: "Este Mes", prevMonth: "Mes Pasado", reactionTime: "Tiempo de Reacción", reactionDesc: "publicación → reclamo", bestHaul: "Mejor Día", monthlySavings: "Ahorro Mensual", removalReasons: "Razones de Eliminación", removed: "eliminados", noRemovals: "Aún no hay eliminados.", gamerProfile: "Perfil del Jugador", profileSpeed: "Velocidad", profileValue: "Valor", profileConsistency: "Constancia", profileDiversity: "Diversidad", profileVolume: "Volumen", speedDistribution: "Velocidad de Reclamo", speedBucket1: "< 1 hora", speedBucket2: "1-24 horas", speedBucket3: "1-3 días", speedBucket4: "3+ días" });
+        Object.assign(i18n.fr, { avgClaimValue: "Valeur Moyenne", claimHeatmap: "Carte des Heures de Réclamation", releaseHeatmap: "Carte des Sorties", less: "Moins", more: "Plus", top10Expensive: "Top 10 Plus Valoureux", priceDistribution: "Distribution des Prix", trendComparison: "Comparaison des Tendances", trendGrowth: "croissance", trendSlight: "changement léger", trendStable: "stable", trendDecline: "baisse", trendGames: "Jeux", trendSavings: "Économies", thisMonth: "Ce Mois", prevMonth: "Mois Dernier", reactionTime: "Temps de Réaction", reactionDesc: "publication → réclamation", bestHaul: "Meilleur Jour", monthlySavings: "Économies Mensuelles", removalReasons: "Raisons de Retrait", removed: "retirés", noRemovals: "Pas encore d'éléments retirés.", gamerProfile: "Profil du Joueur", profileSpeed: "Vitesse", profileValue: "Valeur", profileConsistency: "Régularité", profileDiversity: "Diversité", profileVolume: "Volume", speedDistribution: "Vitesse de Réclamation", speedBucket1: "< 1 heure", speedBucket2: "1-24 heures", speedBucket3: "1-3 jours", speedBucket4: "3+ jours" });
+        Object.assign(i18n.de, { avgClaimValue: "Durchschnittswert", claimHeatmap: "Claim-Zeit Heatmap", releaseHeatmap: "Release-Zeit Heatmap", less: "Weniger", more: "Mehr", top10Expensive: "Top 10 Wertvollste", priceDistribution: "Preisverteilung", trendComparison: "Trendvergleich", trendGrowth: "Wachstum", trendSlight: "leichte Änderung", trendStable: "stabil", trendDecline: "Rückgang", trendGames: "Spiele", trendSavings: "Ersparnis", thisMonth: "Dieser Monat", prevMonth: "Letzter Monat", reactionTime: "Reaktionszeit", reactionDesc: "Veröffentlichung → Claim", bestHaul: "Bester Tag", monthlySavings: "Monatliche Ersparnis", removalReasons: "Entfernungsgründe", removed: "entfernt", noRemovals: "Noch keine Entfernungen.", gamerProfile: "Spielerprofil", profileSpeed: "Tempo", profileValue: "Wert", profileConsistency: "Beständigkeit", profileDiversity: "Vielfalt", profileVolume: "Menge", speedDistribution: "Claim-Tempo", speedBucket1: "< 1 Stunde", speedBucket2: "1-24 Stunden", speedBucket3: "1-3 Tage", speedBucket4: "3+ Tage" });
+        Object.assign(i18n.ru, { avgClaimValue: "Средняя ценность", claimHeatmap: "Карта времени получения", releaseHeatmap: "Карта времени релизов", less: "Меньше", more: "Больше", top10Expensive: "Топ-10 самых ценных", priceDistribution: "Распределение цен", trendComparison: "Сравнение трендов", trendGrowth: "рост", trendSlight: "незначительное изменение", trendStable: "стабильно", trendDecline: "снижение", trendGames: "Игры", trendSavings: "Экономия", thisMonth: "Этот месяц", prevMonth: "Прошлый месяц", reactionTime: "Время Реакции", reactionDesc: "релиз → получение", bestHaul: "Лучший День", monthlySavings: "Экономия в Месяц", removalReasons: "Причины Удаления", removed: "удалено", noRemovals: "Пока нет удалений.", gamerProfile: "Профиль Игрока", profileSpeed: "Скорость", profileValue: "Ценность", profileConsistency: "Постоянство", profileDiversity: "Разнообразие", profileVolume: "Объём", speedDistribution: "Скорость Получения", speedBucket1: "< 1 часа", speedBucket2: "1-24 часа", speedBucket3: "1-3 дня", speedBucket4: "3+ дней" });
+        Object.assign(i18n.ja, { avgClaimValue: "平均取得価値", claimHeatmap: "取得時間ヒートマップ", releaseHeatmap: "リリース時間ヒートマップ", less: "少", more: "多", top10Expensive: "トップ10高価値", priceDistribution: "価格分布", trendComparison: "トレンド比較", trendGrowth: "成長", trendSlight: "微増", trendStable: "横ばい", trendDecline: "減少", trendGames: "ゲーム数", trendSavings: "節約額", thisMonth: "今月", prevMonth: "先月", reactionTime: "平均反応時間", reactionDesc: "公開 → 取得", bestHaul: "ベスト収穫日", monthlySavings: "月間節約額", removalReasons: "削除理由", removed: "削除済み", noRemovals: "まだ削除記録はありません。", gamerProfile: "ゲーマー像", profileSpeed: "スピード", profileValue: "価値", profileConsistency: "安定性", profileDiversity: "多様性", profileVolume: "ボリューム", speedDistribution: "取得速度", speedBucket1: "< 1時間", speedBucket2: "1-24時間", speedBucket3: "1-3日", speedBucket4: "3日以上" });
+        Object.assign(i18n.ko, { avgClaimValue: "평균 획득 가치", claimHeatmap: "획득 시간 히트맵", releaseHeatmap: "출시 시간 히트맵", less: "적음", more: "많음", top10Expensive: "상위 10개 고가치", priceDistribution: "가격 분포", trendComparison: "트렌드 비교", trendGrowth: "성장", trendSlight: "소폭 변화", trendStable: "안정", trendDecline: "감소", trendGames: "게임", trendSavings: "절약", thisMonth: "이번 달", prevMonth: "지난달", reactionTime: "평균 반응 시간", reactionDesc: "공개 → 획득", bestHaul: "최고 수확일", monthlySavings: "월간 절약", removalReasons: "삭제 사유", removed: "삭제됨", noRemovals: "아직 삭제 기록이 없습니다.", gamerProfile: "게이머 프로필", profileSpeed: "속도", profileValue: "가치", profileConsistency: "꾸준함", profileDiversity: "다양성", profileVolume: "수량", speedDistribution: "수령 속도", speedBucket1: "< 1시간", speedBucket2: "1-24시간", speedBucket3: "1-3일", speedBucket4: "3일 이상" });
+        Object.assign(i18n.pt, { avgClaimValue: "Valor Médio", claimHeatmap: "Mapa de Horário de Resgate", releaseHeatmap: "Mapa de Lançamentos", less: "Menos", more: "Mais", top10Expensive: "Top 10 Mais Valiosos", priceDistribution: "Distribuição de Preços", trendComparison: "Comparação de Tendências", trendGrowth: "crescimento", trendSlight: "mudança leve", trendStable: "estável", trendDecline: "declínio", trendGames: "Jogos", trendSavings: "Economia", thisMonth: "Este Mês", prevMonth: "Mês Passado", reactionTime: "Tempo de Reação", reactionDesc: "publicação → resgate", bestHaul: "Melhor Dia", monthlySavings: "Economia Mensal", removalReasons: "Razões de Remoção", removed: "removidos", noRemovals: "Ainda não há remoções.", gamerProfile: "Perfil do Jogador", profileSpeed: "Velocidade", profileValue: "Valor", profileConsistency: "Constância", profileDiversity: "Diversidade", profileVolume: "Volume", speedDistribution: "Velocidade de Resgate", speedBucket1: "< 1 hora", speedBucket2: "1-24 horas", speedBucket3: "1-3 dias", speedBucket4: "3+ dias" });
+        // New chart i18n keys (2026.08.28.3; reworked dimensions 2026.08.28.4; waterfall→streak flame + harvest removed 2026.08.28.5; streak keys retired 2026.11.05.1)
+        Object.assign(i18n.en, { yearCalendar: "Loot Calendar", yearCalendarDesc: "Your claiming activity across the year", hourScatter: "Midnight Hunter", hourScatterDesc: "Hour of the day vs game value", lootFunnel: "Loot Funnel", lootFunnelDesc: "Tracked → Removed → Kept", funnelTracked: "Tracked", funnelRemoved: "Removed", funnelKept: "Kept", platformRise: "Rise & Fall of Platforms", platformRiseDesc: "Monthly claimed value stacked by platform", platformOther: "Other", hourNight: "Night", hourMorning: "Morning", hourAfternoon: "Afternoon", hourEvening: "Evening", lootClock: "24-Hour Loot Clock", lootClockDesc: "Value claimed at each hour of the day", removalCalendar: "Removal Calendar", removalCalendarDesc: "Your removal activity across the year", storeActivity: "Store Activity", storeActivityDesc: "Monthly claims stacked by store", storeActEmpty: "No claims yet", avgClaimPerDay: "Avg Claim per Day", keepRate: "Keep Rate", keepRateKept: "kept", keepRatePassed: "passed", since: "since", rescueDone: "Data recovered! Your library was restored from your last cloud backup." });
+        Object.assign(i18n['zh-CN'], { yearCalendar: "年度领取日历", yearCalendarDesc: "一年来的领取活跃度", hourScatter: "深夜猎人", hourScatterDesc: "领取时刻 × 游戏价值", lootFunnel: "领取漏斗", lootFunnelDesc: "追踪 → 移除 → 保留", funnelTracked: "已追踪", funnelRemoved: "已移除", funnelKept: "已保留", platformRise: "平台兴衰史", platformRiseDesc: "每月领取价值按平台堆叠", platformOther: "其他", hourNight: "深夜", hourMorning: "上午", hourAfternoon: "下午", hourEvening: "晚上", lootClock: "24小时掠夺时钟", lootClockDesc: "一天中每个小时的领取价值", removalCalendar: "移除日历", removalCalendarDesc: "一年来的移除记录", storeActivity: "商店活跃度", storeActivityDesc: "每月领取按商店堆叠", storeActEmpty: "还没有领取记录", avgClaimPerDay: "日均领取", keepRate: "保留率", keepRateKept: "保留", keepRatePassed: "舍掉", since: "自", rescueDone: "数据已恢复！你的游戏库已从上次云备份中还原。" });
+        Object.assign(i18n['zh-TW'], { yearCalendar: "年度領取日曆", yearCalendarDesc: "一年來的領取活躍度", hourScatter: "深夜獵人", hourScatterDesc: "領取時刻 × 遊戲價值", lootFunnel: "領取漏斗", lootFunnelDesc: "追蹤 → 移除 → 保留", funnelTracked: "已追蹤", funnelRemoved: "已移除", funnelKept: "已保留", platformRise: "平台興衰史", platformRiseDesc: "每月領取價值按平台堆疊", platformOther: "其他", hourNight: "深夜", hourMorning: "上午", hourAfternoon: "下午", hourEvening: "晚上", lootClock: "24小時掠奪時鐘", lootClockDesc: "一天中每個小時的領取價值", removalCalendar: "移除日曆", removalCalendarDesc: "一年來的移除紀錄", storeActivity: "商店活躍度", storeActivityDesc: "每月領取按商店堆疊", storeActEmpty: "還沒有領取記錄", avgClaimPerDay: "日均領取", keepRate: "保留率", keepRateKept: "保留", keepRatePassed: "捨掉", since: "自", rescueDone: "資料已恢復！你的遊戲庫已從上次雲端備份中還原。" });
+        Object.assign(i18n.es, { yearCalendar: "Calendario de Loot", yearCalendarDesc: "Tu actividad de reclamos durante el año", hourScatter: "Cazador Nocturno", hourScatterDesc: "Hora del día vs valor del juego", lootFunnel: "Embudo de Loot", lootFunnelDesc: "Rastreado → Eliminado → Conservado", funnelTracked: "Rastreados", funnelRemoved: "Eliminados", funnelKept: "Conservados", platformRise: "Auge y Caída de Plataformas", platformRiseDesc: "Valor mensual reclamado apilado por plataforma", platformOther: "Otros", hourNight: "Noche", hourMorning: "Mañana", hourAfternoon: "Tarde", hourEvening: "Velada", lootClock: "Reloj de Loot 24h", lootClockDesc: "Valor reclamado a cada hora del día", removalCalendar: "Calendario de Eliminación", removalCalendarDesc: "Tu actividad de eliminación durante el año", storeActivity: "Actividad por Tienda", storeActivityDesc: "Reclamos mensuales apilados por tienda", storeActEmpty: "Aún no hay reclamos", avgClaimPerDay: "Promedio de Canjes por Día", keepRate: "Tasa de Retención", keepRateKept: "mantenidos", keepRatePassed: "descartados", since: "desde", rescueDone: "¡Datos recuperados! Tu biblioteca se restauró desde tu última copia de seguridad." });
+        Object.assign(i18n.fr, { yearCalendar: "Calendrier du Loot", yearCalendarDesc: "Votre activité de réclamation sur l'année", hourScatter: "Chasseur Nocturne", hourScatterDesc: "Heure de la journée vs valeur du jeu", lootFunnel: "Entonnoir du Loot", lootFunnelDesc: "Suivi → Retiré → Conservé", funnelTracked: "Suivis", funnelRemoved: "Retirés", funnelKept: "Conservés", platformRise: "Grandeur et Décadence des Plateformes", platformRiseDesc: "Valeur mensuelle réclamée empilée par plateforme", platformOther: "Autres", hourNight: "Nuit", hourMorning: "Matin", hourAfternoon: "Après-midi", hourEvening: "Soir", lootClock: "Horloge du Loot 24h", lootClockDesc: "Valeur réclamée à chaque heure de la journée", removalCalendar: "Calendrier des Retraits", removalCalendarDesc: "Votre activité de retrait sur l'année", storeActivity: "Activité par Boutique", storeActivityDesc: "Claims mensuels empilés par boutique", storeActEmpty: "Aucun claim pour le moment", avgClaimPerDay: "Moy. d'Obtentions par Jour", keepRate: "Taux de Conservation", keepRateKept: "gardés", keepRatePassed: "passés", since: "depuis", rescueDone: "Données récupérées ! Votre bibliothèque a été restaurée depuis votre dernière sauvegarde." });
+        Object.assign(i18n.de, { yearCalendar: "Loot-Kalender", yearCalendarDesc: "Deine Claim-Aktivität im Jahresverlauf", hourScatter: "Mitternachtsjäger", hourScatterDesc: "Uhrzeit vs Spielwert", lootFunnel: "Loot-Trichter", lootFunnelDesc: "Verfolgt → Entfernt → Behalten", funnelTracked: "Verfolgt", funnelRemoved: "Entfernt", funnelKept: "Behalten", platformRise: "Aufstieg & Fall der Plattformen", platformRiseDesc: "Monatlicher Claim-Wert gestapelt nach Plattform", platformOther: "Andere", hourNight: "Nacht", hourMorning: "Morgen", hourAfternoon: "Nachmittag", hourEvening: "Abend", lootClock: "24h-Loot-Uhr", lootClockDesc: "Claim-Wert zu jeder Stunde des Tages", removalCalendar: "Entfernungs-Kalender", removalCalendarDesc: "Deine Entfernungs-Aktivität im Jahresverlauf", storeActivity: "Store-Aktivität", storeActivityDesc: "Monatliche Claims nach Store gestapelt", storeActEmpty: "Noch keine Claims", avgClaimPerDay: "Ø Claims pro Tag", keepRate: "Behalte-Quote", keepRateKept: "behalten", keepRatePassed: "aussortiert", since: "seit", rescueDone: "Daten wiederhergestellt! Deine Bibliothek wurde aus deinem letzten Backup wiederhergestellt." });
+        Object.assign(i18n.ru, { yearCalendar: "Календарь лута", yearCalendarDesc: "Ваша активность получения за год", hourScatter: "Ночной Охотник", hourScatterDesc: "Время суток против ценности игры", lootFunnel: "Воронка лута", lootFunnelDesc: "Отслежено → Удалено → Сохранено", funnelTracked: "Отслежено", funnelRemoved: "Удалено", funnelKept: "Сохранено", platformRise: "Взлёт и Падение Платформ", platformRiseDesc: "Месячная ценность по платформам (стек)", platformOther: "Другие", hourNight: "Ночь", hourMorning: "Утро", hourAfternoon: "День", hourEvening: "Вечер", lootClock: "24-часовые Часы Лута", lootClockDesc: "Ценность по часам суток", removalCalendar: "Календарь удалений", removalCalendarDesc: "Ваша активность удалений за год", storeActivity: "Активность магазинов", storeActivityDesc: "Месячные получения по магазинам", storeActEmpty: "Пока нет получений", avgClaimPerDay: "Среднее получений в день", keepRate: "Доля оставленных", keepRateKept: "оставлено", keepRatePassed: "удалено", since: "с", rescueDone: "Данные восстановлены! Ваша библиотека восстановлена из последней резервной копии." });
+        Object.assign(i18n.ja, { yearCalendar: "ルートカレンダー", yearCalendarDesc: "1年間の取得アクティビティ", hourScatter: "深夜ハンター", hourScatterDesc: "取得時刻 × ゲーム価値", lootFunnel: "ルートファネル", lootFunnelDesc: "追跡 → 削除 → 保持", funnelTracked: "追跡済み", funnelRemoved: "削除済み", funnelKept: "保持中", platformRise: "プラットフォーム興亡史", platformRiseDesc: "月別取得価値をプラットフォーム別に重ねた図", platformOther: "その他", hourNight: "深夜", hourMorning: "午前", hourAfternoon: "午後", hourEvening: "夜", lootClock: "24時間ルート時計", lootClockDesc: "時間帯別の取得価値", removalCalendar: "削除カレンダー", removalCalendarDesc: "1年間の削除アクティビティ", storeActivity: "ストア別アクティビティ", storeActivityDesc: "月別の受け取りをストア別に積み上げ", storeActEmpty: "まだ受け取りがありません", avgClaimPerDay: "1日平均取得", keepRate: "保留率", keepRateKept: "保持", keepRatePassed: "処分", since: "開始日", rescueDone: "データ復旧！ライブラリは前回のバックアップから復元されました。" });
+        Object.assign(i18n.ko, { yearCalendar: "전리품 캘린더", yearCalendarDesc: "1년간의 획득 활동", hourScatter: "심야 헌터", hourScatterDesc: "획득 시각 × 게임 가치", lootFunnel: "전리품 퍼널", lootFunnelDesc: "추적 → 삭제 → 보관", funnelTracked: "추적됨", funnelRemoved: "삭제됨", funnelKept: "보관 중", platformRise: "플랫폼 흥망사", platformRiseDesc: "월별 획득 가치를 플랫폼별로 쌓은 차트", platformOther: "기타", hourNight: "심야", hourMorning: "오전", hourAfternoon: "오후", hourEvening: "저녁", lootClock: "24시간 전리품 시계", lootClockDesc: "시간대별 획득 가치", removalCalendar: "삭제 캘린더", removalCalendarDesc: "1년간의 삭제 활동", storeActivity: "스토어 활동", storeActivityDesc: "월별 클레임을 스토어별로 누적", storeActEmpty: "아직 클레임이 없습니다", avgClaimPerDay: "일평균 획득", keepRate: "보유율", keepRateKept: "유지", keepRatePassed: "제거", since: "시작", rescueDone: "데이터 복구됨! 라이브러리가 마지막 백업에서 복원되었습니다." });
+        Object.assign(i18n.pt, { yearCalendar: "Calendário de Loot", yearCalendarDesc: "Sua atividade de resgate ao longo do ano", hourScatter: "Caçador Noturno", hourScatterDesc: "Hora do dia vs valor do jogo", lootFunnel: "Funil de Loot", lootFunnelDesc: "Rastreado → Removido → Mantido", funnelTracked: "Rastreados", funnelRemoved: "Removidos", funnelKept: "Mantidos", platformRise: "Ascensão e Queda das Plataformas", platformRiseDesc: "Valor mensal resgatado empilhado por plataforma", platformOther: "Outros", hourNight: "Noite", hourMorning: "Manhã", hourAfternoon: "Tarde", hourEvening: "Serão", lootClock: "Relógio de Loot 24h", lootClockDesc: "Valor resgatado a cada hora do dia", removalCalendar: "Calendário de Remoção", removalCalendarDesc: "Sua atividade de remoção ao longo do ano", storeActivity: "Atividade por Loja", storeActivityDesc: "Claims mensais empilhados por loja", storeActEmpty: "Ainda sem claims", avgClaimPerDay: "Média de Resgates por Dia", keepRate: "Taxa de Retenção", keepRateKept: "mantidos", keepRatePassed: "descartados", since: "desde", rescueDone: "Dados recuperados! Sua biblioteca foi restaurada do seu último backup." });
+        // Loot Globe i18n keys (2026.11.05.1 - replaces Streak Flame panel + Claim Streak card)
+        Object.assign(i18n.en, { lootGlobe: "Loot Globe", lootGlobeDesc: "Every game you have claimed, as a living constellation - spin it, zoom in, tap a star.", globeExpand: "Open the globe", globeClose: "Close", globeGroupBy: "Group by", globeByAll: "All loot", globeByPlatform: "Platform", globeByStore: "Store", globeByMonth: "Month", globeHint: "Drag to orbit - pinch or scroll to zoom - tap a star for the game", globePlay: "Play from day one", globePause: "Pause", globeLoading: "Loading the 3D engine...", globeNoWebGL: "3D is not available in this browser.", globeLoadFail: "The 3D engine could not load. Reopen Analytics when online.", globeInView: "in view", globeViewDeal: "View deal" });
+        Object.assign(i18n['zh-CN'], { lootGlobe: "战利星球", lootGlobeDesc: "你领取的每款游戏，都是一颗活的星球——旋转、缩放、点一颗星星看看。", globeExpand: "打开星球", globeClose: "关闭", globeGroupBy: "分组", globeByAll: "全部战利", globeByPlatform: "平台", globeByStore: "商店", globeByMonth: "月份", globeHint: "拖动旋转 · 双指或滚轮缩放 · 点星星看游戏", globePlay: "从第一天播放", globePause: "暂停", globeLoading: "正在加载 3D 引擎…", globeNoWebGL: "此浏览器不支持 3D。", globeLoadFail: "3D 引擎加载失败，请联网后重新打开分析。", globeInView: "在视野中", globeViewDeal: "查看礼包" });
+        Object.assign(i18n['zh-TW'], { lootGlobe: "戰利星球", lootGlobeDesc: "你領取的所有遊戲，都是一顆活的星球——旋轉、縮放、點一顆星星看看。", globeExpand: "打開星球", globeClose: "關閉", globeGroupBy: "分組", globeByAll: "全部戰利", globeByPlatform: "平台", globeByStore: "商店", globeByMonth: "月份", globeHint: "拖動旋轉 · 雙指或滾輪縮放 · 點星星看遊戲", globePlay: "從第一天播放", globePause: "暫停", globeLoading: "正在載入 3D 引擎…", globeNoWebGL: "此瀏覽器不支援 3D。", globeLoadFail: "3D 引擎載入失敗，請聯網後重新開啟分析。", globeInView: "在視野中", globeViewDeal: "查看礼包" });
+        Object.assign(i18n['ja'], { lootGlobe: "ルートグローブ", lootGlobeDesc: "あなたが獲得した全てのゲームが息づく星座——回して、ズームして、星をタップ。", globeExpand: "グローブを開く", globeClose: "閉じる", globeGroupBy: "グループ", globeByAll: "全ルート", globeByPlatform: "プラットフォーム", globeByStore: "ストア", globeByMonth: "月", globeHint: "ドラッグで回転 · ピンチやスクロールでズーム · 星をタップでゲーム表示", globePlay: "初日から再生", globePause: "一時停止", globeLoading: "3Dエンジン読み込み中…", globeNoWebGL: "このブラウザでは3Dを利用できません。", globeLoadFail: "3Dエンジンを読み込めませんでした。オンラインで分析を開き直してください。", globeInView: "表示中", globeViewDeal: "ギフトを見る" });
+        Object.assign(i18n['ko'], { lootGlobe: "전리품 지구", lootGlobeDesc: "받은 모든 게임이 살아있는 별자리로 — 회전하고, 확대하고, 별을 탭하세요.", globeExpand: "지구 열기", globeClose: "닫기", globeGroupBy: "그룹", globeByAll: "전체 전리품", globeByPlatform: "플랫폼", globeByStore: "스토어", globeByMonth: "월", globeHint: "드래그 회전 · 핀치/휠 확대 · 별 탭으로 게임 보기", globePlay: "첫날부터 재생", globePause: "일시정지", globeLoading: "3D 엔진 로드 중…", globeNoWebGL: "이 브라우저에서는 3D를 사용할 수 없습니다.", globeLoadFail: "3D 엔진을 불러올 수 없습니다. 온라인에서 분석을 다시 여세요.", globeInView: "표시 중", globeViewDeal: "게임 보기" });
+        Object.assign(i18n['es'], { lootGlobe: "Globo de Botín", lootGlobeDesc: "Cada juego que has reclamado, como una constelación viva: gíralo, acerca, toca una estrella.", globeExpand: "Abrir el globo", globeClose: "Cerrar", globeGroupBy: "Agrupar por", globeByAll: "Todo el botín", globeByPlatform: "Plataforma", globeByStore: "Tienda", globeByMonth: "Mes", globeHint: "Arrastra para orbitar, pellizca o rueda para zoom, toca una estrella", globePlay: "Reproducir desde el primer día", globePause: "Pausa", globeLoading: "Cargando motor 3D...", globeNoWebGL: "3D no está disponible en este navegador.", globeLoadFail: "El motor 3D no se pudo cargar. Reabre Analytics con conexión.", globeInView: "en vista", globeViewDeal: "Ver oferta" });
+        Object.assign(i18n['fr'], { lootGlobe: "Globe de Butin", lootGlobeDesc: "Chaque jeu réclamé, en constellation vivante : fais-le tourner, zoome, touche une étoile.", globeExpand: "Ouvrir le globe", globeClose: "Fermer", globeGroupBy: "Grouper par", globeByAll: "Tout le butin", globeByPlatform: "Plateforme", globeByStore: "Boutique", globeByMonth: "Mois", globeHint: "Glisser pour orbiter, pincer ou moletter pour zoomer, toucher une étoile", globePlay: "Lire depuis le premier jour", globePause: "Pause", globeLoading: "Chargement du moteur 3D...", globeNoWebGL: "La 3D n'est pas disponible dans ce navigateur.", globeLoadFail: "Le moteur 3D n'a pas pu se charger. Rouvrez Analytics en ligne.", globeInView: "visibles", globeViewDeal: "Voir l'offre" });
+        Object.assign(i18n['de'], { lootGlobe: "Loot-Globus", lootGlobeDesc: "Jedes geholte Spiel als lebendiges Sternbild – drehen, zoomen, Stern antippen.", globeExpand: "Globus öffnen", globeClose: "Schließen", globeGroupBy: "Gruppieren nach", globeByAll: "Alle Beute", globeByPlatform: "Plattform", globeByStore: "Store", globeByMonth: "Monat", globeHint: "Ziehen zum Drehen, Pinch oder Scroll zum Zoomen, Stern antippen", globePlay: "Ab dem ersten Tag abspielen", globePause: "Pause", globeLoading: "3D-Engine wird geladen...", globeNoWebGL: "3D ist in diesem Browser nicht verfügbar.", globeLoadFail: "Die 3D-Engine konnte nicht geladen werden. Öffne Analytics erneut online.", globeInView: "im Bild", globeViewDeal: "Angebot ansehen" });
+        Object.assign(i18n['ru'], { lootGlobe: "Лут-глобус", lootGlobeDesc: "Каждая забранная игра — живое созвездие: вращай, приближай, нажимай на звезду.", globeExpand: "Открыть глобус", globeClose: "Закрыть", globeGroupBy: "Группа", globeByAll: "Весь лут", globeByPlatform: "Платформа", globeByStore: "Магазин", globeByMonth: "Месяц", globeHint: "Тяните, чтобы вращать; пинч или колесо для зума; нажмите звезду", globePlay: "С первого дня", globePause: "Пауза", globeLoading: "Загрузка 3D-движка...", globeNoWebGL: "3D недоступен в этом браузере.", globeLoadFail: "3D-движок не загрузился. Откройте Analytics снова в сети.", globeInView: "в поле", globeViewDeal: "Смотреть" });
+        Object.assign(i18n['pt'], { lootGlobe: "Globo de Loot", lootGlobeDesc: "Cada jogo resgatado, numa constelação viva — gire, dê zoom, toque numa estrela.", globeExpand: "Abrir o globo", globeClose: "Fechar", globeGroupBy: "Agrupar por", globeByAll: "Todo o loot", globeByPlatform: "Plataforma", globeByStore: "Loja", globeByMonth: "Mês", globeHint: "Arraste para orbitar, pinça ou roda para zoom, toque numa estrela", globePlay: "Reproduzir do primeiro dia", globePause: "Pausar", globeLoading: "Carregando motor 3D...", globeNoWebGL: "3D não está disponível neste navegador.", globeLoadFail: "O motor 3D não pôde carregar. Reabra Analytics com conexão.", globeInView: "na vista", globeViewDeal: "Ver oferta" });
         // ------------------------------------------
 
         // Loot Wrapped i18n keys (2026.10.05.6)
@@ -4139,6 +4187,10 @@
                 // Initialize bar chart scroll (auto-scroll to newest, show fade if needed)
                 initBarChartScroll();
                 initSavingsBarScroll();
+
+                // 2026.11.05.1: Loot Globe mini — mounted only now that the
+                // modal is visible and the mount slot has real dimensions
+                if (window.LootGlobe) window.LootGlobe.mountMini();
             }, 300);
             
           } else {
@@ -4167,6 +4219,9 @@
                 window.removeEventListener('scroll', window.statsScrollSweep, true);
                 window.statsScrollSweep = null;
             }
+
+            // 2026.11.05.1: stop the globe (WebGL context + rAF tweens) while hidden
+            if (window.LootGlobe) window.LootGlobe.destroy();
             
             const pies = document.querySelectorAll('.pie-segment');
             pies.forEach(pie => pie.style.strokeDasharray = '0 100');
@@ -4376,6 +4431,512 @@
             return `M ${cx} ${cy} L ${p0.x.toFixed(2)} ${p0.y.toFixed(2)} A ${r.toFixed(2)} ${r.toFixed(2)} 0 ${large} 1 ${p1.x.toFixed(2)} ${p1.y.toFixed(2)} Z`;
         }
 
+        // ============================================================
+        // LOOT GLOBE — 3D interactive collection constellation (2026.11.05.1)
+        // Replaces the Streak Flame panel and the Claim Streak card. Design
+        // brief from the user: a living globe of everything they've claimed —
+        // drag to spin any direction, pinch to zoom, tap a star for the game,
+        // grouped by the dimensions that genuinely repeat in the data
+        // (platform / store / month; price deliberately excluded: almost every
+        // claim has a unique price so "price groups" would be lonely hubs).
+        // A time slider grows the sky day by day (new stars pop in, dragged
+        // back stars fold away) and a play button sweeps from the very first
+        // claim to today. mini preview lives in the analytics panel, is itself
+        // interactive, and any tap on a star there expands to fullscreen.
+        // three + 3d-force-graph (pinned UMD builds) are LAZY-injected on
+        // first use — nothing downloads until Analytics actually opens the
+        // globe, and devices without WebGL get a graceful text fallback.
+        // ============================================================
+        window.LootGlobe = (function () {
+            const THREE_URL = 'https://cdn.jsdelivr.net/npm/three@0.149.0/build/three.min.js';
+            const GRAPH_URL = 'https://cdn.jsdelivr.net/npm/3d-force-graph@1.70.3/dist/3d-force-graph.min.js';
+            let libPromise = null;
+            let mini = null, full = null, overlay = null;
+            let tRef = {}, localeRef = 'en';
+            let mode = 'platform';        // platform | store | month | all
+            let selKey = null, selId = null;
+            let themeObs = null;
+
+            function reduceMotion() { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); }
+            function escG(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]); }
+            function isDark() { return document.documentElement.classList.contains('dark') || document.body.classList.contains('dark'); }
+            function hasWebGL() { try { const c = document.createElement('canvas'); return !!(window.WebGLRenderingContext && (c.getContext('webgl2') || c.getContext('webgl'))); } catch (e) { return false; } }
+            function loadScript(url) {
+                return new Promise((res, rej) => {
+                    const s = document.createElement('script');
+                    s.src = url; s.async = true;
+                    s.onload = () => res(); s.onerror = () => rej(new Error('globe lib load failed: ' + url));
+                    document.head.appendChild(s);
+                });
+            }
+            function ensureLib() {
+                if (!libPromise) libPromise = loadScript(THREE_URL).then(() => loadScript(GRAPH_URL));
+                return libPromise;
+            }
+
+            const PALETTE_DARK = ['#00f3ff', '#bc13fe', '#f59e0b', '#22c55e', '#f43f5e', '#38bdf8', '#a3e635', '#e879f9', '#fbbf24', '#34d399', '#fb7185', '#818cf8'];
+            const PALETTE_LIGHT = ['#0e7490', '#7c3aed', '#b45309', '#15803d', '#be123c', '#0369a1', '#4d7c0f', '#a21caf', '#92400e', '#0f766e', '#9f1239', '#4338ca'];
+            const DIM_DARK = '#3b3630', DIM_LIGHT = '#d8d2c4';
+            function entries() { return window._globeEntries || []; }
+            function dayBounds() {
+                const es = entries();
+                if (!es.length) return { min: 0, max: 0 };
+                let min = Infinity, max = -Infinity;
+                es.forEach(e => { if (e.day < min) min = e.day; if (e.day > max) max = e.day; });
+                return { min, max };
+            }
+            function keyOf(e, m) { return m === 'platform' ? e.plat : m === 'store' ? e.store : m === 'month' ? e.month : 'all'; }
+            // In "all loot" everything orbits ONE core, but stars keep their
+            // platform colors so the picture still has structure.
+            function colorKeyOf(e) { return mode === 'all' ? e.plat : keyOf(e, mode); }
+            function keyLabel(key) { return key === 'all' ? (tRef.globeByAll || 'All loot') : key; }
+            function groupKeys() {
+                const first = {};
+                entries().forEach(e => { const k = keyOf(e, mode); if (!(k in first) || e.day < first[k]) first[k] = e.day; });
+                return Object.keys(first).sort((a, b) => mode === 'month' ? a.localeCompare(b) : first[a] - first[b]);
+            }
+            function palette() { return isDark() ? PALETTE_DARK : PALETTE_LIGHT; }
+            function nodeRadius(n, isFull) { return n.kind === 'hub' ? (isFull ? 7 : 8) : (isFull ? 3.2 : 4.5); }
+            // Single source of truth for a node's look. Applied BOTH when
+            // three-render-3d builds the mesh (nodeThreeObject callback) and when
+            // selection/group state changes (refreshColors mutates the live
+            // material). Never re-set nodeThreeObject to "refresh": that rebuilds
+            // every mesh and silently resets materials to the callback defaults.
+            function matStyleFor(n) {
+                const pal = palette();
+                const keys = groupKeys();
+                const idxOf = {}; keys.forEach((k, i) => { idxOf[k] = i; });
+                // Game stars are colored by colorKeyOf, which in 'all' mode is the
+                // PLATFORM while groupKeys() is just ['all'] — so color games off
+                // their own index list, first-appearance order like groupKeys.
+                const cIdx = {};
+                entries().forEach(e => { const ck = colorKeyOf(e); if (!(ck in cIdx)) cIdx[ck] = Object.keys(cIdx).length; });
+                const dim = isDark() ? DIM_DARK : DIM_LIGHT;
+                const soft = !selId && !selKey;
+                if (n.kind === 'hub') {
+                    const base = pal[idxOf[n.key] % pal.length] || '#888';
+                    return { color: soft || selKey === n.key ? base : dim, opacity: soft ? 0.34 : (selKey === n.key ? 0.5 : 0.06) };
+                }
+                const base = pal[(cIdx[colorKeyOf(n.__e)] != null ? cIdx[colorKeyOf(n.__e)] : 0) % pal.length] || '#888';
+                const isSel = selId ? n.id === selId : (selKey ? colorKeyOf(n.__e) === selKey : false);
+                return { color: soft || isSel ? base : dim, opacity: soft ? 0.95 : (isSel ? 0.98 : 0.14) };
+            }
+
+            // --- one 3D instance (mini or fullscreen) ---
+            function buildGraph(container, isFull) {
+                const THREE = window.THREE;
+                const api = { isFull, container, geo: null, gameNodes: [], hubNodes: [], links: [], raf: null, ro: null, playing: false, playRaf: null, day: 0, disposed: false };
+                container.__lgApi = api; // debug handle: inspect live tween state from DevTools / automation
+                const sharedGeo = new THREE.SphereGeometry(1, 18, 14);
+                api.geo = sharedGeo;
+                const dayMin = dayBounds().min;
+                const dayMax = dayBounds().max;
+                const span = Math.max(1, dayMax - dayMin);
+
+                entries().forEach(e => {
+                    api.gameNodes.push({ id: e.id, kind: 'game', day: e.day, __vis: 0, __tgt: 0, __t0: 0, __delay: 0, __e: e });
+                });
+
+                function visOf(x) { return (x && typeof x === 'object') ? (x.__vis || 0) : 0; }
+                const graph = ForceGraph3D()(container)
+                    .showNavInfo(false)
+                    .backgroundColor(isDark() ? '#171310' : '#faf5ea')
+                    .nodeThreeObject(n => {
+                        const st = matStyleFor(n);
+                        const mat = new THREE.MeshStandardMaterial({
+                            color: st.color, roughness: 0.45, metalness: 0.12,
+                            transparent: true, opacity: st.opacity
+                        });
+                        const mesh = new THREE.Mesh(sharedGeo, mat);
+                        n.__mesh = mesh; n.__mat = mat; n.__r = nodeRadius(n, isFull);
+                        mesh.scale.setScalar(n.__r * n.__vis);
+                        mesh.visible = n.__vis > 0.008;
+                        return mesh;
+                    })
+                    .nodeLabel(n => n.kind === 'hub' ? '' : (n.__e ? String(n.__e.title || '') : ''))
+                    .linkWidth(l => 0.05 + Math.min(visOf(l.source), visOf(l.target)) * 1.15)
+                    .linkOpacity(isDark() ? 0.28 : 0.4)
+                    .linkColor(() => isDark() ? '#4a443c' : '#c8bfae')
+                    .onNodeClick(n => onPick(n))
+                    .onBackgroundClick(() => { api.clearSel(); })
+                    .warmupTicks(20)
+                    .cooldownTicks(120);
+                api.graph = graph;
+                // MeshStandardMaterial renders BLACK without lights. 3d-force-graph's
+                // scene ships no light rig, so add one here (ambient fills the sphere,
+                // a raised point light gives the stars a lit side + dim side).
+                try {
+                    const sceneRef = graph.scene();
+                    sceneRef.add(new THREE.AmbientLight(0xffffff, 0.9));
+                    const keyLight = new THREE.PointLight(0xffffff, 0.9);
+                    keyLight.position.set(150, 220, 260);
+                    sceneRef.add(keyLight);
+                } catch (e) { /* older scene API: stars fall back to ambient-only color */ }
+                graph.d3Force('charge').strength(isFull ? -30 : -14);
+                graph.d3Force('link').distance(isFull ? 26 : 13);
+                graph.cameraPosition({ z: isFull ? 330 : 170 });
+                if (!reduceMotion()) {
+                    graph.controls().autoRotate = true;
+                    graph.controls().rotateSpeed = isFull ? 0.35 : 0.55;
+                }
+                graph.onEngineStop(() => { try { graph.zoomToFit(500, isFull ? 46 : 14); } catch (e) { /* zoom race with user gesture is harmless */ } });
+
+                // tween ticker: pop-in (easeOutBack w/ stagger) and fold-away
+                // run on our own rAF so they keep animating after the force
+                // simulation cools down (onEngineTick would stop firing).
+                function tick() {
+                    if (api.disposed) return;
+                    let busy = false;
+                    const now = performance.now();
+                    const rm = reduceMotion();
+                    api.gameNodes.concat(api.hubNodes).forEach(n => {
+                        // three-render-3d builds node meshes ASYNCHRONOUSLY after
+                        // graphData() applies; the entrance ticker often starts one frame
+                        // before the first mesh exists. Without this the loop saw zero busy
+                        // nodes and killed itself → globe stayed empty forever (11.05.1 fix).
+                        if (!n.__mesh) { if (n.kind === 'hub' || n.__tgt !== n.__vis) busy = true; return; }
+                        if (n.kind === 'hub') {
+                            let mv = 0;
+                            n.__members.forEach(g => { if (g.__vis > mv) mv = g.__vis; });
+                            n.__vis = mv;
+                        } else if (n.__vis !== n.__tgt) {
+                            busy = true;
+                            const dur = n.__tgt > n.__vis ? 420 : 240;
+                            let p = (now - n.__t0 - (n.__tgt > 0 ? n.__delay : 0)) / dur;
+                            p = Math.max(0, Math.min(1, p));
+                            if (rm) p = n.__tgt > 0 ? 1 : 0;
+                            // easeOutBack for arrival (a little overshoot = "pop"),
+                            // easeInQuad for departure (fold away, no drama)
+                            n.__vis = n.__tgt > 0 ? (p >= 1 ? 1 : backOut(p)) : (p >= 1 ? 0 : quadIn(p));
+                        }
+                        n.__mesh.scale.setScalar(n.__r * Math.max(0, n.__vis));
+                        n.__mesh.visible = n.__vis > 0.008;
+                    });
+                    if (isFull) updateHubLabels();
+                    // fullscreen keeps the ticker alive even when idle so hub labels
+                    // track the autoRotate camera; mini stops when everything settled
+                    if (busy || api.playing || isFull) api.raf = requestAnimationFrame(tick);
+                    else api.raf = null;
+                }
+                function backOut(t) { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); }
+                function quadIn(t) { return t * t; }
+                function ensureTick() { if (!api.raf && !api.disposed) api.raf = requestAnimationFrame(tick); }
+
+                function updateHubLabels() {
+                    api.hubNodes.forEach(n => {
+                        if (!n.__label) return;
+                        if (n.__vis < 0.15 || api.disposed) { n.__label.style.display = 'none'; return; }
+                        try {
+                            // 3d-force-graph 1.70.3 has no getScreenPixelCoordinates —
+                            // project world → NDC → container pixels ourselves.
+                            const v = new THREE.Vector3(n.x, n.y, n.z).project(graph.camera());
+                            const w = container.clientWidth || 300, hgt = container.clientHeight || 220;
+                            n.__label.style.display = 'block';
+                            n.__label.style.left = ((v.x * 0.5 + 0.5) * w) + 'px';
+                            n.__label.style.top = ((-v.y * 0.5 + 0.5) * hgt - n.__r - 10) + 'px';
+                        } catch (e) { n.__label.style.display = 'none'; }
+                    });
+                }
+
+                function refreshColors() {
+                    api.gameNodes.concat(api.hubNodes).forEach(n => {
+                        if (!n.__mat) return;
+                        const st = matStyleFor(n);
+                        n.__mat.color.set(st.color);
+                        n.__mat.opacity = st.opacity;
+                    });
+                    // Deliberately NO nodeThreeObject re-set: that rebuilds every mesh
+                    // and resets materials to callback defaults (the 11.05.1 gray-star
+                    // bug). Materials are mutated live; three reads them each frame.
+                }
+                api.refreshColors = refreshColors;
+
+                api.setMode = function (m) {
+                    mode = m; selKey = null; selId = null; hideInfo();
+                    const keys = groupKeys();
+                    api.hubNodes.forEach(n => { if (n.__label && n.__label.parentNode) n.__label.parentNode.removeChild(n.__label); });
+                    api.hubNodes = keys.map((k, i) => ({ id: 'hub:' + k, kind: 'hub', key: k, day: 0, __vis: 0, __tgt: 1, __t0: 0, __delay: i * 60, __members: [], __idx: i }));
+                    const hubById = {}; api.hubNodes.forEach(h => { hubById['hub:' + h.key] = h; });
+                    api.gameNodes.forEach(n => {
+                        const h = hubById['hub:' + colorKeyOf(n.__e)];
+                        if (h) h.__members.push(n);
+                    });
+                    api.links = [];
+                    api.gameNodes.forEach(n => {
+                        const h = hubById['hub:' + colorKeyOf(n.__e)];
+                        if (h) api.links.push({ source: n.id, target: h.id });
+                    });
+                    graph.graphData({ nodes: api.gameNodes.concat(api.hubNodes), links: api.links });
+                    refreshColors();
+                    ensureTick();
+                    if (isFull) {
+                        api.hubNodes.forEach(n => {
+                            const lab = document.createElement('span');
+                            lab.className = 'globe-hub-label';
+                            lab.textContent = mode === 'month' ? monthLabel(n.key) : keyLabel(n.key);
+                            container.appendChild(lab);
+                            n.__label = lab;
+                        });
+                    }
+                };
+                function monthLabel(m) {
+                    // Date.UTC + UTC formatter: local-built Date read in UTC would
+                    // shift every label back a day (Sep 1 → "Aug" in UTC+8).
+                    try { return new Intl.DateTimeFormat(localeRef, { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(Date.UTC(Number(m.slice(0, 4)), Number(m.slice(5, 7)) - 1, 1))); } catch (e) { return m; }
+                }
+                api.monthLabel = monthLabel;
+
+                api.setDay = function (d, stagger) {
+                    api.day = d;
+                    const bounds = dayBounds();
+                    let cnt = 0;
+                    const now = performance.now();
+                    let added = 0;
+                    api.gameNodes.forEach(n => {
+                        const tgt = n.day <= d ? 1 : 0;
+                        if (tgt) cnt++;
+                        if (tgt !== n.__tgt) {
+                            n.__tgt = tgt; n.__t0 = now;
+                            if (tgt === 1) {
+                                n.__delay = stagger ? Math.min(300, ((n.day - bounds.min) / Math.max(1, d - bounds.min)) * 300) : 0;
+                                added++;
+                            }
+                        }
+                    });
+                    const chip = overlay && overlay.querySelector('#globe-count-chip');
+                    if (chip) chip.textContent = cnt + ' ' + (tRef.globeInView || 'in view');
+                    const dl = overlay && overlay.querySelector('#globe-date-label');
+                    if (dl) dl.textContent = dateLabel(d);
+                    refreshColors();
+                    ensureTick();
+                };
+                function dateLabel(d) {
+                    try { return new Intl.DateTimeFormat(localeRef, { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(d * 86400000)); } catch (e) { return ''; }
+                }
+                api.dateLabel = dateLabel;
+
+                function onPick(n) {
+                    if (n.__vis < 0.15) return;
+                    if (!isFull) { openFullscreen(n.kind === 'game' ? { selectId: n.id } : { selectKey: n.key }); return; }
+                    if (n.kind === 'hub') { selKey = n.key; selId = null; hideInfo(); }
+                    else { selKey = null; selId = n.id; showInfo(n.__e); }
+                    refreshColors();
+                }
+                api.clearSel = function () { selKey = null; selId = null; hideInfo(); refreshColors(); };
+
+                api.play = function (on) {
+                    api.playing = on;
+                    if (!on) { if (api.playRaf) cancelAnimationFrame(api.playRaf); api.playRaf = null; syncPlayBtn(); return; }
+                    const bounds = dayBounds();
+                    const step = Math.max(1, Math.round((bounds.max - bounds.min) / 220));
+                    let cur = bounds.min;
+                    api.setDay(cur, false);
+                    const slider = overlay && overlay.querySelector('#globe-slider');
+                    const frame = () => {
+                        if (!api.playing || api.disposed) return;
+                        cur += step;
+                        if (cur >= bounds.max) { cur = bounds.max; api.setDay(cur, true); if (slider) slider.value = cur; stopPlay(); return; }
+                        api.setDay(cur, false);
+                        if (slider) slider.value = cur;
+                        api.playRaf = requestAnimationFrame(frame);
+                    };
+                    api.playRaf = requestAnimationFrame(frame);
+                    syncPlayBtn();
+                };
+                function stopPlay() { api.playing = false; if (api.playRaf) cancelAnimationFrame(api.playRaf); api.playRaf = null; syncPlayBtn(); }
+                api.stopPlay = stopPlay;
+                function syncPlayBtn() {
+                    const btn = overlay && overlay.querySelector('#globe-play-btn');
+                    if (!btn) return;
+                    btn.innerHTML = api.playing ? '<i class="ph-fill ph-pause"></i>' : '<i class="ph-fill ph-play"></i>';
+                    btn.title = api.playing ? (tRef.globePause || 'Pause') : (tRef.globePlay || 'Play from day one');
+                }
+                api.syncPlayBtn = syncPlayBtn;
+
+                function showInfo(e) {
+                    const card = overlay && overlay.querySelector('#globe-info-card');
+                    if (!card || !e) return;
+                    const worthLine = e.worth ? `<span class="globe-info-worth"><s>${escG(e.worth)}</s>Free</span>` : '';
+                    card.innerHTML = `
+                        ${e.image ? `<img src="${escG(e.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">` : ''}
+                        <div class="globe-info-title">${escG(e.title)}</div>
+                        <div class="globe-info-meta">${escG(e.store)} · ${escG(e.plat)} · ${escG(dateLabel(e.day))}</div>
+                        ${worthLine ? `<div style="margin-top:4px">${worthLine}</div>` : ''}
+                        <a class="globe-info-link" href="${escG(e.url)}" target="_blank" rel="noopener">${escG(tRef.globeViewDeal || 'View deal')} <i class="ph-bold ph-arrow-up-right"></i></a>`;
+                    card.classList.remove('globe-off');
+                }
+                function hideInfo() { const card = overlay && overlay.querySelector('#globe-info-card'); if (card) card.classList.add('globe-off'); }
+
+                function resize() { graph.width(container.clientWidth || 300).height(container.clientHeight || 220); }
+                api.resize = resize;
+                resize();
+                if (window.ResizeObserver) { api.ro = new ResizeObserver(resize); api.ro.observe(container); }
+
+                api.destroy = function () {
+                    api.disposed = true; api.playing = false;
+                    if (api.raf) cancelAnimationFrame(api.raf);
+                    if (api.playRaf) cancelAnimationFrame(api.playRaf);
+                    if (api.ro) api.ro.disconnect();
+                    api.hubNodes.forEach(n => { if (n.__label && n.__label.parentNode) n.__label.parentNode.removeChild(n.__label); });
+                    try { graph._destructor(); } catch (e) { /* older builds: best-effort */ }
+                    api.gameNodes.forEach(n => { n.__mesh = null; n.__mat = null; });
+                    try { container.innerHTML = ''; } catch (e) { }
+                };
+                api.pause = function () { try { graph.pauseAnimation(); if (graph.controls()) graph.controls().autoRotate = false; } catch (e) { } };
+                api.resume = function () { try { graph.resumeAnimation(); if (!reduceMotion() && graph.controls()) graph.controls().autoRotate = true; } catch (e) { } };
+                api.select = function (opts) {
+                    if (!opts) return;
+                    if (opts.selectId) { const n = api.gameNodes.find(x => x.id === opts.selectId); if (n) { selId = n.id; selKey = null; showInfo(n.__e); refreshColors(); } }
+                    else if (opts.selectKey) { selKey = opts.selectKey; selId = null; refreshColors(); }
+                };
+                api.retheme = function () {
+                    graph.backgroundColor(isDark() ? '#171310' : '#faf5ea');
+                    graph.linkOpacity(isDark() ? 0.28 : 0.4);
+                    graph.linkColor(() => isDark() ? '#4a443c' : '#c8bfae');
+                    refreshColors();
+                };
+                return api;
+            }
+
+            // --- theme flips re-color live instances (.dark lands on <html>) ---
+            function watchTheme() {
+                if (themeObs || !window.MutationObserver) return;
+                themeObs = new MutationObserver(() => { if (mini) mini.retheme(); if (full) full.retheme(); });
+                themeObs.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+            }
+
+            // --- fullscreen overlay chrome (built once, labels refreshed on open) ---
+            function ensureOverlay() {
+                if (overlay) return overlay;
+                overlay = document.createElement('div');
+                overlay.id = 'globe-full-overlay';
+                overlay.className = 'globe-off';
+                overlay.innerHTML = `
+                    <div id="globe-full-mount"></div>
+                    <div id="globe-full-head">
+                        <span class="globe-title" id="globe-full-title"></span>
+                        <select id="globe-group-select" style="min-width:110px;font-size:12px;">
+                            <option value="platform"></option>
+                            <option value="store"></option>
+                            <option value="month"></option>
+                            <option value="all"></option>
+                        </select>
+                        <span style="flex:1 1 auto;"></span>
+                        <button type="button" class="globe-btn globe-icon-btn" id="globe-play-btn"></button>
+                        <button type="button" class="globe-btn globe-icon-btn" id="globe-close-btn"><i class="ph-bold ph-x"></i></button>
+                    </div>
+                    <div id="globe-full-foot">
+                        <div style="display:flex; justify-content:space-between; margin-bottom:6px;">
+                            <span class="globe-count" id="globe-date-label"></span>
+                            <span class="globe-count" id="globe-count-chip"></span>
+                        </div>
+                        <input type="range" id="globe-slider" min="0" max="1" step="1" value="1">
+                    </div>
+                    <div id="globe-info-card" class="globe-off"></div>`;
+                document.body.appendChild(overlay);
+                overlay.querySelector('#globe-close-btn').addEventListener('click', () => closeFullscreen());
+                overlay.querySelector('#globe-play-btn').addEventListener('click', () => { if (full) full.play(!full.playing); });
+                overlay.querySelector('#globe-slider').addEventListener('input', function () {
+                    if (!full) return;
+                    full.stopPlay();
+                    full.setDay(Number(this.value), true);
+                });
+                const sel = overlay.querySelector('#globe-group-select');
+                sel.addEventListener('change', function () {
+                    mode = this.value;
+                    if (mini) mini.setMode(mode);
+                    if (full) { full.setMode(mode); const b = dayBounds(); full.setDay(full.day || b.max, false); }
+                });
+                document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && overlay && !overlay.classList.contains('globe-off')) closeFullscreen(); });
+                return overlay;
+            }
+            function applyOverlayLabels() {
+                if (!overlay) return;
+                overlay.querySelector('#globe-full-title').textContent = tRef.lootGlobe || 'Loot Globe';
+                const opts = { platform: tRef.globeByPlatform || 'Platform', store: tRef.globeByStore || 'Store', month: tRef.globeByMonth || 'Month', all: tRef.globeByAll || 'All loot' };
+                overlay.querySelectorAll('#globe-group-select option').forEach(o => { o.textContent = opts[o.value] || o.value; });
+                overlay.querySelector('#globe-group-select').value = mode;
+                if (full) full.syncPlayBtn();
+            }
+
+            function openFullscreen(opts) {
+                if (!entries().length) return;
+                ensureOverlay(); applyOverlayLabels();
+                overlay.classList.remove('globe-off');
+                watchTheme();
+                if (mini) mini.pause();
+                if (!hasWebGL()) {
+                    overlay.querySelector('#globe-full-mount').innerHTML = `<div class="globe-fallback">${escG(tRef.globeNoWebGL || '3D is not available in this browser.')}</div>`;
+                    return;
+                }
+                if (full) { full.destroy(); full = null; }
+                ensureLib().then(() => {
+                    if (overlay.classList.contains('globe-off')) return; // closed while loading
+                    const mount = overlay.querySelector('#globe-full-mount');
+                    mount.innerHTML = '';
+                    full = buildGraph(mount, true);
+                    full.setMode(mode);
+                    const b = dayBounds();
+                    const slider = overlay.querySelector('#globe-slider');
+                    slider.min = b.min; slider.max = b.max; slider.value = b.max;
+                    full.setDay(b.max, true);
+                    full.syncPlayBtn();
+                    if (opts) full.select(opts);
+                }).catch(() => {
+                    overlay.querySelector('#globe-full-mount').innerHTML = `<div class="globe-fallback">${escG(tRef.globeLoadFail || 'The 3D engine could not load. Reopen Analytics when online.')}</div>`;
+                });
+            }
+            function closeFullscreen() {
+                if (!overlay) return;
+                overlay.classList.add('globe-off');
+                if (full) { full.destroy(); full = null; }
+                if (mini) mini.resume();
+            }
+
+            function onStatsRendered() {
+                // renderStats rebuilt the panel markup: capture live labels and
+                // drop any mini bound to the previous DOM. NOTE: the new_charts
+                // sandbox executes this module inside new Function() with a stub
+                // window — `state`/`i18n` must be typeof-guarded here (bare reads
+                // throw ReferenceError there) and never touched at definition time.
+                const st = (typeof state !== 'undefined') ? state : (window.state || null);
+                const tt = (typeof i18n !== 'undefined' && st) ? (i18n[st.lang] || {}) : {};
+                tRef = tt;
+                localeRef = st && (st.lang === 'zh-CN' || st.lang === 'zh-TW') ? st.lang : 'en-US';
+                if (mini) { mini.destroy(); mini = null; }
+                if (full) { closeFullscreen(); }
+                selKey = null; selId = null;
+            }
+            function mountMini() {
+                const el = document.getElementById('globe-mini-mount');
+                if (!el || !entries().length) return;
+                watchTheme(); // theme flips must recolor the mini even without fullscreen
+                if (!el.clientWidth) return; // modal still hidden; toggleStats re-calls this after the slide-in
+                if (mini) { mini.destroy(); mini = null; }
+                if (!hasWebGL()) {
+                    el.innerHTML = `<div class="globe-fallback">${escG(tRef.globeNoWebGL || '3D is not available in this browser.')}</div>`;
+                    return;
+                }
+                el.innerHTML = '';
+                ensureLib().then(() => {
+                    if (!document.getElementById('globe-mini-mount')) return; // re-rendered meanwhile
+                    mini = buildGraph(el, false);
+                    mini.setMode(mode);
+                    const b = dayBounds();
+                    mini.setDay(b.max, true);
+                    // raced fullscreen: opened before this mini existed — keep it asleep
+                    if (overlay && !overlay.classList.contains('globe-off')) mini.pause();
+                }).catch(() => {
+                    el.innerHTML = `<div class="globe-fallback">${escG(tRef.globeLoadFail || 'The 3D engine could not load.')}</div>`;
+                });
+            }
+            function destroy() {
+                if (full) { closeFullscreen(); }
+                if (mini) { mini.destroy(); mini = null; }
+            }
+            return { onStatsRendered, mountMini, openFullscreen, destroy };
+        })();
+
         function renderStats() {
             const container = document.getElementById('stats-container');
             const games = Object.values(state.claimedGames);
@@ -4394,6 +4955,43 @@
             // numbers tally across Looting Activity, Monthly Savings and Trend Comparison.
             const gameClaimedDate = (g) => new Date(g.claimed_date || g.date);
             games.sort((a,b) => gameClaimedDate(a) - gameClaimedDate(b));
+
+            // --- Loot Globe payload (2026.11.05.1) ---------------------------
+            // Plain, 3D-agnostic description of the library for window.LootGlobe:
+            // one entry per kept game with the grouping dimensions the data
+            // actually repeats (platform / store / month) plus the claim-day
+            // serial the time slider scrubs over. Price is deliberately NOT a
+            // dimension — nearly every claim has its own price, so "price hubs"
+            // would just be lonely single-star nodes.
+            const globePlatformOf = (g) => {
+                const id = String(g.normalizedId || '');
+                if (id.startsWith('gplay:') || id.startsWith('android_')) return 'Android';
+                if (id.startsWith('ios:id') || id.startsWith('ios_')) return 'iOS';
+                const p = String(g.platforms || '').toLowerCase();
+                if (/\bios\b|iphone|ipad/.test(p)) return 'iOS';
+                if (/(xbox|playstation|\bps[45]\b|nintendo|switch)/.test(p)) return 'Console';
+                if (p.includes('console')) return 'Console';
+                if (p) return 'PC';
+                return 'Other';
+            };
+            window._globeEntries = games.map(g => {
+                const d = gameClaimedDate(g);
+                const valid = !isNaN(d.getTime());
+                const y = valid ? d.getFullYear() : 2026, mo = valid ? d.getMonth() : 0, dd = valid ? d.getDate() : 1;
+                const serial = Math.floor(Date.UTC(y, mo, dd) / 86400000);
+                const mm = String(mo + 1).padStart(2, '0');
+                return {
+                    id: g.normalizedId || g.open_giveaway || g.title,
+                    title: g.title,
+                    image: g.image || '',
+                    worth: (g.worth && g.worth !== 'N/A') ? g.worth : '',
+                    url: g.open_giveaway || '#',
+                    day: serial,
+                    month: y + '-' + mm,
+                    store: storeOfClaim(g),
+                    plat: globePlatformOf(g)
+                };
+            });
         
             // 1. Platform Pie Chart Data
             const platCounts = {};
@@ -4561,9 +5159,8 @@
             const avgClaimValue = games.length > 0 ? totalClaimValue / games.length : 0;
             const avgClaimDisplay = formatCompact(avgClaimValue);
 
-            // Claim Streak (consecutive days)
-            let currentStreak = 0;
-            let maxStreak = 0;
+            // Claim days (kept for firstClaimMs below; the Claim Streak CARD and
+            // the Streak Flame PANEL retired in 2026.11.05.1 → Loot Globe)
             const claimDates = new Set();
             games.forEach(g => {
                 const dateStr = new Date(g.claimed_date || g.date).toDateString();
@@ -4571,24 +5168,6 @@
             });
 
             const sortedDates = Array.from(claimDates).map(d => new Date(d)).sort((a, b) => a - b);
-            let tempStreak = 1;
-            for (let i = 1; i < sortedDates.length; i++) {
-                const diffDays = Math.round((sortedDates[i] - sortedDates[i-1]) / (1000 * 60 * 60 * 24));
-                if (diffDays === 1) {
-                    tempStreak++;
-                } else if (diffDays > 1) {
-                    maxStreak = Math.max(maxStreak, tempStreak);
-                    tempStreak = 1;
-                }
-            }
-            maxStreak = Math.max(maxStreak, tempStreak);
-
-            // Check if today is in the streak
-            const today = new Date().toDateString();
-            const yesterday = new Date(Date.now() - 86400000).toDateString();
-            if (claimDates.has(today) || claimDates.has(yesterday)) {
-                currentStreak = tempStreak;
-            }
 
             // --- NEW: Claim Reaction Time (avg time between publish and claim) ---
             let reactionSumMs = 0, reactionCount = 0;
@@ -5129,39 +5708,8 @@
             // ===== NEW CHARTS DATA (7 charts, 2026.08.28.3; 5 dimensions reworked 2026.08.28.4) =====
             // Each chart uses a UNIQUE data dimension so it never duplicates an existing panel.
 
-            // --- A) Streak Flame: every consecutive-day claiming episode (2026.08.28.5) ---
-            // Unique dimension: EPISODE history of consecutive claim days (the stat card only shows two numbers)
-            const streakSerials = [];
-            games.forEach(g => {
-                const d = gameClaimedDate(g);
-                if (isNaN(d.getTime())) return;
-                streakSerials.push(Math.floor(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 86400000));
-            });
-            const streakDays = Array.from(new Set(streakSerials)).sort((a, b) => a - b);
-            const streakEpisodes = [];
-            streakDays.forEach((serial, i) => {
-                if (i > 0 && serial === streakDays[i - 1] + 1) {
-                    const ep = streakEpisodes[streakEpisodes.length - 1];
-                    ep.end = serial; ep.len++;
-                } else {
-                    streakEpisodes.push({ start: serial, end: serial, len: 1 });
-                }
-            });
-            const streakDateFmt = (serial) => new Intl.DateTimeFormat(localeStr, { month: 'short', day: 'numeric', year: '2-digit', timeZone: 'UTC' }).format(new Date(serial * 86400000));
-            const streakFlameOf = (len) => len >= 7 ? 'from-red-600 via-orange-500 to-amber-400' : (len >= 3 ? 'from-orange-600 to-amber-400' : 'from-amber-500 to-yellow-400');
-            const streakTopEpisodes = streakEpisodes.filter(e => e.len >= 2).sort((a, b) => b.len - a.len || b.start - a.start).slice(0, 10);
-            const streakMaxLen = Math.max(...streakTopEpisodes.map(e => e.len), 1);
-            const streakFlamesHtml = streakTopEpisodes.map((e, i) => {
-                const widthPct = (e.len / streakMaxLen) * 100;
-                return `
-                    <div class="flex items-center gap-2 w-full">
-                        <span class="text-[9px] font-bold text-gray-400 uppercase whitespace-nowrap w-28 text-right shrink-0">${streakDateFmt(e.start)} – ${streakDateFmt(e.end)}</span>
-                        <div class="flex-1 h-5 bg-gray-200 dark:bg-gray-800 rounded-full overflow-hidden">
-                            <div class="hist-bar h-full bg-gradient-to-r ${streakFlameOf(e.len)} rounded-full" style="width: 0%; transition-delay: ${i * 90}ms;" data-target-width="${widthPct.toFixed(2)}%"></div>
-                        </div>
-                        <span class="text-[10px] font-black ${e.len >= 7 ? 'text-red-400' : 'text-amber-500'} whitespace-nowrap w-14 shrink-0">${e.len} ${t.days || 'days'}</span>
-                    </div>`;
-            }).join('');
+            // --- A) Streak Flame retired 2026.11.05.1 → replaced by Loot Globe
+            //     (consecutive-day runs scored absence; the globe celebrates presence). ---
 
             // --- B) Midnight Hunter scatter: hour-of-day claimed × value (2026.08.28.4) ---
             const hourBands = [
@@ -5579,7 +6127,7 @@
                         </div>
                     </div>
                 </div>` : '';
-            if (wrappedInSeason) startWrappedCountdown();
+            if (wrappedInSeason && window.startWrappedCountdown) window.startWrappedCountdown();
 
             // --- RENDER DOM ---
             container.innerHTML = `
@@ -5742,20 +6290,25 @@
                         </div>
                     </div>
 
-                    <!-- NEW: Streak Flame (consecutive-day claiming episodes) -->
+                    <!-- NEW: Loot Globe (3D collection constellation, 2026.11.05.1) -->
                     <div class="glass-panel p-6 rounded-3xl shadow-sm border border-gray-200 dark:border-gray-800 lg:col-span-2 flex flex-col">
-                        <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">${t.lootStreak || 'Streak Flame'}</h3>
-                        <p class="text-[10px] text-gray-400 mb-4">${t.lootStreakDesc || 'Every consecutive-day claiming run'}</p>
-                        <div class="flex flex-col gap-2.5 w-full max-w-3xl mx-auto">
-                            ${streakTopEpisodes.length > 0 ? streakFlamesHtml : `<div class="h-20 flex items-center justify-center text-sm text-gray-400">${t.streakEmpty || 'No multi-day streaks yet'}</div>`}
+                        <div class="flex items-start justify-between gap-3 mb-1">
+                            <div>
+                                <h3 class="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-1">${t.lootGlobe || 'Loot Globe'}</h3>
+                                <p class="text-[10px] text-gray-400">${t.lootGlobeDesc || 'Every game you have claimed, as a living constellation - spin it, zoom in, tap a star.'}</p>
+                            </div>
+                            <button type="button" class="globe-btn shrink-0" onclick="window.LootGlobe && LootGlobe.openFullscreen()"><i class="ph-bold ph-arrows-out"></i> ${t.globeExpand || 'Open the globe'}</button>
                         </div>
+                        <div id="globe-mini-mount" class="globe-mount-wrap mt-3"></div>
+                        <p class="text-[10px] text-gray-400 mt-2 text-center">${t.globeHint || 'Drag to orbit - pinch or scroll to zoom - tap a star for the game'}</p>
                     </div>
 
-                    <!-- NEW: Stat Cards Row — 6 cards, user-specified order (2026.09.22.2,
-                         slot 3 swapped to Keep Rate 2026.09.28.2):
+                    <!-- NEW: Stat Cards Row — 5 cards, user-specified order (2026.09.22.2,
+                         slot 3 swapped to Keep Rate 2026.09.28.2; Claim Streak retired
+                         2026.11.05.1 → Loot Globe, Best Haul Day widened to the freed slot):
                          row1: avg claim value | avg claim per day
                          row2: keep rate | avg reaction time
-                         row3: claim streak | best haul day -->
+                         row3: best haul day (full width) -->
                     <div class="grid grid-cols-2 gap-4 lg:col-span-2">
                         <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800 text-center">
                             <div class="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">${t.avgClaimValue || 'Avg Claim Value'}</div>
@@ -5776,12 +6329,7 @@
                             <div class="text-2xl font-black text-orange-500">${reactionOdoHtml}</div>
                             <div class="text-[9px] text-gray-400 mt-1">${t.reactionDesc || 'publish → claim'}</div>
                         </div>
-                        <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800 text-center">
-                            <div class="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">${t.claimStreak || 'Claim Streak'}</div>
-                            <div class="text-2xl font-black text-purple-500"><span id="stat-odo-streak" class="stat-odo" data-odo-value="${currentStreak}" data-odo-currency="0">0</span> <span class="text-sm text-gray-400">${t.days || 'days'}</span></div>
-                            <div class="text-[9px] text-gray-400 mt-1">${t.maxStreak || 'Max'}: ${maxStreak} ${t.days || 'days'}</div>
-                        </div>
-                        <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800 text-center">
+                        <div class="glass-panel p-4 rounded-2xl border border-gray-200 dark:border-gray-800 text-center col-span-2">
                             <div class="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-2">${t.bestHaul || 'Best Haul Day'}</div>
                             <div class="text-2xl font-black text-green-500">${bestHaulOdoHtml}</div>
                             <div class="text-[9px] text-gray-400 mt-1">${bestHaulDateDisplay}</div>
@@ -5945,6 +6493,7 @@
             // Lifetime Wealth line (data-bound guard makes re-renders safe —
             // each render produces a fresh track element that needs rebinding).
             if (window.initWealthRange) window.initWealthRange();
+            if (window.LootGlobe) window.LootGlobe.onStatsRendered();
         }
         
         // --- DYNAMIC PIE CHART INTERACTION ---
@@ -10924,7 +11473,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.10.14.6';
+        window.BUILD_VERSION = '2026.11.05.1';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

@@ -407,13 +407,15 @@
             transition: opacity 0.2s ease, transform 0.2s ease;
         }
         .chart-info-chip.chip-on { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
-        /* ===== LOOT GLOBE (2026.11.05.1) =====
+        /* ===== LOOT GLOBE (2026.11.05.1, rebuilt as ONE layered sky in .2) =====
            Replaces the Streak Flame panel (retired: a leaderboard that scored
            you for skipping days read as pressure, not celebration).
-           The fullscreen overlay sits at z-index 3500: above every modal but
-           BELOW the z-4000 custom dropdown panel — the group-by <select> is
-           enhanced by the .14.4 dropdown layer and its panel must stay on top
-           of the globe. */
+           2026.11.05.2: single hierarchy — main core → dimension hub → value
+           hub → game star; every star hangs off all three dimensions at once
+           and tapping anything highlights its relation chain. The group-by
+           dropdown is GONE (it was an un-styled native select — the .14.4
+           dropdown layer only enhances the five app selects, not this one).
+           The fullscreen overlay sits at z-index 3500. */
         .globe-mount-wrap { position: relative; height: 230px; border-radius: 18px; overflow: hidden; background: #faf5ea; border: 1px solid #e8dfcd; }
         .dark .globe-mount-wrap { background: #171310; border-color: #2c2621; }
         .globe-mount-wrap canvas { display: block; outline: none; }
@@ -423,17 +425,17 @@
         #globe-full-mount { position: absolute; inset: 0; }
         #globe-full-mount canvas { display: block; outline: none; }
         #globe-full-head { position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center; gap: 10px; padding: 12px 14px 4px; flex-wrap: wrap; z-index: 2; }
-        #globe-full-foot { position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 16px 16px; z-index: 2; background: linear-gradient(to top, rgba(246,241,230,.95), rgba(246,241,230,0)); }
+        #globe-full-foot { position: absolute; left: 0; right: 0; bottom: 0; padding: 10px 16px calc(env(safe-area-inset-bottom, 0px) + 34px); z-index: 2; background: linear-gradient(to top, rgba(246,241,230,.95), rgba(246,241,230,0)); }
         .dark #globe-full-foot { background: linear-gradient(to top, rgba(15,12,9,.92), rgba(15,12,9,0)); }
         .globe-title { font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: .08em; opacity: .8; }
         .globe-btn { display: inline-flex; align-items: center; gap: 6px; border-radius: 9999px; border: 1px solid rgba(180,83,9,.4); background: rgba(255,253,247,.85); color: #b45309; font-weight: 800; font-size: 12px; padding: 7px 13px; cursor: pointer; }
         .dark .globe-btn { border-color: rgba(0,243,255,.4); background: rgba(13,15,22,.8); color: #00f3ff; }
         .globe-icon-btn { width: 34px; height: 34px; padding: 0; justify-content: center; font-size: 16px; }
-        #globe-slider { width: 100%; accent-color: #b45309; cursor: pointer; }
+        #globe-slider { width: 100%; accent-color: #b45309; cursor: pointer; touch-action: none; }
         .dark #globe-slider { accent-color: #00f3ff; }
         .globe-hub-label { position: absolute; transform: translate(-50%, -50%); font-size: 10px; font-weight: 800; letter-spacing: .04em; pointer-events: none; white-space: nowrap; color: #6b5d49; text-shadow: 0 0 6px rgba(255,255,255,.85); z-index: 1; }
         .dark .globe-hub-label { color: #d6d3d1; text-shadow: 0 0 7px rgba(0,0,0,.85); }
-        #globe-info-card { position: absolute; left: 14px; bottom: 92px; width: 240px; border-radius: 16px; padding: 12px; background: rgba(255,253,247,.92); border: 1px solid rgba(180,83,9,.35); box-shadow: 0 10px 30px rgba(0,0,0,.12); z-index: 3; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        #globe-info-card { position: absolute; left: 14px; bottom: calc(env(safe-area-inset-bottom, 0px) + 132px); width: 240px; border-radius: 16px; padding: 12px; background: rgba(255,253,247,.92); border: 1px solid rgba(180,83,9,.35); box-shadow: 0 10px 30px rgba(0,0,0,.12); z-index: 3; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
         .dark #globe-info-card { background: rgba(13,15,22,.88); border-color: rgba(0,243,255,.3); box-shadow: 0 10px 30px rgba(0,0,0,.5); }
         #globe-info-card.globe-off { display: none; }
         #globe-info-card img { width: 100%; height: 108px; object-fit: cover; border-radius: 10px; margin-bottom: 8px; background: rgba(0,0,0,.06); }
@@ -1960,16 +1962,16 @@
         Object.assign(i18n.ko, { yearCalendar: "전리품 캘린더", yearCalendarDesc: "1년간의 획득 활동", hourScatter: "심야 헌터", hourScatterDesc: "획득 시각 × 게임 가치", lootFunnel: "전리품 퍼널", lootFunnelDesc: "추적 → 삭제 → 보관", funnelTracked: "추적됨", funnelRemoved: "삭제됨", funnelKept: "보관 중", platformRise: "플랫폼 흥망사", platformRiseDesc: "월별 획득 가치를 플랫폼별로 쌓은 차트", platformOther: "기타", hourNight: "심야", hourMorning: "오전", hourAfternoon: "오후", hourEvening: "저녁", lootClock: "24시간 전리품 시계", lootClockDesc: "시간대별 획득 가치", removalCalendar: "삭제 캘린더", removalCalendarDesc: "1년간의 삭제 활동", storeActivity: "스토어 활동", storeActivityDesc: "월별 클레임을 스토어별로 누적", storeActEmpty: "아직 클레임이 없습니다", avgClaimPerDay: "일평균 획득", keepRate: "보유율", keepRateKept: "유지", keepRatePassed: "제거", since: "시작", rescueDone: "데이터 복구됨! 라이브러리가 마지막 백업에서 복원되었습니다." });
         Object.assign(i18n.pt, { yearCalendar: "Calendário de Loot", yearCalendarDesc: "Sua atividade de resgate ao longo do ano", hourScatter: "Caçador Noturno", hourScatterDesc: "Hora do dia vs valor do jogo", lootFunnel: "Funil de Loot", lootFunnelDesc: "Rastreado → Removido → Mantido", funnelTracked: "Rastreados", funnelRemoved: "Removidos", funnelKept: "Mantidos", platformRise: "Ascensão e Queda das Plataformas", platformRiseDesc: "Valor mensal resgatado empilhado por plataforma", platformOther: "Outros", hourNight: "Noite", hourMorning: "Manhã", hourAfternoon: "Tarde", hourEvening: "Serão", lootClock: "Relógio de Loot 24h", lootClockDesc: "Valor resgatado a cada hora do dia", removalCalendar: "Calendário de Remoção", removalCalendarDesc: "Sua atividade de remoção ao longo do ano", storeActivity: "Atividade por Loja", storeActivityDesc: "Claims mensais empilhados por loja", storeActEmpty: "Ainda sem claims", avgClaimPerDay: "Média de Resgates por Dia", keepRate: "Taxa de Retenção", keepRateKept: "mantidos", keepRatePassed: "descartados", since: "desde", rescueDone: "Dados recuperados! Sua biblioteca foi restaurada do seu último backup." });
         // Loot Globe i18n keys (2026.11.05.1 - replaces Streak Flame panel + Claim Streak card)
-        Object.assign(i18n.en, { lootGlobe: "Loot Globe", lootGlobeDesc: "Every game you have claimed, as a living constellation - spin it, zoom in, tap a star.", globeExpand: "Open the globe", globeClose: "Close", globeGroupBy: "Group by", globeByAll: "All loot", globeByPlatform: "Platform", globeByStore: "Store", globeByMonth: "Month", globeHint: "Drag to orbit - pinch or scroll to zoom - tap a star for the game", globePlay: "Play from day one", globePause: "Pause", globeLoading: "Loading the 3D engine...", globeNoWebGL: "3D is not available in this browser.", globeLoadFail: "The 3D engine could not load. Reopen Analytics when online.", globeInView: "in view", globeViewDeal: "View deal" });
-        Object.assign(i18n['zh-CN'], { lootGlobe: "战利星球", lootGlobeDesc: "你领取的每款游戏，都是一颗活的星球——旋转、缩放、点一颗星星看看。", globeExpand: "打开星球", globeClose: "关闭", globeGroupBy: "分组", globeByAll: "全部战利", globeByPlatform: "平台", globeByStore: "商店", globeByMonth: "月份", globeHint: "拖动旋转 · 双指或滚轮缩放 · 点星星看游戏", globePlay: "从第一天播放", globePause: "暂停", globeLoading: "正在加载 3D 引擎…", globeNoWebGL: "此浏览器不支持 3D。", globeLoadFail: "3D 引擎加载失败，请联网后重新打开分析。", globeInView: "在视野中", globeViewDeal: "查看礼包" });
-        Object.assign(i18n['zh-TW'], { lootGlobe: "戰利星球", lootGlobeDesc: "你領取的所有遊戲，都是一顆活的星球——旋轉、縮放、點一顆星星看看。", globeExpand: "打開星球", globeClose: "關閉", globeGroupBy: "分組", globeByAll: "全部戰利", globeByPlatform: "平台", globeByStore: "商店", globeByMonth: "月份", globeHint: "拖動旋轉 · 雙指或滾輪縮放 · 點星星看遊戲", globePlay: "從第一天播放", globePause: "暫停", globeLoading: "正在載入 3D 引擎…", globeNoWebGL: "此瀏覽器不支援 3D。", globeLoadFail: "3D 引擎載入失敗，請聯網後重新開啟分析。", globeInView: "在視野中", globeViewDeal: "查看礼包" });
-        Object.assign(i18n['ja'], { lootGlobe: "ルートグローブ", lootGlobeDesc: "あなたが獲得した全てのゲームが息づく星座——回して、ズームして、星をタップ。", globeExpand: "グローブを開く", globeClose: "閉じる", globeGroupBy: "グループ", globeByAll: "全ルート", globeByPlatform: "プラットフォーム", globeByStore: "ストア", globeByMonth: "月", globeHint: "ドラッグで回転 · ピンチやスクロールでズーム · 星をタップでゲーム表示", globePlay: "初日から再生", globePause: "一時停止", globeLoading: "3Dエンジン読み込み中…", globeNoWebGL: "このブラウザでは3Dを利用できません。", globeLoadFail: "3Dエンジンを読み込めませんでした。オンラインで分析を開き直してください。", globeInView: "表示中", globeViewDeal: "ギフトを見る" });
-        Object.assign(i18n['ko'], { lootGlobe: "전리품 지구", lootGlobeDesc: "받은 모든 게임이 살아있는 별자리로 — 회전하고, 확대하고, 별을 탭하세요.", globeExpand: "지구 열기", globeClose: "닫기", globeGroupBy: "그룹", globeByAll: "전체 전리품", globeByPlatform: "플랫폼", globeByStore: "스토어", globeByMonth: "월", globeHint: "드래그 회전 · 핀치/휠 확대 · 별 탭으로 게임 보기", globePlay: "첫날부터 재생", globePause: "일시정지", globeLoading: "3D 엔진 로드 중…", globeNoWebGL: "이 브라우저에서는 3D를 사용할 수 없습니다.", globeLoadFail: "3D 엔진을 불러올 수 없습니다. 온라인에서 분석을 다시 여세요.", globeInView: "표시 중", globeViewDeal: "게임 보기" });
-        Object.assign(i18n['es'], { lootGlobe: "Globo de Botín", lootGlobeDesc: "Cada juego que has reclamado, como una constelación viva: gíralo, acerca, toca una estrella.", globeExpand: "Abrir el globo", globeClose: "Cerrar", globeGroupBy: "Agrupar por", globeByAll: "Todo el botín", globeByPlatform: "Plataforma", globeByStore: "Tienda", globeByMonth: "Mes", globeHint: "Arrastra para orbitar, pellizca o rueda para zoom, toca una estrella", globePlay: "Reproducir desde el primer día", globePause: "Pausa", globeLoading: "Cargando motor 3D...", globeNoWebGL: "3D no está disponible en este navegador.", globeLoadFail: "El motor 3D no se pudo cargar. Reabre Analytics con conexión.", globeInView: "en vista", globeViewDeal: "Ver oferta" });
-        Object.assign(i18n['fr'], { lootGlobe: "Globe de Butin", lootGlobeDesc: "Chaque jeu réclamé, en constellation vivante : fais-le tourner, zoome, touche une étoile.", globeExpand: "Ouvrir le globe", globeClose: "Fermer", globeGroupBy: "Grouper par", globeByAll: "Tout le butin", globeByPlatform: "Plateforme", globeByStore: "Boutique", globeByMonth: "Mois", globeHint: "Glisser pour orbiter, pincer ou moletter pour zoomer, toucher une étoile", globePlay: "Lire depuis le premier jour", globePause: "Pause", globeLoading: "Chargement du moteur 3D...", globeNoWebGL: "La 3D n'est pas disponible dans ce navigateur.", globeLoadFail: "Le moteur 3D n'a pas pu se charger. Rouvrez Analytics en ligne.", globeInView: "visibles", globeViewDeal: "Voir l'offre" });
-        Object.assign(i18n['de'], { lootGlobe: "Loot-Globus", lootGlobeDesc: "Jedes geholte Spiel als lebendiges Sternbild – drehen, zoomen, Stern antippen.", globeExpand: "Globus öffnen", globeClose: "Schließen", globeGroupBy: "Gruppieren nach", globeByAll: "Alle Beute", globeByPlatform: "Plattform", globeByStore: "Store", globeByMonth: "Monat", globeHint: "Ziehen zum Drehen, Pinch oder Scroll zum Zoomen, Stern antippen", globePlay: "Ab dem ersten Tag abspielen", globePause: "Pause", globeLoading: "3D-Engine wird geladen...", globeNoWebGL: "3D ist in diesem Browser nicht verfügbar.", globeLoadFail: "Die 3D-Engine konnte nicht geladen werden. Öffne Analytics erneut online.", globeInView: "im Bild", globeViewDeal: "Angebot ansehen" });
-        Object.assign(i18n['ru'], { lootGlobe: "Лут-глобус", lootGlobeDesc: "Каждая забранная игра — живое созвездие: вращай, приближай, нажимай на звезду.", globeExpand: "Открыть глобус", globeClose: "Закрыть", globeGroupBy: "Группа", globeByAll: "Весь лут", globeByPlatform: "Платформа", globeByStore: "Магазин", globeByMonth: "Месяц", globeHint: "Тяните, чтобы вращать; пинч или колесо для зума; нажмите звезду", globePlay: "С первого дня", globePause: "Пауза", globeLoading: "Загрузка 3D-движка...", globeNoWebGL: "3D недоступен в этом браузере.", globeLoadFail: "3D-движок не загрузился. Откройте Analytics снова в сети.", globeInView: "в поле", globeViewDeal: "Смотреть" });
-        Object.assign(i18n['pt'], { lootGlobe: "Globo de Loot", lootGlobeDesc: "Cada jogo resgatado, numa constelação viva — gire, dê zoom, toque numa estrela.", globeExpand: "Abrir o globo", globeClose: "Fechar", globeGroupBy: "Agrupar por", globeByAll: "Todo o loot", globeByPlatform: "Plataforma", globeByStore: "Loja", globeByMonth: "Mês", globeHint: "Arraste para orbitar, pinça ou roda para zoom, toque numa estrela", globePlay: "Reproduzir do primeiro dia", globePause: "Pausar", globeLoading: "Carregando motor 3D...", globeNoWebGL: "3D não está disponível neste navegador.", globeLoadFail: "O motor 3D não pôde carregar. Reabra Analytics com conexão.", globeInView: "na vista", globeViewDeal: "Ver oferta" });
+        Object.assign(i18n.en, { lootGlobe: "Loot Globe", lootGlobeDesc: "Every game you have claimed, as a living constellation - spin it, zoom in, tap a star.", globeExpand: "Open the globe", globeClose: "Close", globeByAll: "All loot", globeByPlatform: "Platform", globeByStore: "Store", globeByMonth: "Month", globeHint: "Drag to orbit - pinch or scroll to zoom - tap a star to light up its month, platform, store and fellow games", globePlay: "Play from day one", globePause: "Pause", globeLoading: "Loading the 3D engine...", globeNoWebGL: "3D is not available in this browser.", globeLoadFail: "The 3D engine could not load. Reopen Analytics when online.", globeInView: "in view", globeViewDeal: "View deal" });
+        Object.assign(i18n['zh-CN'], { lootGlobe: "战利星球", lootGlobeDesc: "你领取的每款游戏，都是一颗活的星球——旋转、缩放、点一颗星星看看。", globeExpand: "打开星球", globeClose: "关闭", globeByAll: "全部战利", globeByPlatform: "平台", globeByStore: "商店", globeByMonth: "月份", globeHint: "拖动旋转 · 双指或滚轮缩放 · 点一颗星，点亮它的月份/平台/商店和同伴", globePlay: "从第一天播放", globePause: "暂停", globeLoading: "正在加载 3D 引擎…", globeNoWebGL: "此浏览器不支持 3D。", globeLoadFail: "3D 引擎加载失败，请联网后重新打开分析。", globeInView: "在视野中", globeViewDeal: "查看礼包" });
+        Object.assign(i18n['zh-TW'], { lootGlobe: "戰利星球", lootGlobeDesc: "你領取的所有遊戲，都是一顆活的星球——旋轉、縮放、點一顆星星看看。", globeExpand: "打開星球", globeClose: "關閉", globeByAll: "全部戰利", globeByPlatform: "平台", globeByStore: "商店", globeByMonth: "月份", globeHint: "拖動旋轉 · 雙指或滾輪縮放 · 點一顆星，點亮它的月份/平台/商店和夥伴", globePlay: "從第一天播放", globePause: "暫停", globeLoading: "正在載入 3D 引擎…", globeNoWebGL: "此瀏覽器不支援 3D。", globeLoadFail: "3D 引擎載入失敗，請聯網後重新開啟分析。", globeInView: "在視野中", globeViewDeal: "查看礼包" });
+        Object.assign(i18n['ja'], { lootGlobe: "ルートグローブ", lootGlobeDesc: "あなたが獲得した全てのゲームが息づく星座——回して、ズームして、星をタップ。", globeExpand: "グローブを開く", globeClose: "閉じる", globeByAll: "全ルート", globeByPlatform: "プラットフォーム", globeByStore: "ストア", globeByMonth: "月", globeHint: "ドラッグで回転 · ピンチやスクロールでズーム · 星をタップすると月・プラットフォーム・ストアと仲間が光ります", globePlay: "初日から再生", globePause: "一時停止", globeLoading: "3Dエンジン読み込み中…", globeNoWebGL: "このブラウザでは3Dを利用できません。", globeLoadFail: "3Dエンジンを読み込めませんでした。オンラインで分析を開き直してください。", globeInView: "表示中", globeViewDeal: "ギフトを見る" });
+        Object.assign(i18n['ko'], { lootGlobe: "전리품 지구", lootGlobeDesc: "받은 모든 게임이 살아있는 별자리로 — 회전하고, 확대하고, 별을 탭하세요.", globeExpand: "지구 열기", globeClose: "닫기", globeByAll: "전체 전리품", globeByPlatform: "플랫폼", globeByStore: "스토어", globeByMonth: "월", globeHint: "드래그 회전 · 핀치/휠 확대 · 별을 탭하면 월·플랫폼·스토어와 동료들이 빛납니다", globePlay: "첫날부터 재생", globePause: "일시정지", globeLoading: "3D 엔진 로드 중…", globeNoWebGL: "이 브라우저에서는 3D를 사용할 수 없습니다.", globeLoadFail: "3D 엔진을 불러올 수 없습니다. 온라인에서 분석을 다시 여세요.", globeInView: "표시 중", globeViewDeal: "게임 보기" });
+        Object.assign(i18n['es'], { lootGlobe: "Globo de Botín", lootGlobeDesc: "Cada juego que has reclamado, como una constelación viva: gíralo, acerca, toca una estrella.", globeExpand: "Abrir el globo", globeClose: "Cerrar", globeByAll: "Todo el botín", globeByPlatform: "Plataforma", globeByStore: "Tienda", globeByMonth: "Mes", globeHint: "Arrastra para orbitar, pellizca o rueda para zoom, toca una estrella para encender su mes, plataforma, tienda y compañeras", globePlay: "Reproducir desde el primer día", globePause: "Pausa", globeLoading: "Cargando motor 3D...", globeNoWebGL: "3D no está disponible en este navegador.", globeLoadFail: "El motor 3D no se pudo cargar. Reabre Analytics con conexión.", globeInView: "en vista", globeViewDeal: "Ver oferta" });
+        Object.assign(i18n['fr'], { lootGlobe: "Globe de Butin", lootGlobeDesc: "Chaque jeu réclamé, en constellation vivante : fais-le tourner, zoome, touche une étoile.", globeExpand: "Ouvrir le globe", globeClose: "Fermer", globeByAll: "Tout le butin", globeByPlatform: "Plateforme", globeByStore: "Boutique", globeByMonth: "Mois", globeHint: "Glisser pour orbiter, pincer ou moletter pour zoomer, toucher une étoile pour allumer son mois, sa plateforme, sa boutique et ses compagnes", globePlay: "Lire depuis le premier jour", globePause: "Pause", globeLoading: "Chargement du moteur 3D...", globeNoWebGL: "La 3D n'est pas disponible dans ce navigateur.", globeLoadFail: "Le moteur 3D n'a pas pu se charger. Rouvrez Analytics en ligne.", globeInView: "visibles", globeViewDeal: "Voir l'offre" });
+        Object.assign(i18n['de'], { lootGlobe: "Loot-Globus", lootGlobeDesc: "Jedes geholte Spiel als lebendiges Sternbild – drehen, zoomen, Stern antippen.", globeExpand: "Globus öffnen", globeClose: "Schließen", globeByAll: "Alle Beute", globeByPlatform: "Plattform", globeByStore: "Store", globeByMonth: "Monat", globeHint: "Ziehen zum Drehen, Pinch oder Scroll zum Zoomen, Stern antippen – Monat, Plattform, Store und Mitspieler leuchten auf", globePlay: "Ab dem ersten Tag abspielen", globePause: "Pause", globeLoading: "3D-Engine wird geladen...", globeNoWebGL: "3D ist in diesem Browser nicht verfügbar.", globeLoadFail: "Die 3D-Engine konnte nicht geladen werden. Öffne Analytics erneut online.", globeInView: "im Bild", globeViewDeal: "Angebot ansehen" });
+        Object.assign(i18n['ru'], { lootGlobe: "Лут-глобус", lootGlobeDesc: "Каждая забранная игра — живое созвездие: вращай, приближай, нажимай на звезду.", globeExpand: "Открыть глобус", globeClose: "Закрыть", globeByAll: "Весь лут", globeByPlatform: "Платформа", globeByStore: "Магазин", globeByMonth: "Месяц", globeHint: "Тяните, чтобы вращать; пинч или колесо для зума; нажмите звезду — подсветятся месяц, платформа, магазин и собратья", globePlay: "С первого дня", globePause: "Пауза", globeLoading: "Загрузка 3D-движка...", globeNoWebGL: "3D недоступен в этом браузере.", globeLoadFail: "3D-движок не загрузился. Откройте Analytics снова в сети.", globeInView: "в поле", globeViewDeal: "Смотреть" });
+        Object.assign(i18n['pt'], { lootGlobe: "Globo de Loot", lootGlobeDesc: "Cada jogo resgatado, numa constelação viva — gire, dê zoom, toque numa estrela.", globeExpand: "Abrir o globo", globeClose: "Fechar", globeByAll: "Todo o loot", globeByPlatform: "Plataforma", globeByStore: "Loja", globeByMonth: "Mês", globeHint: "Arraste para orbitar, pinça ou roda para zoom, toque numa estrela para acender mês, plataforma, loja e companheiras", globePlay: "Reproduzir do primeiro dia", globePause: "Pausar", globeLoading: "Carregando motor 3D...", globeNoWebGL: "3D não está disponível neste navegador.", globeLoadFail: "O motor 3D não pôde carregar. Reabra Analytics com conexão.", globeInView: "na vista", globeViewDeal: "Ver oferta" });
         // ------------------------------------------
 
         // Loot Wrapped i18n keys (2026.10.05.6)
@@ -4453,9 +4455,27 @@
             let libPromise = null;
             let mini = null, full = null, overlay = null;
             let tRef = {}, localeRef = 'en';
-            let mode = 'platform';        // platform | store | month | all
-            let selKey = null, selId = null;
             let themeObs = null;
+            // 2026.11.05.2 — ONE globe instead of four switchable modes (the user's
+            // sketch): main core → dimension hub → value hub → game star. Every
+            // star hangs off ALL THREE dimensions at once, and tapping anything
+            // highlights its relation chain — no group-by dropdown at all.
+            const DIMS = ['platform', 'store', 'month'];
+            let sel = null;      // {kind:'game'|'val'|'dim'|'main', id?, dim?, key?}
+            let relSet = null;   // ids lit by the current selection; null = nothing selected
+
+            function valKeyOf(e, d) { return d === 'platform' ? e.plat : d === 'store' ? e.store : e.month; }
+            function valId(d, k) { return 'hub:val:' + d + ':' + k; }
+            function dimId(d) { return 'hub:dim:' + d; }
+            function mainId() { return 'hub:main'; }
+            function selKeyStr(s) { return s ? s.kind + '|' + (s.id || '') + '|' + (s.dim || '') + '|' + (s.key || '') : ''; }
+            function selFromNode(n) {
+                if (n.kind === 'game') return { kind: 'game', id: n.id };
+                if (n.kind === 'val') return { kind: 'val', dim: n.dim, key: n.key };
+                if (n.kind === 'dim') return { kind: 'dim', dim: n.dim };
+                return { kind: 'main' };
+            }
+            function dimLabel(d) { return d === 'platform' ? (tRef.globeByPlatform || 'Platform') : d === 'store' ? (tRef.globeByStore || 'Store') : (tRef.globeByMonth || 'Month'); }
 
             function reduceMotion() { return !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches); }
             function escG(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]); }
@@ -4477,6 +4497,7 @@
             const PALETTE_DARK = ['#00f3ff', '#bc13fe', '#f59e0b', '#22c55e', '#f43f5e', '#38bdf8', '#a3e635', '#e879f9', '#fbbf24', '#34d399', '#fb7185', '#818cf8'];
             const PALETTE_LIGHT = ['#0e7490', '#7c3aed', '#b45309', '#15803d', '#be123c', '#0369a1', '#4d7c0f', '#a21caf', '#92400e', '#0f766e', '#9f1239', '#4338ca'];
             const DIM_DARK = '#3b3630', DIM_LIGHT = '#d8d2c4';
+            const MAIN_DARK = '#fbbf24', MAIN_LIGHT = '#b45309'; // the core is always the amber sun
             function entries() { return window._globeEntries || []; }
             function dayBounds() {
                 const es = entries();
@@ -4485,41 +4506,115 @@
                 es.forEach(e => { if (e.day < min) min = e.day; if (e.day > max) max = e.day; });
                 return { min, max };
             }
-            function keyOf(e, m) { return m === 'platform' ? e.plat : m === 'store' ? e.store : m === 'month' ? e.month : 'all'; }
-            // In "all loot" everything orbits ONE core, but stars keep their
-            // platform colors so the picture still has structure.
-            function colorKeyOf(e) { return mode === 'all' ? e.plat : keyOf(e, mode); }
-            function keyLabel(key) { return key === 'all' ? (tRef.globeByAll || 'All loot') : key; }
-            function groupKeys() {
-                const first = {};
-                entries().forEach(e => { const k = keyOf(e, mode); if (!(k in first) || e.day < first[k]) first[k] = e.day; });
-                return Object.keys(first).sort((a, b) => mode === 'month' ? a.localeCompare(b) : first[a] - first[b]);
+            function dateLabel(d) {
+                try { return new Intl.DateTimeFormat(localeRef, { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(d * 86400000)); } catch (e) { return ''; }
+            }
+            function monthLabel(m) {
+                // Date.UTC + UTC formatter: local-built Date read in UTC would
+                // shift every label back a day (Sep 1 → "Aug" in UTC+8).
+                try { return new Intl.DateTimeFormat(localeRef, { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(Date.UTC(Number(m.slice(0, 4)), Number(m.slice(5, 7)) - 1, 1))); } catch (e) { return m; }
             }
             function palette() { return isDark() ? PALETTE_DARK : PALETTE_LIGHT; }
-            function nodeRadius(n, isFull) { return n.kind === 'hub' ? (isFull ? 7 : 8) : (isFull ? 3.2 : 4.5); }
+            // First-appearance colour indexes for games (by platform) and value
+            // hubs (per dim). Cached against the entries array identity — rebuilt
+            // whenever renderStats publishes a new sky.
+            let cCache = null;
+            function colorIdx() {
+                const es = entries();
+                if (!cCache || cCache.src !== es) {
+                    const plat = {}, val = { platform: {}, store: {}, month: {} };
+                    es.forEach(e => {
+                        if (!(e.plat in plat)) plat[e.plat] = Object.keys(plat).length;
+                        DIMS.forEach(d => { const k = valKeyOf(e, d); if (!(k in val[d])) val[d][k] = Object.keys(val[d]).length; });
+                    });
+                    cCache = { src: es, plat: plat, val: val };
+                }
+                return cCache;
+            }
+            // Size tiers so the hierarchy reads as a hierarchy (11.05.2). Mini
+            // keeps stars chunky — at camZ 170 anything thinner than ~4px vanished
+            // (the 11.05.1 mini-sizing fix).
+            function nodeRadius(n, isFull) {
+                return n.kind === 'main' ? (isFull ? 9 : 5.5)
+                    : n.kind === 'dim' ? (isFull ? 5 : 3.4)
+                        : n.kind === 'val' ? (isFull ? 3.6 : 2.5)
+                            : (isFull ? 3.0 : 4.5);
+            }
+            // Relation chain for the current selection — every branch also lights
+            // the ancestor path up to the main core (the user's list: app_1 →
+            // oct, month, epic, platform, main).
+            function computeRel() {
+                if (!sel) { relSet = null; return; }
+                const s = new Set([mainId()]);
+                const es = entries();
+                if (sel.kind === 'main') {
+                    es.forEach(e => { s.add(e.id); DIMS.forEach(d => { s.add(dimId(d)); s.add(valId(d, valKeyOf(e, d))); }); });
+                } else if (sel.kind === 'game') {
+                    const hit = es.find(x => x.id === sel.id);
+                    if (hit) {
+                        s.add(hit.id);
+                        const vset = new Set();
+                        DIMS.forEach(d => { const v = valId(d, valKeyOf(hit, d)); vset.add(v); s.add(v); s.add(dimId(d)); });
+                        // stars sharing ANY of the three value hubs are "related" too
+                        es.forEach(x => { DIMS.forEach(d => { if (vset.has(valId(d, valKeyOf(x, d)))) s.add(x.id); }); });
+                    }
+                } else if (sel.kind === 'val') {
+                    s.add(valId(sel.dim, sel.key)); s.add(dimId(sel.dim));
+                    es.forEach(x => { if (valKeyOf(x, sel.dim) === sel.key) s.add(x.id); });
+                } else if (sel.kind === 'dim') {
+                    s.add(dimId(sel.dim));
+                    es.forEach(x => { s.add(valId(sel.dim, valKeyOf(x, sel.dim))); s.add(x.id); });
+                }
+                relSet = s;
+            }
+            function showInfo(e) {
+                const card = overlay && overlay.querySelector('#globe-info-card');
+                if (!card || !e) return;
+                const worthLine = e.worth ? `<span class="globe-info-worth"><s>${escG(e.worth)}</s>Free</span>` : '';
+                card.innerHTML = `
+                    ${e.image ? `<img src="${escG(e.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">` : ''}
+                    <div class="globe-info-title">${escG(e.title)}</div>
+                    <div class="globe-info-meta">${escG(e.store)} · ${escG(e.plat)} · ${escG(dateLabel(e.day))}</div>
+                    ${worthLine ? `<div style="margin-top:4px">${worthLine}</div>` : ''}
+                    <a class="globe-info-link" href="${escG(e.url)}" target="_blank" rel="noopener">${escG(tRef.globeViewDeal || 'View deal')} <i class="ph-bold ph-arrow-up-right"></i></a>`;
+                card.classList.remove('globe-off');
+            }
+            function hideInfo() { const card = overlay && overlay.querySelector('#globe-info-card'); if (card) card.classList.add('globe-off'); }
+            function applySel(next) {
+                // re-picking the same star/hub toggles the highlight off
+                sel = selKeyStr(next) === selKeyStr(sel) ? null : (next || null);
+                computeRel();
+                if (mini) mini.refreshColors();
+                if (full) full.refreshColors();
+                if (full) {
+                    if (sel && sel.kind === 'game') { const e = entries().find(x => x.id === sel.id); if (e) showInfo(e); else hideInfo(); }
+                    else hideInfo();
+                }
+            }
             // Single source of truth for a node's look. Applied BOTH when
             // three-render-3d builds the mesh (nodeThreeObject callback) and when
-            // selection/group state changes (refreshColors mutates the live
-            // material). Never re-set nodeThreeObject to "refresh": that rebuilds
-            // every mesh and silently resets materials to the callback defaults.
+            // selection state changes (refreshColors mutates the live material).
+            // Never re-set nodeThreeObject to "refresh": that rebuilds every mesh
+            // and silently resets materials to the callback defaults (11.05.1 bug).
             function matStyleFor(n) {
                 const pal = palette();
-                const keys = groupKeys();
-                const idxOf = {}; keys.forEach((k, i) => { idxOf[k] = i; });
-                // Game stars are colored by colorKeyOf, which in 'all' mode is the
-                // PLATFORM while groupKeys() is just ['all'] — so color games off
-                // their own index list, first-appearance order like groupKeys.
-                const cIdx = {};
-                entries().forEach(e => { const ck = colorKeyOf(e); if (!(ck in cIdx)) cIdx[ck] = Object.keys(cIdx).length; });
                 const dim = isDark() ? DIM_DARK : DIM_LIGHT;
-                const soft = !selId && !selKey;
-                if (n.kind === 'hub') {
-                    const base = pal[idxOf[n.key] % pal.length] || '#888';
-                    return { color: soft || selKey === n.key ? base : dim, opacity: soft ? 0.34 : (selKey === n.key ? 0.5 : 0.06) };
+                const soft = !relSet;
+                const on = id => soft || relSet.has(id);
+                if (n.kind === 'main') {
+                    return { color: on(n.id) ? (isDark() ? MAIN_DARK : MAIN_LIGHT) : dim, opacity: soft ? 0.9 : (relSet.has(n.id) ? 0.95 : 0.08) };
                 }
-                const base = pal[(cIdx[colorKeyOf(n.__e)] != null ? cIdx[colorKeyOf(n.__e)] : 0) % pal.length] || '#888';
-                const isSel = selId ? n.id === selId : (selKey ? colorKeyOf(n.__e) === selKey : false);
-                return { color: soft || isSel ? base : dim, opacity: soft ? 0.95 : (isSel ? 0.98 : 0.14) };
+                if (n.kind === 'dim') {
+                    const base = pal[n.__slot % pal.length] || '#888';
+                    return { color: on(n.id) ? base : dim, opacity: soft ? 0.55 : (relSet.has(n.id) ? 0.9 : 0.06) };
+                }
+                if (n.kind === 'val') {
+                    const base = pal[n.__slot % pal.length] || '#888';
+                    return { color: on(n.id) ? base : dim, opacity: soft ? 0.3 : (relSet.has(n.id) ? 0.75 : 0.05) };
+                }
+                const ci = colorIdx();
+                const base = pal[(ci.plat[n.__e.plat] != null ? ci.plat[n.__e.plat] : 0) % pal.length] || '#888';
+                return { color: on(n.id) ? base : dim, opacity: soft ? 0.95 : (relSet.has(n.id) ? 0.98 : 0.14) };
             }
 
             // --- one 3D instance (mini or fullscreen) ---
@@ -4529,12 +4624,40 @@
                 container.__lgApi = api; // debug handle: inspect live tween state from DevTools / automation
                 const sharedGeo = new THREE.SphereGeometry(1, 18, 14);
                 api.geo = sharedGeo;
-                const dayMin = dayBounds().min;
-                const dayMax = dayBounds().max;
-                const span = Math.max(1, dayMax - dayMin);
 
-                entries().forEach(e => {
+                const es = entries();
+                es.forEach(e => {
                     api.gameNodes.push({ id: e.id, kind: 'game', day: e.day, __vis: 0, __tgt: 0, __t0: 0, __delay: 0, __e: e });
+                });
+                // Hierarchy built ONCE per instance (no mode switch anymore): value
+                // hubs per dim, then the three dim hubs, then the pinned main core.
+                // hubNodes is ordered vals → dims → main so tick()'s single pass
+                // resolves "hub visibility = max of members" bottom-up.
+                const ci = colorIdx();
+                const gameById = {}; api.gameNodes.forEach(n => { gameById[n.id] = n; });
+                const valsByDim = { platform: [], store: [], month: [] };
+                const dimNodes = DIMS.map((d, i) => ({ id: dimId(d), kind: 'dim', dim: d, __slot: i, __vis: 0, __tgt: 0, __t0: 0, __delay: i * 60, __members: valsByDim[d] }));
+                DIMS.forEach(d => {
+                    Object.keys(ci.val[d]).forEach(k => {
+                        valsByDim[d].push({ id: valId(d, k), kind: 'val', dim: d, key: k, __slot: DIMS.indexOf(d), __vis: 0, __tgt: 0, __t0: 0, __delay: 0, __members: [] });
+                    });
+                });
+                const mainNode = { id: mainId(), kind: 'main', dim: '', __vis: 1, __tgt: 1, __t0: 0, __delay: 0, __members: dimNodes, fx: 0, fy: 0, fz: 0 };
+                api.hubNodes = valsByDim.platform.concat(valsByDim.store, valsByDim.month, dimNodes, [mainNode]);
+                const valByHubId = {}; api.hubNodes.forEach(n => { if (n.kind === 'val') valByHubId[n.id] = n; });
+                api.links = [];
+                es.forEach(e => {
+                    DIMS.forEach(d => {
+                        const vh = valByHubId[valId(d, valKeyOf(e, d))];
+                        const gn = gameById[e.id];
+                        if (!vh || !gn) return;
+                        vh.__members.push(gn);
+                        api.links.push({ source: e.id, target: vh.id, __dl: isFull ? 14 : 8 });
+                    });
+                });
+                DIMS.forEach(d => {
+                    valsByDim[d].forEach(vh => api.links.push({ source: vh.id, target: dimId(vh.dim), __dl: isFull ? 26 : 13 }));
+                    api.links.push({ source: dimId(d), target: mainId(), __dl: isFull ? 44 : 22 });
                 });
 
                 function visOf(x) { return (x && typeof x === 'object') ? (x.__vis || 0) : 0; }
@@ -4553,15 +4676,16 @@
                         mesh.visible = n.__vis > 0.008;
                         return mesh;
                     })
-                    .nodeLabel(n => n.kind === 'hub' ? '' : (n.__e ? String(n.__e.title || '') : ''))
+                    .nodeLabel(n => n.kind === 'game' ? String((n.__e && n.__e.title) || '') : '')
                     .linkWidth(l => 0.05 + Math.min(visOf(l.source), visOf(l.target)) * 1.15)
                     .linkOpacity(isDark() ? 0.28 : 0.4)
                     .linkColor(() => isDark() ? '#4a443c' : '#c8bfae')
                     .onNodeClick(n => onPick(n))
-                    .onBackgroundClick(() => { api.clearSel(); })
+                    .onBackgroundClick(() => { applySel(null); })
                     .warmupTicks(20)
-                    .cooldownTicks(120);
+                    .cooldownTicks(140);
                 api.graph = graph;
+                graph.graphData({ nodes: api.gameNodes.concat(api.hubNodes), links: api.links });
                 // MeshStandardMaterial renders BLACK without lights. 3d-force-graph's
                 // scene ships no light rig, so add one here (ambient fills the sphere,
                 // a raised point light gives the stars a lit side + dim side).
@@ -4572,14 +4696,28 @@
                     keyLight.position.set(150, 220, 260);
                     sceneRef.add(keyLight);
                 } catch (e) { /* older scene API: stars fall back to ambient-only color */ }
-                graph.d3Force('charge').strength(isFull ? -30 : -14);
-                graph.d3Force('link').distance(isFull ? 26 : 13);
-                graph.cameraPosition({ z: isFull ? 330 : 170 });
+                graph.d3Force('charge').strength(isFull ? -36 : -16);
+                graph.d3Force('link').distance(l => l.__dl || (isFull ? 20 : 10));
+                graph.cameraPosition({ z: isFull ? 380 : 210 });
                 if (!reduceMotion()) {
                     graph.controls().autoRotate = true;
                     graph.controls().rotateSpeed = isFull ? 0.35 : 0.55;
                 }
                 graph.onEngineStop(() => { try { graph.zoomToFit(500, isFull ? 46 : 14); } catch (e) { /* zoom race with user gesture is harmless */ } });
+
+                // fullscreen labels: main + the three dim hubs always visible,
+                // value-hub labels only while their branch is highlighted
+                if (isFull) {
+                    api.hubNodes.forEach(n => {
+                        const lab = document.createElement('span');
+                        lab.className = 'globe-hub-label';
+                        lab.textContent = n.kind === 'main' ? (tRef.globeByAll || 'All loot') : n.kind === 'dim' ? dimLabel(n.dim) : (n.dim === 'month' ? monthLabel(n.key) : n.key);
+                        if (n.kind === 'main') { lab.style.fontSize = '12px'; }
+                        if (n.kind === 'val') lab.style.display = 'none';
+                        container.appendChild(lab);
+                        n.__label = lab;
+                    });
+                }
 
                 // tween ticker: pop-in (easeOutBack w/ stagger) and fold-away
                 // run on our own rAF so they keep animating after the force
@@ -4594,8 +4732,12 @@
                         // graphData() applies; the entrance ticker often starts one frame
                         // before the first mesh exists. Without this the loop saw zero busy
                         // nodes and killed itself → globe stayed empty forever (11.05.1 fix).
-                        if (!n.__mesh) { if (n.kind === 'hub' || n.__tgt !== n.__vis) busy = true; return; }
-                        if (n.kind === 'hub') {
+                        if (!n.__mesh) { if (n.kind !== 'game' || n.__tgt !== n.__vis) busy = true; return; }
+                        if (n.kind !== 'game') {
+                            // hubs ride the max visibility of their members: value
+                            // hubs follow their stars, dim hubs follow values, main
+                            // stays lit (its members chain is computed earlier in
+                            // this same pass — hubNodes is ordered vals → dims → main).
                             let mv = 0;
                             n.__members.forEach(g => { if (g.__vis > mv) mv = g.__vis; });
                             n.__vis = mv;
@@ -4625,6 +4767,8 @@
                 function updateHubLabels() {
                     api.hubNodes.forEach(n => {
                         if (!n.__label) return;
+                        // value-hub labels only surface when the branch is highlighted
+                        if (n.kind === 'val' && !(relSet && relSet.has(n.id))) { n.__label.style.display = 'none'; return; }
                         if (n.__vis < 0.15 || api.disposed) { n.__label.style.display = 'none'; return; }
                         try {
                             // 3d-force-graph 1.70.3 has no getScreenPixelCoordinates —
@@ -4651,41 +4795,6 @@
                 }
                 api.refreshColors = refreshColors;
 
-                api.setMode = function (m) {
-                    mode = m; selKey = null; selId = null; hideInfo();
-                    const keys = groupKeys();
-                    api.hubNodes.forEach(n => { if (n.__label && n.__label.parentNode) n.__label.parentNode.removeChild(n.__label); });
-                    api.hubNodes = keys.map((k, i) => ({ id: 'hub:' + k, kind: 'hub', key: k, day: 0, __vis: 0, __tgt: 1, __t0: 0, __delay: i * 60, __members: [], __idx: i }));
-                    const hubById = {}; api.hubNodes.forEach(h => { hubById['hub:' + h.key] = h; });
-                    api.gameNodes.forEach(n => {
-                        const h = hubById['hub:' + colorKeyOf(n.__e)];
-                        if (h) h.__members.push(n);
-                    });
-                    api.links = [];
-                    api.gameNodes.forEach(n => {
-                        const h = hubById['hub:' + colorKeyOf(n.__e)];
-                        if (h) api.links.push({ source: n.id, target: h.id });
-                    });
-                    graph.graphData({ nodes: api.gameNodes.concat(api.hubNodes), links: api.links });
-                    refreshColors();
-                    ensureTick();
-                    if (isFull) {
-                        api.hubNodes.forEach(n => {
-                            const lab = document.createElement('span');
-                            lab.className = 'globe-hub-label';
-                            lab.textContent = mode === 'month' ? monthLabel(n.key) : keyLabel(n.key);
-                            container.appendChild(lab);
-                            n.__label = lab;
-                        });
-                    }
-                };
-                function monthLabel(m) {
-                    // Date.UTC + UTC formatter: local-built Date read in UTC would
-                    // shift every label back a day (Sep 1 → "Aug" in UTC+8).
-                    try { return new Intl.DateTimeFormat(localeRef, { month: 'short', year: 'numeric', timeZone: 'UTC' }).format(new Date(Date.UTC(Number(m.slice(0, 4)), Number(m.slice(5, 7)) - 1, 1))); } catch (e) { return m; }
-                }
-                api.monthLabel = monthLabel;
-
                 api.setDay = function (d, stagger) {
                     api.day = d;
                     const bounds = dayBounds();
@@ -4710,19 +4819,13 @@
                     refreshColors();
                     ensureTick();
                 };
-                function dateLabel(d) {
-                    try { return new Intl.DateTimeFormat(localeRef, { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' }).format(new Date(d * 86400000)); } catch (e) { return ''; }
-                }
-                api.dateLabel = dateLabel;
 
                 function onPick(n) {
                     if (n.__vis < 0.15) return;
-                    if (!isFull) { openFullscreen(n.kind === 'game' ? { selectId: n.id } : { selectKey: n.key }); return; }
-                    if (n.kind === 'hub') { selKey = n.key; selId = null; hideInfo(); }
-                    else { selKey = null; selId = n.id; showInfo(n.__e); }
-                    refreshColors();
+                    if (!isFull) { openFullscreen({ sel: selFromNode(n) }); return; }
+                    applySel(selFromNode(n));
                 }
-                api.clearSel = function () { selKey = null; selId = null; hideInfo(); refreshColors(); };
+                api.clearSel = function () { applySel(null); };
 
                 api.play = function (on) {
                     api.playing = on;
@@ -4753,20 +4856,6 @@
                 }
                 api.syncPlayBtn = syncPlayBtn;
 
-                function showInfo(e) {
-                    const card = overlay && overlay.querySelector('#globe-info-card');
-                    if (!card || !e) return;
-                    const worthLine = e.worth ? `<span class="globe-info-worth"><s>${escG(e.worth)}</s>Free</span>` : '';
-                    card.innerHTML = `
-                        ${e.image ? `<img src="${escG(e.image)}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.style.display='none'">` : ''}
-                        <div class="globe-info-title">${escG(e.title)}</div>
-                        <div class="globe-info-meta">${escG(e.store)} · ${escG(e.plat)} · ${escG(dateLabel(e.day))}</div>
-                        ${worthLine ? `<div style="margin-top:4px">${worthLine}</div>` : ''}
-                        <a class="globe-info-link" href="${escG(e.url)}" target="_blank" rel="noopener">${escG(tRef.globeViewDeal || 'View deal')} <i class="ph-bold ph-arrow-up-right"></i></a>`;
-                    card.classList.remove('globe-off');
-                }
-                function hideInfo() { const card = overlay && overlay.querySelector('#globe-info-card'); if (card) card.classList.add('globe-off'); }
-
                 function resize() { graph.width(container.clientWidth || 300).height(container.clientHeight || 220); }
                 api.resize = resize;
                 resize();
@@ -4780,15 +4869,11 @@
                     api.hubNodes.forEach(n => { if (n.__label && n.__label.parentNode) n.__label.parentNode.removeChild(n.__label); });
                     try { graph._destructor(); } catch (e) { /* older builds: best-effort */ }
                     api.gameNodes.forEach(n => { n.__mesh = null; n.__mat = null; });
+                    api.hubNodes.forEach(n => { n.__mesh = null; n.__mat = null; });
                     try { container.innerHTML = ''; } catch (e) { }
                 };
                 api.pause = function () { try { graph.pauseAnimation(); if (graph.controls()) graph.controls().autoRotate = false; } catch (e) { } };
                 api.resume = function () { try { graph.resumeAnimation(); if (!reduceMotion() && graph.controls()) graph.controls().autoRotate = true; } catch (e) { } };
-                api.select = function (opts) {
-                    if (!opts) return;
-                    if (opts.selectId) { const n = api.gameNodes.find(x => x.id === opts.selectId); if (n) { selId = n.id; selKey = null; showInfo(n.__e); refreshColors(); } }
-                    else if (opts.selectKey) { selKey = opts.selectKey; selId = null; refreshColors(); }
-                };
                 api.retheme = function () {
                     graph.backgroundColor(isDark() ? '#171310' : '#faf5ea');
                     graph.linkOpacity(isDark() ? 0.28 : 0.4);
@@ -4815,12 +4900,6 @@
                     <div id="globe-full-mount"></div>
                     <div id="globe-full-head">
                         <span class="globe-title" id="globe-full-title"></span>
-                        <select id="globe-group-select" style="min-width:110px;font-size:12px;">
-                            <option value="platform"></option>
-                            <option value="store"></option>
-                            <option value="month"></option>
-                            <option value="all"></option>
-                        </select>
                         <span style="flex:1 1 auto;"></span>
                         <button type="button" class="globe-btn globe-icon-btn" id="globe-play-btn"></button>
                         <button type="button" class="globe-btn globe-icon-btn" id="globe-close-btn"><i class="ph-bold ph-x"></i></button>
@@ -4841,21 +4920,12 @@
                     full.stopPlay();
                     full.setDay(Number(this.value), true);
                 });
-                const sel = overlay.querySelector('#globe-group-select');
-                sel.addEventListener('change', function () {
-                    mode = this.value;
-                    if (mini) mini.setMode(mode);
-                    if (full) { full.setMode(mode); const b = dayBounds(); full.setDay(full.day || b.max, false); }
-                });
                 document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && overlay && !overlay.classList.contains('globe-off')) closeFullscreen(); });
                 return overlay;
             }
             function applyOverlayLabels() {
                 if (!overlay) return;
                 overlay.querySelector('#globe-full-title').textContent = tRef.lootGlobe || 'Loot Globe';
-                const opts = { platform: tRef.globeByPlatform || 'Platform', store: tRef.globeByStore || 'Store', month: tRef.globeByMonth || 'Month', all: tRef.globeByAll || 'All loot' };
-                overlay.querySelectorAll('#globe-group-select option').forEach(o => { o.textContent = opts[o.value] || o.value; });
-                overlay.querySelector('#globe-group-select').value = mode;
                 if (full) full.syncPlayBtn();
             }
 
@@ -4875,13 +4945,12 @@
                     const mount = overlay.querySelector('#globe-full-mount');
                     mount.innerHTML = '';
                     full = buildGraph(mount, true);
-                    full.setMode(mode);
                     const b = dayBounds();
                     const slider = overlay.querySelector('#globe-slider');
                     slider.min = b.min; slider.max = b.max; slider.value = b.max;
                     full.setDay(b.max, true);
                     full.syncPlayBtn();
-                    if (opts) full.select(opts);
+                    if (opts && opts.sel) applySel(opts.sel);
                 }).catch(() => {
                     overlay.querySelector('#globe-full-mount').innerHTML = `<div class="globe-fallback">${escG(tRef.globeLoadFail || 'The 3D engine could not load. Reopen Analytics when online.')}</div>`;
                 });
@@ -4905,7 +4974,7 @@
                 localeRef = st && (st.lang === 'zh-CN' || st.lang === 'zh-TW') ? st.lang : 'en-US';
                 if (mini) { mini.destroy(); mini = null; }
                 if (full) { closeFullscreen(); }
-                selKey = null; selId = null;
+                sel = null; relSet = null;
             }
             function mountMini() {
                 const el = document.getElementById('globe-mini-mount');
@@ -4921,7 +4990,6 @@
                 ensureLib().then(() => {
                     if (!document.getElementById('globe-mini-mount')) return; // re-rendered meanwhile
                     mini = buildGraph(el, false);
-                    mini.setMode(mode);
                     const b = dayBounds();
                     mini.setDay(b.max, true);
                     // raced fullscreen: opened before this mini existed — keep it asleep
@@ -11473,7 +11541,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.05.1';
+        window.BUILD_VERSION = '2026.11.05.2';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

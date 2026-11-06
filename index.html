@@ -4493,6 +4493,23 @@
                 if (!libPromise) libPromise = loadScript(THREE_URL).then(() => loadScript(GRAPH_URL));
                 return libPromise;
             }
+            // 2026.11.06.4 — user: ONLY the very first Loot Analytics open after app
+            // start stutters; every later open is smooth, because libPromise caches
+            // the two CDN scripts. The first open is the one that pays the fetch +
+            // eval of three.js + 3d-force-graph (~1MB) right in the middle of the
+            // entrance animation. Fix: pre-warm the engine on idle shortly after
+            // boot, so the first open costs what every later open already costs.
+            // Best-effort: no-WebGL devices never spend the bandwidth, and a failed
+            // prefetch (offline at boot) resets libPromise so a later panel open
+            // retries on demand exactly as before.
+            function warmupLibs() {
+                try {
+                    if (typeof document === 'undefined' || !hasWebGL()) return;
+                    ensureLib().catch(function () { libPromise = null; });
+                } catch (e) { /* the on-demand path still covers this open */ }
+            }
+            if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') window.requestIdleCallback(warmupLibs, { timeout: 5000 });
+            else if (typeof setTimeout === 'function') setTimeout(warmupLibs, 5000);
 
             const PALETTE_DARK = ['#00f3ff', '#bc13fe', '#f59e0b', '#22c55e', '#f43f5e', '#38bdf8', '#a3e635', '#e879f9', '#fbbf24', '#34d399', '#fb7185', '#818cf8'];
             const PALETTE_LIGHT = ['#0e7490', '#7c3aed', '#b45309', '#15803d', '#be123c', '#0369a1', '#4d7c0f', '#a21caf', '#92400e', '#0f766e', '#9f1239', '#4338ca'];
@@ -11673,7 +11690,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.06.3';
+        window.BUILD_VERSION = '2026.11.06.4';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

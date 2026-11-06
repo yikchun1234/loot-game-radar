@@ -5227,26 +5227,106 @@
                 }
                 layout();
 
+                // .07.2 zoom + pan (user: 「2d没有zoom?zoom也要弄可以看上下左右，双手指
+                // 可以drag 应该也要弄才tally design」). The 3D dial already dollies and
+                // orbits; the 2D canvas had a fixed frustum, so skewed months / dense
+                // arcs could not be pulled apart. View state is a screen-space affine
+                // (center-anchored): point_world → center + view.offset + point*view.k.
+                // draw() applies it as a canvas transform; hit-test, labels and gesture
+                // math inverse-map through it, so a tap after zooming still picks the
+                // dot the finger saw. Wheel zooms at the cursor, pinch zooms at the
+                // two-finger midpoint and pans with it, single finger drags. Clamp keeps
+                // at least the core + a sliver of rim on screen (never lost in blank).
+                const view = { k: 1, x: 0, y: 0 };
+                api.__view = view; // debug probe for live e2e
+                function clampView() {
+                    view.k = Math.max(0.5, Math.min(6, view.k));
+                    const W = container.clientWidth || 300, H = container.clientHeight || 220;
+                    const r = (Math.max(60, Math.min(W, H) / 2 - 26) * R_STAR + 60) * view.k;
+                    view.x = Math.max(-r, Math.min(r, view.x));
+                    view.y = Math.max(-r, Math.min(r, view.y));
+                }
+                // keep the world point under (px,py) pinned while the zoom goes to k2,
+                // then add an optional screen-space pan delta (pinch mid movement).
+                function zoomAt(px, py, k2, dx, dy) {
+                    const f = k2 / view.k;
+                    view.x = px - (px - view.x) * f + (dx || 0);
+                    view.y = py - (py - view.y) * f + (dy || 0);
+                    view.k = k2;
+                    clampView();
+                }
+
                 const cv = document.createElement('canvas');
-                cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;outline:none;';
+                cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;outline:none;touch-action:none;';
                 container.appendChild(cv);
                 cv.addEventListener('click', e => {
                     if (dirty2d()) return; // .06.5 rule, same ledger: only a clean single tap acts
                     let hit = null;
                     const rect = cv.getBoundingClientRect();
                     const s = Math.max(60, Math.min(rect.width, rect.height) / 2 - 26);
-                    const x = e.clientX - rect.left - rect.width / 2;
-                    const y = e.clientY - rect.top - rect.height / 2;
+                    // .07.2: inverse of the draw transform — screen → world units.
+                    const x = (e.clientX - rect.left - rect.width / 2 - view.x) / view.k;
+                    const y = (e.clientY - rect.top - rect.height / 2 - view.y) / view.k;
                     let bestD = 1e9;
                     api.hubNodes.concat(api.gameNodes).forEach(nd => {
                         if ((nd.__vis || 0) <= 0.15 || nd.x2 == null) return;
                         const dx = nd.x2 * s - x, dy = nd.y2 * s - y;
                         const d = dx * dx + dy * dy;
-                        const lim = nd.kind === 'main' ? 18 : nd.kind === 'dim' ? 13 : nd.kind === 'val' ? 11 : 9;
+                        const lim = (nd.kind === 'main' ? 18 : nd.kind === 'dim' ? 13 : nd.kind === 'val' ? 11 : 9) / view.k;
                         if (d < lim * lim && d < bestD) { bestD = d; hit = nd; }
                     });
                     if (hit) applySel(selFromNode(hit)); else applySel(null);
                 });
+
+                // .07.2 gesture layer, canvas-local (dies with destroy's removeChild).
+                // Coordinates are screen offsets from the canvas center. The .06.5
+                // container ledger already marks >10px drags / 2nd pointers as dirty,
+                // so these gestures can never clear a selection via the click below.
+                const relPos = e => {
+                    const r = cv.getBoundingClientRect();
+                    return { x: e.clientX - r.left - r.width / 2, y: e.clientY - r.top - r.height / 2 };
+                };
+                const ptrs = new Map();
+                let pinch = null;
+                cv.addEventListener('pointerdown', e => {
+                    ptrs.set(e.pointerId, relPos(e));
+                    if (cv.setPointerCapture) { try { cv.setPointerCapture(e.pointerId); } catch (err) { } }
+                    if (ptrs.size === 2) {
+                        const [a, b] = Array.from(ptrs.values());
+                        pinch = { d0: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)), k0: view.k, ax: (a.x + b.x) / 2, ay: (a.y + b.y) / 2, vx: view.x, vy: view.y };
+                    }
+                });
+                cv.addEventListener('pointermove', e => {
+                    if (!ptrs.has(e.pointerId)) return;
+                    const prev = ptrs.get(e.pointerId), now = relPos(e);
+                    ptrs.set(e.pointerId, now);
+                    if (ptrs.size >= 2 && pinch) {
+                        const [a, b] = Array.from(ptrs.values());
+                        const dist = Math.max(1, Math.hypot(a.x - b.x, a.y - b.y));
+                        const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+                        // the world point that sat under the pinch-start midpoint
+                        // rides WITH the fingers to the current midpoint, at the
+                        // span-scaled zoom — absolute math from the pinch base every
+                        // frame, so there is no drift accumulation across moves.
+                        const wx = (pinch.ax - pinch.vx) / pinch.k0, wy = (pinch.ay - pinch.vy) / pinch.k0;
+                        const k2 = Math.max(0.5, Math.min(6, pinch.k0 * dist / pinch.d0));
+                        view.k = k2; view.x = mx - wx * k2; view.y = my - wy * k2;
+                        clampView();
+                    } else if (ptrs.size === 1) {
+                        view.x += now.x - prev.x;
+                        view.y += now.y - prev.y;
+                        clampView();
+                    }
+                });
+                const endPtr = e => { ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null; };
+                cv.addEventListener('pointerup', endPtr);
+                cv.addEventListener('pointercancel', endPtr);
+                cv.addEventListener('wheel', e => {
+                    e.preventDefault();
+                    const p = relPos(e);
+                    const k2 = Math.max(0.5, Math.min(6, view.k * Math.exp(-e.deltaY * 0.0016)));
+                    zoomAt(p.x, p.y, k2);
+                }, { passive: false });
 
                 // Tween pass: identical math to the 3D ticker over the shared model.
                 function tick2() {
@@ -5282,6 +5362,13 @@
                     const cx = W / 2, cy = H / 2;
                     const s = Math.max(60, Math.min(W, H) / 2 - 26);
                     const dark = isDark();
+                    // .07.2: apply the zoom/pan transform (center-anchored) for every
+                    // painted primitive below; zk keeps the text labels at a constant
+                    // SCREEN size so zooming spreads dots apart without ballooning type.
+                    g.translate(cx + view.x, cy + view.y);
+                    g.scale(view.k, view.k);
+                    g.translate(-cx, -cy);
+                    const zk = 1 / view.k;
                     // guide rings
                     g.lineWidth = 1;
                     [R_DIM, R_VAL, R_VAL_M, R_STAR].forEach(rr => {
@@ -5352,16 +5439,16 @@
                     g.textAlign = 'center'; g.textBaseline = 'middle';
                     const lab = dark ? 'rgba(214,211,209,0.92)' : 'rgba(87,83,78,0.92)';
                     g.fillStyle = lab;
-                    g.font = '800 12px ui-rounded, system-ui, sans-serif';
-                    g.fillText(tRef.globeByAll || 'All loot', cx, cy - 26);
-                    g.font = '800 11px ui-rounded, system-ui, sans-serif';
+                    g.font = '800 ' + (12 * zk) + 'px ui-rounded, system-ui, sans-serif';
+                    g.fillText(tRef.globeByAll || 'All loot', cx, cy - 26 * zk);
+                    g.font = '800 ' + (11 * zk) + 'px ui-rounded, system-ui, sans-serif';
                     DIMS.forEach(d => {
                         const dn = nodeById[dimId(d)];
                         if (!dn || (dn.__vis || 0) <= 0.15) return;
                         g.fillStyle = lab;
-                        g.fillText(dimLabel(d), cx + dn.x2 * s, cy + dn.y2 * s - 13);
+                        g.fillText(dimLabel(d), cx + dn.x2 * s, cy + dn.y2 * s - 13 * zk);
                     });
-                    g.font = '700 9px ui-rounded, system-ui, sans-serif';
+                    g.font = '700 ' + (9 * zk) + 'px ui-rounded, system-ui, sans-serif';
                     api.hubNodes.forEach(nd => {
                         if (nd.kind !== 'val' || (nd.__vis || 0) <= 0.15 || nd.x2 == null) return;
                         const lit = !!(relSet && relSet.has(nd.id));
@@ -5369,7 +5456,7 @@
                         if (nd.dim !== 'month' && !lit) return;
                         g.fillStyle = lab;
                         const txt = nd.dim === 'month' ? monthShort(nd.key) : nd.key;
-                        g.fillText(txt, cx + nd.x2 * s, cy + nd.y2 * s - 11);
+                        g.fillText(txt, cx + nd.x2 * s, cy + nd.y2 * s - 11 * zk);
                     });
                 }
 
@@ -12175,7 +12262,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.07.1';
+        window.BUILD_VERSION = '2026.11.07.2';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

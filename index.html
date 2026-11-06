@@ -4660,6 +4660,31 @@
                 const THREE = window.THREE;
                 const api = { isFull, container, geo: null, gameNodes: [], hubNodes: [], links: [], raf: null, ro: null, playing: false, playRaf: null, day: 0, disposed: false };
                 container.__lgApi = api; // debug handle: inspect live tween state from DevTools / automation
+                // 2026.11.06.5 — user: 双指 drag 会把已选中的星「从头 reset」（高亮链+信息卡
+                // 消失），只有单指点外面才应该清除。机制：触屏 pinch/drag 结束时浏览器会
+                // 合成一个 click，3d-force-graph 把它当普通点击送进 onBackgroundClick →
+                // applySel(null)。修法：capture 级 pointer 记账——第二个按下指针=multi，
+                // 位移 >10px=moved；两个标记只在下一次 pointerdown 复位（真实事件顺序是
+                // pointerup→click，标记必须活到 click 那一刻）。两个点击入口都跳过脏手势，
+                // clean single-tap behavior is unchanged (pick/toggle star, clear on empty).
+                // State lives ON THE CONTAINER (mini el is reused across rebuilds) and the
+                // listeners are bound once, so re-opens keep working with zero leaks.
+                if (!container.__lgPtr) container.__lgPtr = { down: 0, x: 0, y: 0, multi: false, moved: false, bound: false };
+                const ptrS = container.__lgPtr;
+                function gestureDirty() { return ptrS.multi || ptrS.moved; }
+                function ptrTrack(e) {
+                    if (e.type === 'pointerdown') {
+                        ptrS.down++;
+                        if (ptrS.down === 1) { ptrS.multi = false; ptrS.moved = false; ptrS.x = e.clientX; ptrS.y = e.clientY; }
+                        else ptrS.multi = true;
+                    } else if (e.type === 'pointermove') {
+                        if (ptrS.down > 0 && (Math.abs(e.clientX - ptrS.x) > 10 || Math.abs(e.clientY - ptrS.y) > 10)) ptrS.moved = true;
+                    } else if (ptrS.down > 0) ptrS.down--; // pointerup / pointercancel
+                }
+                if (!ptrS.bound) {
+                    ptrS.bound = true;
+                    ['pointerdown', 'pointermove', 'pointerup', 'pointercancel'].forEach(ev => container.addEventListener(ev, ptrTrack, true));
+                }
                 const sharedGeo = new THREE.SphereGeometry(1, 18, 14);
                 api.geo = sharedGeo;
 
@@ -4757,8 +4782,8 @@
                         }
                         return isDark() ? '#4a443c' : '#c8bfae';
                     })
-                    .onNodeClick(n => onPick(n))
-                    .onBackgroundClick(() => { applySel(null); })
+                    .onNodeClick(n => { if (!gestureDirty()) onPick(n); })
+                    .onBackgroundClick(() => { if (!gestureDirty()) applySel(null); })
                     .warmupTicks(20)
                     .cooldownTicks(140);
                 api.graph = graph;
@@ -11690,7 +11715,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.06.4';
+        window.BUILD_VERSION = '2026.11.06.5';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

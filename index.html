@@ -5015,21 +5015,27 @@
 
                 api.setDay = function (d, stagger) {
                     api.day = d;
-                    const bounds = dayBounds();
                     let cnt = 0;
                     const now = performance.now();
-                    let added = 0;
+                    const flipped = [];
                     api.gameNodes.forEach(n => {
                         const tgt = n.day <= d ? 1 : 0;
                         if (tgt) cnt++;
                         if (tgt !== n.__tgt) {
                             n.__tgt = tgt; n.__t0 = now;
-                            if (tgt === 1) {
-                                n.__delay = stagger ? Math.min(300, ((n.day - bounds.min) / Math.max(1, d - bounds.min)) * 300) : 0;
-                                added++;
-                            }
+                            if (tgt === 1) flipped.push(n);
                         }
                     });
+                    // 2026.11.07.1 entrance pops PLAY-style: stars that flip in this
+                    // call arrive in chronological order spread over a window that
+                    // grows with the batch (≈25ms each, capped 1.2s). Opening the
+                    // globe (or switching mode) replays the whole library like a fast
+                    // sweep; a small scrub batch pops almost immediately. Mid-play
+                    // uses stagger=false so dots still arrive exactly with the day
+                    // hand. Identical math in the 2D renderer (tally design).
+                    if (flipped.length > 1) flipped.sort((p, q) => p.day - q.day || (p.id < q.id ? -1 : 1));
+                    const win = Math.min(1200, flipped.length * 25);
+                    flipped.forEach((n, i) => { n.__delay = stagger ? (i / Math.max(1, flipped.length - 1)) * win : 0; });
                     const chip = overlay && overlay.querySelector('#globe-count-chip');
                     if (chip) chip.textContent = cnt + ' ' + (tRef.globeInView || 'in view');
                     const dl = overlay && overlay.querySelector('#globe-date-label');
@@ -5149,15 +5155,24 @@
                 api.gameNodes.concat(api.hubNodes).forEach(nd => { nodeById[nd.id] = nd; });
 
                 // Geometry in unit space (R = min(w,h)/2 - 26 px at draw time).
-                const SEC = { platform: [-142, -38], store: [-22, 82], month: [98, 202] };
-                const R_DIM = 0.34, R_VAL = 0.62, R_STAR = 0.93;
+                // 2026.11.07.1 — "flattened clock ring" (user: 「app 应该在外面…只是在左
+                // 边，没有平摊外围」). The OLD ring rode every star on dayAngle(claim day),
+                // so a library claiming mostly inside a few months crammed the WHOLE
+                // perimeter to that slice of the clock. Now stars spread UNIFORMLY over
+                // the full 360° in claim-date ORDER (rank/total → angle): still a clock,
+                // just stretched so every slice gets room, and the outer rim is always
+                // fully populated no matter how skewed the data is. Month value hubs
+                // float at the MID-ARC of their own stars (contiguous ranks), so a
+                // month's label sits right over its stars' block; platform/store hubs
+                // keep their sectors (attributes are time-independent); the Month dim
+                // hub moves to the bottom (SEC.month now centers at 90°) because its
+                // values wrap the entire circle. The sweep hand tracks the same rank
+                // axis via rankFrac() — chronological play reads identical.
+                const SEC = { platform: [-142, -38], store: [-22, 82], month: [40, 140] };
+                const R_DIM = 0.34, R_VAL = 0.62, R_VAL_M = 0.78, R_STAR = 0.93;
                 const rad = a => (a * Math.PI) / 180;
-                const b0 = dayBounds();
-                function dayAngle(d) {
-                    if (!(b0.max > b0.min)) return (SEC.month[0] + SEC.month[1]) / 2;
-                    const t = Math.max(0, Math.min(1, (d - b0.min) / (b0.max - b0.min)));
-                    return SEC.month[0] + t * (SEC.month[1] - SEC.month[0]);
-                }
+                const TOP = -90;                    // rank 0 starts at the top
+                const rankAngle = f => rad(TOP + f * 360);
                 function hash01(s) {
                     let x = 2166136261;
                     const str = String(s);
@@ -5166,6 +5181,14 @@
                 }
                 function monthShort(mk) {
                     try { return new Intl.DateTimeFormat(localeRef, { month: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(Number(mk.slice(0, 4)), Number(mk.slice(5, 7)) - 1, 1))); } catch (e) { return mk; }
+                }
+                const ranked = api.gameNodes.slice().sort((p, q) => p.day - q.day || (p.id < q.id ? -1 : 1));
+                ranked.forEach((nd, i) => { nd.__rank = i; });
+                const S = ranked.length;
+                function rankFrac(day) {   // fraction of the library claimed at or before `day`
+                    let lo = 0, hi = S;
+                    while (lo < hi) { const mid = (lo + hi) >> 1; if (ranked[mid].day <= day) lo = mid + 1; else hi = mid; }
+                    return S ? lo / S : 1;
                 }
                 function layout() {
                     nodeById[mainId()].x2 = 0; nodeById[mainId()].y2 = 0;
@@ -5182,15 +5205,21 @@
                             nd.x2 = Math.cos(a) * R_VAL; nd.y2 = Math.sin(a) * R_VAL;
                         });
                     });
+                    const monthArc = {};
+                    ranked.forEach(nd => {
+                        const k = valKeyOf(nd.__e, 'month');
+                        const sp = monthArc[k] || (monthArc[k] = [nd.__rank, nd.__rank]);
+                        sp[1] = nd.__rank;
+                    });
                     const mvals = api.hubNodes.filter(nd => nd.kind === 'val' && nd.dim === 'month').sort((p, q) => (p.key < q.key ? -1 : 1));
                     mvals.forEach(nd => {
-                        const y = Number(nd.key.slice(0, 4)), mo = Number(nd.key.slice(5, 7)) - 1;
-                        const first = Math.floor(Date.UTC(y, mo, 1) / 86400000);
-                        const a = rad(dayAngle(Math.max(b0.min, first)));
-                        nd.x2 = Math.cos(a) * R_VAL; nd.y2 = Math.sin(a) * R_VAL;
+                        const sp = monthArc[nd.key];
+                        const mid = sp ? (sp[0] + sp[1] + 1) / 2 : S / 2;
+                        const a = rankAngle(mid / Math.max(1, S));
+                        nd.x2 = Math.cos(a) * R_VAL_M; nd.y2 = Math.sin(a) * R_VAL_M;
                     });
                     api.gameNodes.forEach(nd => {
-                        const a = rad(dayAngle(nd.day));
+                        const a = rankAngle((nd.__rank + 0.5) / Math.max(1, S));
                         const rr = R_STAR - 0.06 * hash01(nd.id);
                         nd.x2 = Math.cos(a) * rr; nd.y2 = Math.sin(a) * rr;
                     });
@@ -5255,7 +5284,7 @@
                     const dark = isDark();
                     // guide rings
                     g.lineWidth = 1;
-                    [R_DIM, R_VAL, R_STAR].forEach(rr => {
+                    [R_DIM, R_VAL, R_VAL_M, R_STAR].forEach(rr => {
                         g.beginPath(); g.arc(cx, cy, rr * s, 0, Math.PI * 2);
                         g.strokeStyle = dark ? 'rgba(255,255,255,0.06)' : 'rgba(87,83,78,0.12)';
                         g.stroke();
@@ -5284,10 +5313,12 @@
                         g.stroke();
                     });
                     g.globalAlpha = 1;
-                    // play/scrub sweep hand along the month clock
+                    // play/scrub sweep hand riding the RANK axis (2026.11.07.1): it
+                    // points at the frontier of the stars revealed so far, so on the
+                    // stretched ring it moves evenly with the clock order of claims.
                     const sweeping = api.playing || (performance.now() - (api.__scrubT || 0) < 1200);
-                    if (sweeping && b0.max > b0.min) {
-                        const a = rad(dayAngle(api.day));
+                    if (sweeping && S) {
+                        const a = rankAngle(rankFrac(api.day));
                         const hx = cx + Math.cos(a) * R_STAR * s, hy = cy + Math.sin(a) * R_STAR * s;
                         g.strokeStyle = gold; g.globalAlpha = 0.5; g.lineWidth = 1.5;
                         g.beginPath(); g.moveTo(cx, cy); g.lineTo(hx, hy); g.stroke();
@@ -5352,17 +5383,22 @@
 
                 api.setDay = function (d, stagger) {
                     api.day = d;
-                    const bounds = dayBounds();
                     let cnt = 0;
                     const now = performance.now();
+                    const flipped = [];
                     api.gameNodes.forEach(nd => {
                         const tgt = nd.day <= d ? 1 : 0;
                         if (tgt) cnt++;
                         if (tgt !== nd.__tgt) {
                             nd.__tgt = tgt; nd.__t0 = now;
-                            if (tgt === 1) nd.__delay = stagger ? Math.min(300, ((nd.day - bounds.min) / Math.max(1, d - bounds.min)) * 300) : 0;
+                            if (tgt === 1) flipped.push(nd);
                         }
                     });
+                    // .07.1: identical entrance choreography to the 3D renderer —
+                    // a fresh batch pops in chronological order over a shared window.
+                    if (flipped.length > 1) flipped.sort((p, q) => p.day - q.day || (p.id < q.id ? -1 : 1));
+                    const win = Math.min(1200, flipped.length * 25);
+                    flipped.forEach((nd, i) => { nd.__delay = stagger ? (i / Math.max(1, flipped.length - 1)) * win : 0; });
                     const chip = overlay && overlay.querySelector('#globe-count-chip');
                     if (chip) chip.textContent = cnt + ' ' + (tRef.globeInView || 'in view');
                     const dl = overlay && overlay.querySelector('#globe-date-label');
@@ -12139,7 +12175,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.06.7';
+        window.BUILD_VERSION = '2026.11.07.1';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

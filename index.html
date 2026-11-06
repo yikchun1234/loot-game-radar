@@ -431,6 +431,8 @@
         .globe-btn { display: inline-flex; align-items: center; gap: 6px; border-radius: 9999px; border: 1px solid rgba(180,83,9,.4); background: rgba(255,253,247,.85); color: #b45309; font-weight: 800; font-size: 12px; padding: 7px 13px; cursor: pointer; }
         .dark .globe-btn { border-color: rgba(0,243,255,.4); background: rgba(13,15,22,.8); color: #00f3ff; }
         .globe-icon-btn { width: 34px; height: 34px; padding: 0; justify-content: center; font-size: 16px; }
+        /* 2026.11.06.6 — bottom-right 2D/3D toggle, riding above the raised time bar */
+        #globe-mode-btn { position: absolute; right: 14px; bottom: calc(env(safe-area-inset-bottom, 0px) + 100px); z-index: 3; }
         #globe-slider { width: 100%; accent-color: #b45309; cursor: pointer; touch-action: none; }
         .dark #globe-slider { accent-color: #00f3ff; }
         .globe-hub-label { position: absolute; transform: translate(-50%, -50%); font-size: 10px; font-weight: 800; letter-spacing: .04em; pointer-events: none; white-space: nowrap; color: #6b5d49; text-shadow: 0 0 6px rgba(255,255,255,.85); z-index: 1; }
@@ -1962,16 +1964,16 @@
         Object.assign(i18n.ko, { yearCalendar: "전리품 캘린더", yearCalendarDesc: "1년간의 획득 활동", hourScatter: "심야 헌터", hourScatterDesc: "획득 시각 × 게임 가치", lootFunnel: "전리품 퍼널", lootFunnelDesc: "추적 → 삭제 → 보관", funnelTracked: "추적됨", funnelRemoved: "삭제됨", funnelKept: "보관 중", platformRise: "플랫폼 흥망사", platformRiseDesc: "월별 획득 가치를 플랫폼별로 쌓은 차트", platformOther: "기타", hourNight: "심야", hourMorning: "오전", hourAfternoon: "오후", hourEvening: "저녁", lootClock: "24시간 전리품 시계", lootClockDesc: "시간대별 획득 가치", removalCalendar: "삭제 캘린더", removalCalendarDesc: "1년간의 삭제 활동", storeActivity: "스토어 활동", storeActivityDesc: "월별 클레임을 스토어별로 누적", storeActEmpty: "아직 클레임이 없습니다", avgClaimPerDay: "일평균 획득", keepRate: "보유율", keepRateKept: "유지", keepRatePassed: "제거", since: "시작", rescueDone: "데이터 복구됨! 라이브러리가 마지막 백업에서 복원되었습니다." });
         Object.assign(i18n.pt, { yearCalendar: "Calendário de Loot", yearCalendarDesc: "Sua atividade de resgate ao longo do ano", hourScatter: "Caçador Noturno", hourScatterDesc: "Hora do dia vs valor do jogo", lootFunnel: "Funil de Loot", lootFunnelDesc: "Rastreado → Removido → Mantido", funnelTracked: "Rastreados", funnelRemoved: "Removidos", funnelKept: "Mantidos", platformRise: "Ascensão e Queda das Plataformas", platformRiseDesc: "Valor mensal resgatado empilhado por plataforma", platformOther: "Outros", hourNight: "Noite", hourMorning: "Manhã", hourAfternoon: "Tarde", hourEvening: "Serão", lootClock: "Relógio de Loot 24h", lootClockDesc: "Valor resgatado a cada hora do dia", removalCalendar: "Calendário de Remoção", removalCalendarDesc: "Sua atividade de remoção ao longo do ano", storeActivity: "Atividade por Loja", storeActivityDesc: "Claims mensais empilhados por loja", storeActEmpty: "Ainda sem claims", avgClaimPerDay: "Média de Resgates por Dia", keepRate: "Taxa de Retenção", keepRateKept: "mantidos", keepRatePassed: "descartados", since: "desde", rescueDone: "Dados recuperados! Sua biblioteca foi restaurada do seu último backup." });
         // Loot Globe i18n keys (2026.11.05.1 - replaces Streak Flame panel + Claim Streak card)
-        Object.assign(i18n.en, { lootGlobe: "Loot Globe", lootGlobeDesc: "Every game you have claimed, as a living constellation - spin it, zoom in, tap a star.", globeExpand: "Open the globe", globeClose: "Close", globeByAll: "All loot", globeByPlatform: "Platform", globeByStore: "Store", globeByMonth: "Month", globeHint: "Drag to orbit - pinch or scroll to zoom - tap a star to light up its month, platform and store chain to the core", globePlay: "Play from day one", globePause: "Pause", globeLoading: "Loading the 3D engine...", globeNoWebGL: "3D is not available in this browser.", globeLoadFail: "The 3D engine could not load. Reopen Analytics when online.", globeInView: "in view", globeViewDeal: "View deal" });
-        Object.assign(i18n['zh-CN'], { lootGlobe: "战利星球", lootGlobeDesc: "你领取的每款游戏，都是一颗活的星球——旋转、缩放、点一颗星星看看。", globeExpand: "打开星球", globeClose: "关闭", globeByAll: "全部战利", globeByPlatform: "平台", globeByStore: "商店", globeByMonth: "月份", globeHint: "拖动旋转 · 双指或滚轮缩放 · 点一颗星，点亮它通往核心的月份/平台/商店链", globePlay: "从第一天播放", globePause: "暂停", globeLoading: "正在加载 3D 引擎…", globeNoWebGL: "此浏览器不支持 3D。", globeLoadFail: "3D 引擎加载失败，请联网后重新打开分析。", globeInView: "在视野中", globeViewDeal: "查看礼包" });
-        Object.assign(i18n['zh-TW'], { lootGlobe: "戰利星球", lootGlobeDesc: "你領取的所有遊戲，都是一顆活的星球——旋轉、縮放、點一顆星星看看。", globeExpand: "打開星球", globeClose: "關閉", globeByAll: "全部戰利", globeByPlatform: "平台", globeByStore: "商店", globeByMonth: "月份", globeHint: "拖動旋轉 · 雙指或滾輪縮放 · 點一顆星，點亮它通往核心的月份/平台/商店鏈", globePlay: "從第一天播放", globePause: "暫停", globeLoading: "正在載入 3D 引擎…", globeNoWebGL: "此瀏覽器不支援 3D。", globeLoadFail: "3D 引擎載入失敗，請聯網後重新開啟分析。", globeInView: "在視野中", globeViewDeal: "查看礼包" });
-        Object.assign(i18n['ja'], { lootGlobe: "ルートグローブ", lootGlobeDesc: "あなたが獲得した全てのゲームが息づく星座——回して、ズームして、星をタップ。", globeExpand: "グローブを開く", globeClose: "閉じる", globeByAll: "全ルート", globeByPlatform: "プラットフォーム", globeByStore: "ストア", globeByMonth: "月", globeHint: "ドラッグで回転 · ピンチやスクロールでズーム · 星をタップすると月・プラットフォーム・ストアのつながりが光ります", globePlay: "初日から再生", globePause: "一時停止", globeLoading: "3Dエンジン読み込み中…", globeNoWebGL: "このブラウザでは3Dを利用できません。", globeLoadFail: "3Dエンジンを読み込めませんでした。オンラインで分析を開き直してください。", globeInView: "表示中", globeViewDeal: "ギフトを見る" });
-        Object.assign(i18n['ko'], { lootGlobe: "전리품 지구", lootGlobeDesc: "받은 모든 게임이 살아있는 별자리로 — 회전하고, 확대하고, 별을 탭하세요.", globeExpand: "지구 열기", globeClose: "닫기", globeByAll: "전체 전리품", globeByPlatform: "플랫폼", globeByStore: "스토어", globeByMonth: "월", globeHint: "드래그 회전 · 핀치/휠 확대 · 별을 탭하면 월·플랫폼·스토어 연결이 빛납니다", globePlay: "첫날부터 재생", globePause: "일시정지", globeLoading: "3D 엔진 로드 중…", globeNoWebGL: "이 브라우저에서는 3D를 사용할 수 없습니다.", globeLoadFail: "3D 엔진을 불러올 수 없습니다. 온라인에서 분석을 다시 여세요.", globeInView: "표시 중", globeViewDeal: "게임 보기" });
-        Object.assign(i18n['es'], { lootGlobe: "Globo de Botín", lootGlobeDesc: "Cada juego que has reclamado, como una constelación viva: gíralo, acerca, toca una estrella.", globeExpand: "Abrir el globo", globeClose: "Cerrar", globeByAll: "Todo el botín", globeByPlatform: "Plataforma", globeByStore: "Tienda", globeByMonth: "Mes", globeHint: "Arrastra para orbitar, pellizca o rueda para zoom, toca una estrella para encender su cadena de mes, plataforma y tienda hasta el núcleo", globePlay: "Reproducir desde el primer día", globePause: "Pausa", globeLoading: "Cargando motor 3D...", globeNoWebGL: "3D no está disponible en este navegador.", globeLoadFail: "El motor 3D no se pudo cargar. Reabre Analytics con conexión.", globeInView: "en vista", globeViewDeal: "Ver oferta" });
-        Object.assign(i18n['fr'], { lootGlobe: "Globe de Butin", lootGlobeDesc: "Chaque jeu réclamé, en constellation vivante : fais-le tourner, zoome, touche une étoile.", globeExpand: "Ouvrir le globe", globeClose: "Fermer", globeByAll: "Tout le butin", globeByPlatform: "Plateforme", globeByStore: "Boutique", globeByMonth: "Mois", globeHint: "Glisser pour orbiter, pincer ou moletter pour zoomer, toucher une étoile pour allumer sa chaîne mois, plateforme et boutique jusqu'au noyau", globePlay: "Lire depuis le premier jour", globePause: "Pause", globeLoading: "Chargement du moteur 3D...", globeNoWebGL: "La 3D n'est pas disponible dans ce navigateur.", globeLoadFail: "Le moteur 3D n'a pas pu se charger. Rouvrez Analytics en ligne.", globeInView: "visibles", globeViewDeal: "Voir l'offre" });
-        Object.assign(i18n['de'], { lootGlobe: "Loot-Globus", lootGlobeDesc: "Jedes geholte Spiel als lebendiges Sternbild – drehen, zoomen, Stern antippen.", globeExpand: "Globus öffnen", globeClose: "Schließen", globeByAll: "Alle Beute", globeByPlatform: "Plattform", globeByStore: "Store", globeByMonth: "Monat", globeHint: "Ziehen zum Drehen, Pinch oder Scroll zum Zoomen, Stern antippen – Monat, Plattform und Store-Kette zum Kern leuchten auf", globePlay: "Ab dem ersten Tag abspielen", globePause: "Pause", globeLoading: "3D-Engine wird geladen...", globeNoWebGL: "3D ist in diesem Browser nicht verfügbar.", globeLoadFail: "Die 3D-Engine konnte nicht geladen werden. Öffne Analytics erneut online.", globeInView: "im Bild", globeViewDeal: "Angebot ansehen" });
-        Object.assign(i18n['ru'], { lootGlobe: "Лут-глобус", lootGlobeDesc: "Каждая забранная игра — живое созвездие: вращай, приближай, нажимай на звезду.", globeExpand: "Открыть глобус", globeClose: "Закрыть", globeByAll: "Весь лут", globeByPlatform: "Платформа", globeByStore: "Магазин", globeByMonth: "Месяц", globeHint: "Тяните, чтобы вращать; пинч или колесо для зума; нажмите звезду — подсветятся цепочка месяца, платформы и магазина к ядру", globePlay: "С первого дня", globePause: "Пауза", globeLoading: "Загрузка 3D-движка...", globeNoWebGL: "3D недоступен в этом браузере.", globeLoadFail: "3D-движок не загрузился. Откройте Analytics снова в сети.", globeInView: "в поле", globeViewDeal: "Смотреть" });
-        Object.assign(i18n['pt'], { lootGlobe: "Globo de Loot", lootGlobeDesc: "Cada jogo resgatado, numa constelação viva — gire, dê zoom, toque numa estrela.", globeExpand: "Abrir o globo", globeClose: "Fechar", globeByAll: "Todo o loot", globeByPlatform: "Plataforma", globeByStore: "Loja", globeByMonth: "Mês", globeHint: "Arraste para orbitar, pinça ou roda para zoom, toque numa estrela para acender a corrente de mês, plataforma e loja até o núcleo", globePlay: "Reproduzir do primeiro dia", globePause: "Pausar", globeLoading: "Carregando motor 3D...", globeNoWebGL: "3D não está disponível neste navegador.", globeLoadFail: "O motor 3D não pôde carregar. Reabra Analytics com conexão.", globeInView: "na vista", globeViewDeal: "Ver oferta" });
+        Object.assign(i18n.en, { lootGlobe: "Loot Globe", lootGlobeDesc: "Every game you have claimed, as a living constellation - spin it, zoom in, tap a star.", globeExpand: "Open the globe", globeClose: "Close", globeByAll: "All loot", globeByPlatform: "Platform", globeByStore: "Store", globeByMonth: "Month", globeHint: "Drag to orbit - pinch or scroll to zoom - tap a star to light up its month, platform and store chain to the core", globePlay: "Play from day one", globePause: "Pause", globeTo2D: "Switch to the 2D ring map", globeTo3D: "Switch back to the 3D sky", globeLoading: "Loading the 3D engine...", globeNoWebGL: "3D is not available in this browser.", globeLoadFail: "The 3D engine could not load. Reopen Analytics when online.", globeInView: "in view", globeViewDeal: "View deal" });
+        Object.assign(i18n['zh-CN'], { lootGlobe: "战利星球", lootGlobeDesc: "你领取的每款游戏，都是一颗活的星球——旋转、缩放、点一颗星星看看。", globeExpand: "打开星球", globeClose: "关闭", globeByAll: "全部战利", globeByPlatform: "平台", globeByStore: "商店", globeByMonth: "月份", globeHint: "拖动旋转 · 双指或滚轮缩放 · 点一颗星，点亮它通往核心的月份/平台/商店链", globePlay: "从第一天播放", globePause: "暂停", globeTo2D: "切换到 2D 圆环图", globeTo3D: "切回 3D 星空", globeLoading: "正在加载 3D 引擎…", globeNoWebGL: "此浏览器不支持 3D。", globeLoadFail: "3D 引擎加载失败，请联网后重新打开分析。", globeInView: "在视野中", globeViewDeal: "查看礼包" });
+        Object.assign(i18n['zh-TW'], { lootGlobe: "戰利星球", lootGlobeDesc: "你領取的所有遊戲，都是一顆活的星球——旋轉、縮放、點一顆星星看看。", globeExpand: "打開星球", globeClose: "關閉", globeByAll: "全部戰利", globeByPlatform: "平台", globeByStore: "商店", globeByMonth: "月份", globeHint: "拖動旋轉 · 雙指或滾輪縮放 · 點一顆星，點亮它通往核心的月份/平台/商店鏈", globePlay: "從第一天播放", globePause: "暫停", globeTo2D: "切換到 2D 圓環圖", globeTo3D: "切回 3D 星空", globeLoading: "正在載入 3D 引擎…", globeNoWebGL: "此瀏覽器不支援 3D。", globeLoadFail: "3D 引擎載入失敗，請聯網後重新開啟分析。", globeInView: "在視野中", globeViewDeal: "查看礼包" });
+        Object.assign(i18n['ja'], { lootGlobe: "ルートグローブ", lootGlobeDesc: "あなたが獲得した全てのゲームが息づく星座——回して、ズームして、星をタップ。", globeExpand: "グローブを開く", globeClose: "閉じる", globeByAll: "全ルート", globeByPlatform: "プラットフォーム", globeByStore: "ストア", globeByMonth: "月", globeHint: "ドラッグで回転 · ピンチやスクロールでズーム · 星をタップすると月・プラットフォーム・ストアのつながりが光ります", globePlay: "初日から再生", globePause: "一時停止", globeTo2D: "2D 環状マップに切替", globeTo3D: "3D 星空に戻す", globeLoading: "3Dエンジン読み込み中…", globeNoWebGL: "このブラウザでは3Dを利用できません。", globeLoadFail: "3Dエンジンを読み込めませんでした。オンラインで分析を開き直してください。", globeInView: "表示中", globeViewDeal: "ギフトを見る" });
+        Object.assign(i18n['ko'], { lootGlobe: "전리품 지구", lootGlobeDesc: "받은 모든 게임이 살아있는 별자리로 — 회전하고, 확대하고, 별을 탭하세요.", globeExpand: "지구 열기", globeClose: "닫기", globeByAll: "전체 전리품", globeByPlatform: "플랫폼", globeByStore: "스토어", globeByMonth: "월", globeHint: "드래그 회전 · 핀치/휠 확대 · 별을 탭하면 월·플랫폼·스토어 연결이 빛납니다", globePlay: "첫날부터 재생", globePause: "일시정지", globeTo2D: "2D 링 맵으로 전환", globeTo3D: "3D 하늘로 복귀", globeLoading: "3D 엔진 로드 중…", globeNoWebGL: "이 브라우저에서는 3D를 사용할 수 없습니다.", globeLoadFail: "3D 엔진을 불러올 수 없습니다. 온라인에서 분석을 다시 여세요.", globeInView: "표시 중", globeViewDeal: "게임 보기" });
+        Object.assign(i18n['es'], { lootGlobe: "Globo de Botín", lootGlobeDesc: "Cada juego que has reclamado, como una constelación viva: gíralo, acerca, toca una estrella.", globeExpand: "Abrir el globo", globeClose: "Cerrar", globeByAll: "Todo el botín", globeByPlatform: "Plataforma", globeByStore: "Tienda", globeByMonth: "Mes", globeHint: "Arrastra para orbitar, pellizca o rueda para zoom, toca una estrella para encender su cadena de mes, plataforma y tienda hasta el núcleo", globePlay: "Reproducir desde el primer día", globePause: "Pausa", globeTo2D: "Cambiar al mapa 2D de anillos", globeTo3D: "Volver al cielo 3D", globeLoading: "Cargando motor 3D...", globeNoWebGL: "3D no está disponible en este navegador.", globeLoadFail: "El motor 3D no se pudo cargar. Reabre Analytics con conexión.", globeInView: "en vista", globeViewDeal: "Ver oferta" });
+        Object.assign(i18n['fr'], { lootGlobe: "Globe de Butin", lootGlobeDesc: "Chaque jeu réclamé, en constellation vivante : fais-le tourner, zoome, touche une étoile.", globeExpand: "Ouvrir le globe", globeClose: "Fermer", globeByAll: "Tout le butin", globeByPlatform: "Plateforme", globeByStore: "Boutique", globeByMonth: "Mois", globeHint: "Glisser pour orbiter, pincer ou moletter pour zoomer, toucher une étoile pour allumer sa chaîne mois, plateforme et boutique jusqu'au noyau", globePlay: "Lire depuis le premier jour", globePause: "Pause", globeTo2D: "Passer en vue 2D (anneaux)", globeTo3D: "Revenir au ciel 3D", globeLoading: "Chargement du moteur 3D...", globeNoWebGL: "La 3D n'est pas disponible dans ce navigateur.", globeLoadFail: "Le moteur 3D n'a pas pu se charger. Rouvrez Analytics en ligne.", globeInView: "visibles", globeViewDeal: "Voir l'offre" });
+        Object.assign(i18n['de'], { lootGlobe: "Loot-Globus", lootGlobeDesc: "Jedes geholte Spiel als lebendiges Sternbild – drehen, zoomen, Stern antippen.", globeExpand: "Globus öffnen", globeClose: "Schließen", globeByAll: "Alle Beute", globeByPlatform: "Plattform", globeByStore: "Store", globeByMonth: "Monat", globeHint: "Ziehen zum Drehen, Pinch oder Scroll zum Zoomen, Stern antippen – Monat, Plattform und Store-Kette zum Kern leuchten auf", globePlay: "Ab dem ersten Tag abspielen", globePause: "Pause", globeTo2D: "Zur 2D-Ringkarte wechseln", globeTo3D: "Zurück zum 3D-Himmel", globeLoading: "3D-Engine wird geladen...", globeNoWebGL: "3D ist in diesem Browser nicht verfügbar.", globeLoadFail: "Die 3D-Engine konnte nicht geladen werden. Öffne Analytics erneut online.", globeInView: "im Bild", globeViewDeal: "Angebot ansehen" });
+        Object.assign(i18n['ru'], { lootGlobe: "Лут-глобус", lootGlobeDesc: "Каждая забранная игра — живое созвездие: вращай, приближай, нажимай на звезду.", globeExpand: "Открыть глобус", globeClose: "Закрыть", globeByAll: "Весь лут", globeByPlatform: "Платформа", globeByStore: "Магазин", globeByMonth: "Месяц", globeHint: "Тяните, чтобы вращать; пинч или колесо для зума; нажмите звезду — подсветятся цепочка месяца, платформы и магазина к ядру", globePlay: "С первого дня", globePause: "Пауза", globeTo2D: "Переключить на 2D-карту колец", globeTo3D: "Вернуться к 3D-небу", globeLoading: "Загрузка 3D-движка...", globeNoWebGL: "3D недоступен в этом браузере.", globeLoadFail: "3D-движок не загрузился. Откройте Analytics снова в сети.", globeInView: "в поле", globeViewDeal: "Смотреть" });
+        Object.assign(i18n['pt'], { lootGlobe: "Globo de Loot", lootGlobeDesc: "Cada jogo resgatado, numa constelação viva — gire, dê zoom, toque numa estrela.", globeExpand: "Abrir o globo", globeClose: "Fechar", globeByAll: "Todo o loot", globeByPlatform: "Plataforma", globeByStore: "Loja", globeByMonth: "Mês", globeHint: "Arraste para orbitar, pinça ou roda para zoom, toque numa estrela para acender a corrente de mês, plataforma e loja até o núcleo", globePlay: "Reproduzir do primeiro dia", globePause: "Pausar", globeTo2D: "Mudar para o mapa 2D de anéis", globeTo3D: "Voltar ao céu 3D", globeLoading: "Carregando motor 3D...", globeNoWebGL: "3D não está disponível neste navegador.", globeLoadFail: "O motor 3D não pôde carregar. Reabra Analytics com conexão.", globeInView: "na vista", globeViewDeal: "Ver oferta" });
         // ------------------------------------------
 
         // Loot Wrapped i18n keys (2026.10.05.6)
@@ -4463,6 +4465,12 @@
             const DIMS = ['platform', 'store', 'month'];
             let sel = null;      // {kind:'game'|'val'|'dim'|'main', id?, dim?, key?}
             let relSet = null;   // ids lit by the current selection; null = nothing selected
+            // 2026.11.06.6 — user asked for a bottom-right 2D/3D toggle in the
+            // fullscreen globe ("2d就2d图, 3d就现在的"), and play must animate in
+            // BOTH modes. Module-level so the preference survives closes; 3D stays
+            // the default, and every open rebuilds its instance in the current mode.
+            let globeMode = '3d';
+            let globeOpenToken = 0; // newest fullscreen open/mode-switch wins the race
 
             function valKeyOf(e, d) { return d === 'platform' ? e.plat : d === 'store' ? e.store : e.month; }
             function valId(d, k) { return 'hub:val:' + d + ':' + k; }
@@ -4654,40 +4662,22 @@
                 return glowTexCache;
             }
             function haloColor() { return isDark() ? '#fbbf24' : '#d97706'; }
+            // #rrggbb → rgba() string for the 2D canvas (2026.11.06.6)
+            function hexA(hex, a) {
+                const h = String(hex || '').replace('#', '');
+                const n = parseInt(h.length === 3 ? h.split('').map(c => c + c).join('') : h, 16);
+                return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+            }
+            // pop/fold easing — the tween math is shared by the 3D ticker and the
+            // 2D frame loop so both views animate identically (2026.11.06.6).
+            function backOut(t) { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); }
+            function quadIn(t) { return t * t; }
 
-            // --- one 3D instance (mini or fullscreen) ---
-            function buildGraph(container, isFull) {
-                const THREE = window.THREE;
-                const api = { isFull, container, geo: null, gameNodes: [], hubNodes: [], links: [], raf: null, ro: null, playing: false, playRaf: null, day: 0, disposed: false };
-                container.__lgApi = api; // debug handle: inspect live tween state from DevTools / automation
-                // 2026.11.06.5 — user: 双指 drag 会把已选中的星「从头 reset」（高亮链+信息卡
-                // 消失），只有单指点外面才应该清除。机制：触屏 pinch/drag 结束时浏览器会
-                // 合成一个 click，3d-force-graph 把它当普通点击送进 onBackgroundClick →
-                // applySel(null)。修法：capture 级 pointer 记账——第二个按下指针=multi，
-                // 位移 >10px=moved；两个标记只在下一次 pointerdown 复位（真实事件顺序是
-                // pointerup→click，标记必须活到 click 那一刻）。两个点击入口都跳过脏手势，
-                // clean single-tap behavior is unchanged (pick/toggle star, clear on empty).
-                // State lives ON THE CONTAINER (mini el is reused across rebuilds) and the
-                // listeners are bound once, so re-opens keep working with zero leaks.
-                if (!container.__lgPtr) container.__lgPtr = { down: 0, x: 0, y: 0, multi: false, moved: false, bound: false };
-                const ptrS = container.__lgPtr;
-                function gestureDirty() { return ptrS.multi || ptrS.moved; }
-                function ptrTrack(e) {
-                    if (e.type === 'pointerdown') {
-                        ptrS.down++;
-                        if (ptrS.down === 1) { ptrS.multi = false; ptrS.moved = false; ptrS.x = e.clientX; ptrS.y = e.clientY; }
-                        else ptrS.multi = true;
-                    } else if (e.type === 'pointermove') {
-                        if (ptrS.down > 0 && (Math.abs(e.clientX - ptrS.x) > 10 || Math.abs(e.clientY - ptrS.y) > 10)) ptrS.moved = true;
-                    } else if (ptrS.down > 0) ptrS.down--; // pointerup / pointercancel
-                }
-                if (!ptrS.bound) {
-                    ptrS.bound = true;
-                    ['pointerdown', 'pointermove', 'pointerup', 'pointercancel'].forEach(ev => container.addEventListener(ev, ptrTrack, true));
-                }
-                const sharedGeo = new THREE.SphereGeometry(1, 18, 14);
-                api.geo = sharedGeo;
-
+            // Shared node/link model for BOTH renderers (2026.11.06.6): the 3D sky
+            // and the 2D ring map are two views over identical hierarchy arrays —
+            // selection/relSet/time-tween semantics can never diverge between them.
+            function buildModel(isFull) {
+                const api = { gameNodes: [], hubNodes: [], links: [] };
                 const es = entries();
                 es.forEach(e => {
                     api.gameNodes.push({ id: e.id, kind: 'game', day: e.day, __vis: 0, __tgt: 0, __t0: 0, __delay: 0, __e: e });
@@ -4722,6 +4712,48 @@
                     valsByDim[d].forEach(vh => api.links.push({ source: vh.id, target: dimId(vh.dim), __dl: isFull ? 26 : 13 }));
                     api.links.push({ source: dimId(d), target: mainId(), __dl: isFull ? 44 : 22 });
                 });
+                return api;
+            }
+
+            // --- one 3D instance (mini or fullscreen) ---
+            function buildGraph(container, isFull) {
+                const THREE = window.THREE;
+                const api = { isFull, container, geo: null, gameNodes: [], hubNodes: [], links: [], raf: null, ro: null, playing: false, playRaf: null, day: 0, disposed: false };
+                container.__lgApi = api; // debug handle: inspect live tween state from DevTools / automation
+                // 2026.11.06.5 — user: 双指 drag 会把已选中的星「从头 reset」（高亮链+信息卡
+                // 消失），只有单指点外面才应该清除。机制：触屏 pinch/drag 结束时浏览器会
+                // 合成一个 click，3d-force-graph 把它当普通点击送进 onBackgroundClick →
+                // applySel(null)。修法：capture 级 pointer 记账——第二个按下指针=multi，
+                // 位移 >10px=moved；两个标记只在下一次 pointerdown 复位（真实事件顺序是
+                // pointerup→click，标记必须活到 click 那一刻）。两个点击入口都跳过脏手势，
+                // clean single-tap behavior is unchanged (pick/toggle star, clear on empty).
+                // State lives ON THE CONTAINER (mini el is reused across rebuilds) and the
+                // listeners are bound once, so re-opens keep working with zero leaks.
+                if (!container.__lgPtr) container.__lgPtr = { down: 0, x: 0, y: 0, multi: false, moved: false, bound: false };
+                const ptrS = container.__lgPtr;
+                function gestureDirty() { return ptrS.multi || ptrS.moved; }
+                function ptrTrack(e) {
+                    if (e.type === 'pointerdown') {
+                        ptrS.down++;
+                        if (ptrS.down === 1) { ptrS.multi = false; ptrS.moved = false; ptrS.x = e.clientX; ptrS.y = e.clientY; }
+                        else ptrS.multi = true;
+                    } else if (e.type === 'pointermove') {
+                        if (ptrS.down > 0 && (Math.abs(e.clientX - ptrS.x) > 10 || Math.abs(e.clientY - ptrS.y) > 10)) ptrS.moved = true;
+                    } else if (ptrS.down > 0) ptrS.down--; // pointerup / pointercancel
+                }
+                if (!ptrS.bound) {
+                    ptrS.bound = true;
+                    ['pointerdown', 'pointermove', 'pointerup', 'pointercancel'].forEach(ev => container.addEventListener(ev, ptrTrack, true));
+                }
+                const sharedGeo = new THREE.SphereGeometry(1, 18, 14);
+                api.geo = sharedGeo;
+
+                // 2026.11.06.6 — nodes/links now come from the shared model factory
+                // (the 2D ring map builds the exact same arrays).
+                const model = buildModel(isFull);
+                api.gameNodes = model.gameNodes;
+                api.hubNodes = model.hubNodes;
+                api.links = model.links;
 
                 function visOf(x) { return (x && typeof x === 'object') ? (x.__vis || 0) : 0; }
                 function lid(x) { return (x && typeof x === 'object') ? x.id : x; }
@@ -4906,8 +4938,8 @@
                     if (busy || api.playing || isFull) api.raf = requestAnimationFrame(tick);
                     else api.raf = null;
                 }
-                function backOut(t) { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); }
-                function quadIn(t) { return t * t; }
+                // backOut/quadIn moved to module scope (2026.11.06.6) — the 2D
+                // frame loop runs the identical tween math on the shared model.
                 function ensureTick() { if (!api.raf && !api.disposed) api.raf = requestAnimationFrame(tick); }
 
                 function updateHubLabels() {
@@ -5056,6 +5088,373 @@
                 return api;
             }
 
+            // ---- 2D ring map (2026.11.06.6) ----------------------------------
+            // The user's chosen visual: the SAME four-layer sky flattened into a
+            // concentric dial — golden core in the middle, ring 1 = the three
+            // dimension hubs, ring 2 = value hubs grouped in their dim's sector,
+            // ring 3 = game stars hung at the ANGLE of their claim day along the
+            // month clock. That time-angle map is what makes play animate in 2D:
+            // the same setDay/tween pipeline pops the stars while a gold hand
+            // sweeps the month sector, so "点播放 → 星星长出来" reads the same as
+            // 3D. No second library — plain canvas; the 3D instance's tick() tweens
+            // __vis on the shared model and this loop only READS __vis +
+            // matStyleFor + relSet each frame, so selection chains, folding,
+            // theming and the info card carry over with zero extra state.
+            function ensure2dGuard(container) {
+                // Share the container-level pointer ledger from .06.5 so a pinch
+                // can never clear a 2D pick either. If the 3D builder already
+                // bound its capture listeners, we only READ the same state object
+                // (listeners survive innerHTML clears; double-binding would
+                // double-count pointerdown and mark every tap multi-touch).
+                if (!container.__lgPtr) container.__lgPtr = { down: 0, multi: false, moved: false, x: 0, y: 0, bound: false };
+                const g = container.__lgPtr;
+                if (g.bound) return () => g.multi || g.moved;
+                g.bound = true;
+                const track = e => {
+                    if (e.type === 'pointerdown') {
+                        g.down++;
+                        if (g.down === 1) { g.multi = false; g.moved = false; g.x = e.clientX; g.y = e.clientY; }
+                        else g.multi = true;
+                    } else if (e.type === 'pointermove') {
+                        if (g.down > 0 && (Math.abs(e.clientX - g.x) > 10 || Math.abs(e.clientY - g.y) > 10)) g.moved = true;
+                    } else if (g.down > 0) g.down--;
+                };
+                ['pointerdown', 'pointermove', 'pointerup', 'pointercancel'].forEach(ev => container.addEventListener(ev, track, true));
+                return () => g.multi || g.moved;
+            }
+
+            function buildGraph2D(container) {
+                const api = { isFull: true, is2d: true, container, gameNodes: [], hubNodes: [], links: [], raf: null, playing: false, playRaf: null, day: 0, disposed: false };
+                container.__lgApi2d = api; // debug handle (kept distinct from the 3D one)
+                const dirty2d = ensure2dGuard(container);
+                const model = buildModel(true);
+                api.gameNodes = model.gameNodes;
+                api.hubNodes = model.hubNodes;
+                api.links = model.links;
+                const nodeById = {};
+                api.gameNodes.concat(api.hubNodes).forEach(nd => { nodeById[nd.id] = nd; });
+
+                // Geometry in unit space (R = min(w,h)/2 - 26 px at draw time).
+                const SEC = { platform: [-142, -38], store: [-22, 82], month: [98, 202] };
+                const R_DIM = 0.34, R_VAL = 0.62, R_STAR = 0.93;
+                const rad = a => (a * Math.PI) / 180;
+                const b0 = dayBounds();
+                function dayAngle(d) {
+                    if (!(b0.max > b0.min)) return (SEC.month[0] + SEC.month[1]) / 2;
+                    const t = Math.max(0, Math.min(1, (d - b0.min) / (b0.max - b0.min)));
+                    return SEC.month[0] + t * (SEC.month[1] - SEC.month[0]);
+                }
+                function hash01(s) {
+                    let x = 2166136261;
+                    const str = String(s);
+                    for (let i = 0; i < str.length; i++) { x ^= str.charCodeAt(i); x = Math.imul(x, 16777619) >>> 0; }
+                    return (x % 1000) / 1000;
+                }
+                function monthShort(mk) {
+                    try { return new Intl.DateTimeFormat(localeRef, { month: 'short', timeZone: 'UTC' }).format(new Date(Date.UTC(Number(mk.slice(0, 4)), Number(mk.slice(5, 7)) - 1, 1))); } catch (e) { return mk; }
+                }
+                function layout() {
+                    nodeById[mainId()].x2 = 0; nodeById[mainId()].y2 = 0;
+                    DIMS.forEach(d => {
+                        const dn = nodeById[dimId(d)];
+                        const ca = rad((SEC[d][0] + SEC[d][1]) / 2);
+                        if (dn) { dn.x2 = Math.cos(ca) * R_DIM; dn.y2 = Math.sin(ca) * R_DIM; }
+                    });
+                    ['platform', 'store'].forEach(d => {
+                        const vals = api.hubNodes.filter(nd => nd.kind === 'val' && nd.dim === d).sort((p, q) => p.__slot - q.__slot);
+                        vals.forEach((nd, i) => {
+                            const sec = SEC[d];
+                            const a = rad(vals.length < 2 ? (sec[0] + sec[1]) / 2 : sec[0] + (i / (vals.length - 1)) * (sec[1] - sec[0]));
+                            nd.x2 = Math.cos(a) * R_VAL; nd.y2 = Math.sin(a) * R_VAL;
+                        });
+                    });
+                    const mvals = api.hubNodes.filter(nd => nd.kind === 'val' && nd.dim === 'month').sort((p, q) => (p.key < q.key ? -1 : 1));
+                    mvals.forEach(nd => {
+                        const y = Number(nd.key.slice(0, 4)), mo = Number(nd.key.slice(5, 7)) - 1;
+                        const first = Math.floor(Date.UTC(y, mo, 1) / 86400000);
+                        const a = rad(dayAngle(Math.max(b0.min, first)));
+                        nd.x2 = Math.cos(a) * R_VAL; nd.y2 = Math.sin(a) * R_VAL;
+                    });
+                    api.gameNodes.forEach(nd => {
+                        const a = rad(dayAngle(nd.day));
+                        const rr = R_STAR - 0.06 * hash01(nd.id);
+                        nd.x2 = Math.cos(a) * rr; nd.y2 = Math.sin(a) * rr;
+                    });
+                    mvals.forEach((nd, i) => { if (i === 0 || i === mvals.length - 1) nd.__dialLabel = true; });
+                }
+                layout();
+
+                const cv = document.createElement('canvas');
+                cv.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:block;outline:none;';
+                container.appendChild(cv);
+                cv.addEventListener('click', e => {
+                    if (dirty2d()) return; // .06.5 rule, same ledger: only a clean single tap acts
+                    let hit = null;
+                    const rect = cv.getBoundingClientRect();
+                    const s = Math.max(60, Math.min(rect.width, rect.height) / 2 - 26);
+                    const x = e.clientX - rect.left - rect.width / 2;
+                    const y = e.clientY - rect.top - rect.height / 2;
+                    let bestD = 1e9;
+                    api.hubNodes.concat(api.gameNodes).forEach(nd => {
+                        if ((nd.__vis || 0) <= 0.15 || nd.x2 == null) return;
+                        const dx = nd.x2 * s - x, dy = nd.y2 * s - y;
+                        const d = dx * dx + dy * dy;
+                        const lim = nd.kind === 'main' ? 18 : nd.kind === 'dim' ? 13 : nd.kind === 'val' ? 11 : 9;
+                        if (d < lim * lim && d < bestD) { bestD = d; hit = nd; }
+                    });
+                    if (hit) applySel(selFromNode(hit)); else applySel(null);
+                });
+
+                // Tween pass: identical math to the 3D ticker over the shared model.
+                function tick2() {
+                    let busy = false;
+                    const now = performance.now();
+                    const rm = reduceMotion();
+                    api.gameNodes.concat(api.hubNodes).forEach(nd => {
+                        if (nd.kind !== 'game') {
+                            let mv = 0;
+                            nd.__members.forEach(gm => { if (gm.__vis > mv) mv = gm.__vis; });
+                            nd.__vis = mv;
+                        } else if (nd.__vis !== nd.__tgt) {
+                            busy = true;
+                            const dur = nd.__tgt > nd.__vis ? 420 : 240;
+                            let p = (now - nd.__t0 - (nd.__tgt > 0 ? nd.__delay : 0)) / dur;
+                            p = Math.max(0, Math.min(1, p));
+                            if (rm) p = nd.__tgt > 0 ? 1 : 0;
+                            nd.__vis = nd.__tgt > 0 ? (p >= 1 ? 1 : backOut(p)) : (p >= 1 ? 0 : quadIn(p));
+                        }
+                    });
+                    return busy;
+                }
+
+                function draw() {
+                    const W = container.clientWidth || 300, H = container.clientHeight || 220;
+                    if (!W || !H) return;
+                    const dpr = Math.min(2.5, window.devicePixelRatio || 1);
+                    if (cv.width !== Math.round(W * dpr) || cv.height !== Math.round(H * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+                    const g = cv.getContext('2d');
+                    if (!g) return;
+                    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+                    g.clearRect(0, 0, W, H);
+                    const cx = W / 2, cy = H / 2;
+                    const s = Math.max(60, Math.min(W, H) / 2 - 26);
+                    const dark = isDark();
+                    // guide rings
+                    g.lineWidth = 1;
+                    [R_DIM, R_VAL, R_STAR].forEach(rr => {
+                        g.beginPath(); g.arc(cx, cy, rr * s, 0, Math.PI * 2);
+                        g.strokeStyle = dark ? 'rgba(255,255,255,0.06)' : 'rgba(87,83,78,0.12)';
+                        g.stroke();
+                    });
+                    // links: gray base batch, champagne-gold curve for the chain
+                    const gray = dark ? '#4a443c' : '#c8bfae';
+                    const gold = dark ? '#d9b36a' : '#b98a2f';
+                    g.lineCap = 'round';
+                    api.links.forEach(l => {
+                        const A = nodeById[l.source], B = nodeById[l.target];
+                        if (!A || !B || A.x2 == null || B.x2 == null) return;
+                        const lv = Math.min(A.__vis || 0, B.__vis || 0);
+                        if (lv <= 0.02) return;
+                        const chain = !!(relSet && relSet.has(A.id) && relSet.has(B.id));
+                        const starLink = A.kind === 'game' || B.kind === 'game';
+                        g.globalAlpha = chain ? 0.85 * lv : lv * (starLink ? 0.10 : 0.28);
+                        g.strokeStyle = chain ? gold : gray;
+                        g.lineWidth = chain ? 1.7 : 1;
+                        const x1 = cx + A.x2 * s, y1 = cy + A.y2 * s, x2 = cx + B.x2 * s, y2 = cy + B.y2 * s;
+                        g.beginPath();
+                        if (chain) {
+                            const mx = (x1 + x2) / 2, my = (y1 + y2) / 2;
+                            g.moveTo(x1, y1);
+                            g.quadraticCurveTo(mx + (cx - mx) * 0.35, my + (cy - my) * 0.35, x2, y2);
+                        } else { g.moveTo(x1, y1); g.lineTo(x2, y2); }
+                        g.stroke();
+                    });
+                    g.globalAlpha = 1;
+                    // play/scrub sweep hand along the month clock
+                    const sweeping = api.playing || (performance.now() - (api.__scrubT || 0) < 1200);
+                    if (sweeping && b0.max > b0.min) {
+                        const a = rad(dayAngle(api.day));
+                        const hx = cx + Math.cos(a) * R_STAR * s, hy = cy + Math.sin(a) * R_STAR * s;
+                        g.strokeStyle = gold; g.globalAlpha = 0.5; g.lineWidth = 1.5;
+                        g.beginPath(); g.moveTo(cx, cy); g.lineTo(hx, hy); g.stroke();
+                        g.globalAlpha = 0.9; g.fillStyle = gold;
+                        g.beginPath(); g.arc(hx, hy, 3, 0, Math.PI * 2); g.fill();
+                        g.globalAlpha = 1;
+                    }
+                    // core glow (behind everything else at the center)
+                    const mn = nodeById[mainId()];
+                    const hc = haloColor();
+                    const gr = g.createRadialGradient(cx, cy, 0, cx, cy, s * 0.26);
+                    gr.addColorStop(0, hexA(hc, (!relSet || relSet.has(mn.id)) ? 0.5 : 0.12));
+                    gr.addColorStop(1, hexA(hc, 0));
+                    g.fillStyle = gr;
+                    g.fillRect(cx - s * 0.26, cy - s * 0.26, s * 0.52, s * 0.52);
+                    function drawNd(nd, base) {
+                        const v = nd.__vis || 0;
+                        if (v <= 0.008 || nd.x2 == null) return;
+                        const stl = matStyleFor(nd);
+                        g.globalAlpha = stl.opacity;
+                        g.fillStyle = stl.color;
+                        g.beginPath(); g.arc(cx + nd.x2 * s, cy + nd.y2 * s, Math.max(0.4, base * v), 0, Math.PI * 2); g.fill();
+                        g.globalAlpha = 1;
+                    }
+                    api.gameNodes.forEach(nd => drawNd(nd, 3.4));
+                    api.hubNodes.forEach(nd => { if (nd.kind === 'dim') drawNd(nd, 6); else if (nd.kind === 'val') drawNd(nd, 4.2); });
+                    drawNd(mn, 9);
+                    // labels: core + dims always; month hubs get dial labels at the
+                    // range ends + whenever highlighted; other vals on highlight
+                    // only (mirrors the 3D label gate).
+                    g.textAlign = 'center'; g.textBaseline = 'middle';
+                    const lab = dark ? 'rgba(214,211,209,0.92)' : 'rgba(87,83,78,0.92)';
+                    g.fillStyle = lab;
+                    g.font = '800 12px ui-rounded, system-ui, sans-serif';
+                    g.fillText(tRef.globeByAll || 'All loot', cx, cy - 26);
+                    g.font = '800 11px ui-rounded, system-ui, sans-serif';
+                    DIMS.forEach(d => {
+                        const dn = nodeById[dimId(d)];
+                        if (!dn || (dn.__vis || 0) <= 0.15) return;
+                        g.fillStyle = lab;
+                        g.fillText(dimLabel(d), cx + dn.x2 * s, cy + dn.y2 * s - 13);
+                    });
+                    g.font = '700 9px ui-rounded, system-ui, sans-serif';
+                    api.hubNodes.forEach(nd => {
+                        if (nd.kind !== 'val' || (nd.__vis || 0) <= 0.15 || nd.x2 == null) return;
+                        const lit = !!(relSet && relSet.has(nd.id));
+                        if (nd.dim === 'month' && !lit && !nd.__dialLabel) return;
+                        if (nd.dim !== 'month' && !lit) return;
+                        g.fillStyle = lab;
+                        const txt = nd.dim === 'month' ? monthShort(nd.key) : nd.key;
+                        g.fillText(txt, cx + nd.x2 * s, cy + nd.y2 * s - 11);
+                    });
+                }
+
+                function frame() {
+                    if (api.disposed) { api.raf = null; return; }
+                    tick2();
+                    draw();
+                    api.raf = requestAnimationFrame(frame);
+                }
+                api.raf = requestAnimationFrame(frame);
+
+                api.setDay = function (d, stagger) {
+                    api.day = d;
+                    const bounds = dayBounds();
+                    let cnt = 0;
+                    const now = performance.now();
+                    api.gameNodes.forEach(nd => {
+                        const tgt = nd.day <= d ? 1 : 0;
+                        if (tgt) cnt++;
+                        if (tgt !== nd.__tgt) {
+                            nd.__tgt = tgt; nd.__t0 = now;
+                            if (tgt === 1) nd.__delay = stagger ? Math.min(300, ((nd.day - bounds.min) / Math.max(1, d - bounds.min)) * 300) : 0;
+                        }
+                    });
+                    const chip = overlay && overlay.querySelector('#globe-count-chip');
+                    if (chip) chip.textContent = cnt + ' ' + (tRef.globeInView || 'in view');
+                    const dl = overlay && overlay.querySelector('#globe-date-label');
+                    if (dl) dl.textContent = dateLabel(d);
+                };
+
+                function syncPlayBtn2d() {
+                    const btn = overlay && overlay.querySelector('#globe-play-btn');
+                    if (!btn) return;
+                    btn.innerHTML = api.playing ? '<i class="ph-fill ph-pause"></i>' : '<i class="ph-fill ph-play"></i>';
+                    btn.title = api.playing ? (tRef.globePause || 'Pause') : (tRef.globePlay || 'Play from day one');
+                }
+                api.syncPlayBtn = syncPlayBtn2d;
+                function stopPlay2d() { api.playing = false; if (api.playRaf) cancelAnimationFrame(api.playRaf); api.playRaf = null; syncPlayBtn2d(); }
+                api.stopPlay = stopPlay2d;
+
+                api.play = function (on) {
+                    api.playing = on;
+                    if (!on) { stopPlay2d(); return; }
+                    const bounds = dayBounds();
+                    const step = Math.max(1, Math.round((bounds.max - bounds.min) / 220));
+                    let cur = bounds.min;
+                    api.setDay(cur, false);
+                    const slider = overlay && overlay.querySelector('#globe-slider');
+                    const f = () => {
+                        if (!api.playing || api.disposed) return;
+                        cur += step;
+                        if (cur >= bounds.max) { cur = bounds.max; api.setDay(cur, true); if (slider) slider.value = cur; stopPlay2d(); return; }
+                        api.setDay(cur, false);
+                        if (slider) slider.value = cur;
+                        api.playRaf = requestAnimationFrame(f);
+                    };
+                    api.playRaf = requestAnimationFrame(f);
+                    syncPlayBtn2d();
+                };
+
+                api.refreshColors = function () { /* the canvas repaints live from relSet/matStyleFor */ };
+                api.resize = function () { /* frame() re-reads the container every tick */ };
+                api.pause = function () { };
+                api.resume = function () { };
+                api.retheme = function () { /* draw() reads isDark() per frame */ };
+                api.clearSel = () => applySel(null);
+                api.destroy = function () {
+                    api.disposed = true; api.playing = false;
+                    if (api.raf) cancelAnimationFrame(api.raf);
+                    if (api.playRaf) cancelAnimationFrame(api.playRaf);
+                    if (cv.parentNode) cv.parentNode.removeChild(cv);
+                };
+                return api;
+            }
+
+            // ---- 2D/3D toggle plumbing (2026.11.06.6) ---------------------------
+            function syncModeBtn() {
+                const btn = overlay && overlay.querySelector('#globe-mode-btn');
+                if (!btn) return;
+                btn.style.display = hasWebGL() ? '' : 'none'; // no WebGL → 2D is the only view
+                btn.innerHTML = '<i class="ph-bold ph-flip-horizontal"></i> ' + (globeMode === '3d' ? '2D' : '3D');
+                const tip = globeMode === '3d' ? (tRef.globeTo2D || 'Switch to the 2D ring map') : (tRef.globeTo3D || 'Switch back to the 3D sky');
+                btn.title = tip;
+                btn.setAttribute('aria-label', tip);
+            }
+            function switchTail(day) {
+                // A mode switch MAINTAINS state: the slider keeps its day, the
+                // selection lives in module sel/relSet (both renderers read it
+                // live), and the info card DOM never moved. setDay(…, true) just
+                // re-pops the sky into the new view for a smooth hand-off.
+                if (!full) return;
+                const b = dayBounds();
+                const slider = overlay.querySelector('#globe-slider');
+                slider.min = b.min; slider.max = b.max; slider.value = day;
+                full.setDay(day, true);
+                full.syncPlayBtn();
+                syncModeBtn();
+            }
+            function setGlobeMode(mode) {
+                if (globeMode === mode) return;
+                if (!overlay || overlay.classList.contains('globe-off') || !full) { globeMode = mode; return; }
+                globeMode = mode;
+                const day = Number(overlay.querySelector('#globe-slider').value) || dayBounds().max;
+                full.stopPlay();
+                full.destroy();
+                full = null;
+                const mount = overlay.querySelector('#globe-full-mount');
+                mount.innerHTML = '';
+                if (globeMode === '2d') {
+                    full = buildGraph2D(mount);
+                    switchTail(day);
+                    return;
+                }
+                const tok = ++globeOpenToken;
+                ensureLib().then(() => {
+                    if (tok !== globeOpenToken || overlay.classList.contains('globe-off') || globeMode !== '3d') return;
+                    full = buildGraph(mount, true);
+                    switchTail(day);
+                }).catch(() => {
+                    // engine can't load offline → don't strand the user on a dead
+                    // panel; fall back to the 2D dial which needs no library
+                    if (tok !== globeOpenToken || overlay.classList.contains('globe-off')) return;
+                    globeMode = '2d';
+                    mount.innerHTML = '';
+                    full = buildGraph2D(mount);
+                    switchTail(day);
+                });
+                syncModeBtn();
+            }
+
             // --- theme flips re-color live instances (.dark lands on <html>) ---
             function watchTheme() {
                 if (themeObs || !window.MutationObserver) return;
@@ -5084,10 +5483,12 @@
                         </div>
                         <input type="range" id="globe-slider" min="0" max="1" step="1" value="1">
                     </div>
-                    <div id="globe-info-card" class="globe-off"></div>`;
+                    <div id="globe-info-card" class="globe-off"></div>
+                    <button type="button" class="globe-btn" id="globe-mode-btn" style="display:none"></button>`;
                 document.body.appendChild(overlay);
                 overlay.querySelector('#globe-close-btn').addEventListener('click', () => closeFullscreen());
                 overlay.querySelector('#globe-play-btn').addEventListener('click', () => { if (full) full.play(!full.playing); });
+                overlay.querySelector('#globe-mode-btn').addEventListener('click', () => setGlobeMode(globeMode === '3d' ? '2d' : '3d'));
                 overlay.querySelector('#globe-slider').addEventListener('input', function () {
                     if (!full) return;
                     full.stopPlay();
@@ -5101,6 +5502,16 @@
                 if (!overlay) return;
                 overlay.querySelector('#globe-full-title').textContent = tRef.lootGlobe || 'Loot Globe';
                 if (full) full.syncPlayBtn();
+                syncModeBtn(); // button label/tip must re-localize with the language
+            }
+
+            function finishOpen(opts) {
+                const b = dayBounds();
+                const slider = overlay.querySelector('#globe-slider');
+                slider.min = b.min; slider.max = b.max; slider.value = b.max;
+                full.setDay(b.max, true);
+                full.syncPlayBtn();
+                if (opts && opts.sel) applySel(opts.sel);
             }
 
             function openFullscreen(opts) {
@@ -5109,22 +5520,21 @@
                 overlay.classList.remove('globe-off');
                 watchTheme();
                 if (mini) mini.pause();
-                if (!hasWebGL()) {
-                    overlay.querySelector('#globe-full-mount').innerHTML = `<div class="globe-fallback">${escG(tRef.globeNoWebGL || '3D is not available in this browser.')}</div>`;
+                if (globeMode === '3d' && !hasWebGL()) globeMode = '2d'; // the 2D dial needs no WebGL
+                if (full) { full.destroy(); full = null; }
+                const mount = overlay.querySelector('#globe-full-mount');
+                mount.innerHTML = '';
+                syncModeBtn();
+                if (globeMode === '2d') {
+                    full = buildGraph2D(mount);
+                    finishOpen(opts);
                     return;
                 }
-                if (full) { full.destroy(); full = null; }
+                const tok = ++globeOpenToken;
                 ensureLib().then(() => {
-                    if (overlay.classList.contains('globe-off')) return; // closed while loading
-                    const mount = overlay.querySelector('#globe-full-mount');
-                    mount.innerHTML = '';
+                    if (tok !== globeOpenToken || overlay.classList.contains('globe-off')) return; // closed or superseded while loading
                     full = buildGraph(mount, true);
-                    const b = dayBounds();
-                    const slider = overlay.querySelector('#globe-slider');
-                    slider.min = b.min; slider.max = b.max; slider.value = b.max;
-                    full.setDay(b.max, true);
-                    full.syncPlayBtn();
-                    if (opts && opts.sel) applySel(opts.sel);
+                    finishOpen(opts);
                 }).catch(() => {
                     overlay.querySelector('#globe-full-mount').innerHTML = `<div class="globe-fallback">${escG(tRef.globeLoadFail || 'The 3D engine could not load. Reopen Analytics when online.')}</div>`;
                 });
@@ -11715,7 +12125,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.06.5';
+        window.BUILD_VERSION = '2026.11.06.6';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

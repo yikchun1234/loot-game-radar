@@ -4616,6 +4616,27 @@
                 const base = pal[(ci.plat[n.__e.plat] != null ? ci.plat[n.__e.plat] : 0) % pal.length] || '#888';
                 return { color: on(n.id) ? base : dim, opacity: soft ? 0.95 : (relSet.has(n.id) ? 0.98 : 0.14) };
             }
+            // Soft radial glow sprite for the main core (11.06.1, visual language
+            // borrowed from neural-creator-dashboard's luminous orb — reimplemented,
+            // not copied: that repo is PolyForm Noncommercial, no assets/code reuse).
+            let glowTexCache = null;
+            function glowTex(THREE) {
+                if (!glowTexCache) {
+                    const c = document.createElement('canvas');
+                    c.width = c.height = 128;
+                    const g = c.getContext('2d');
+                    const grd = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+                    grd.addColorStop(0, 'rgba(255,255,255,0.9)');
+                    grd.addColorStop(0.25, 'rgba(255,255,255,0.35)');
+                    grd.addColorStop(0.6, 'rgba(255,255,255,0.08)');
+                    grd.addColorStop(1, 'rgba(255,255,255,0)');
+                    g.fillStyle = grd;
+                    g.fillRect(0, 0, 128, 128);
+                    glowTexCache = new THREE.CanvasTexture(c);
+                }
+                return glowTexCache;
+            }
+            function haloColor() { return isDark() ? '#fbbf24' : '#d97706'; }
 
             // --- one 3D instance (mini or fullscreen) ---
             function buildGraph(container, isFull) {
@@ -4661,6 +4682,14 @@
                 });
 
                 function visOf(x) { return (x && typeof x === 'object') ? (x.__vis || 0) : 0; }
+                function lid(x) { return (x && typeof x === 'object') ? x.id : x; }
+                // Lines must appear/disappear WITH the dots they connect (11.06.1):
+                // width starts at 0 (not the old 0.05 ghost-floor) and follows the
+                // MIN of both endpoint visibilities, so a link grows exactly while
+                // its two nodes pop. refresh() below rebuilds the link geometry
+                // after the simulation cools, where 3d-force-graph would otherwise
+                // freeze the widths from the first build.
+                function linkVis(l) { return Math.min(visOf(l.source), visOf(l.target)); }
                 const graph = ForceGraph3D()(container)
                     .showNavInfo(false)
                     .backgroundColor(isDark() ? '#171310' : '#faf5ea')
@@ -4671,15 +4700,45 @@
                             transparent: true, opacity: st.opacity
                         });
                         const mesh = new THREE.Mesh(sharedGeo, mat);
-                        n.__mesh = mesh; n.__mat = mat; n.__r = nodeRadius(n, isFull);
+                        n.__mat = mat; n.__r = nodeRadius(n, isFull);
+                        if (n.kind === 'main') {
+                            // luminous orb: sphere inside a group + additive halo
+                            const grp = new THREE.Group();
+                            grp.add(mesh);
+                            const haloMat = new THREE.SpriteMaterial({
+                                map: glowTex(THREE), color: haloColor(), transparent: true,
+                                opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false
+                            });
+                            const halo = new THREE.Sprite(haloMat);
+                            halo.scale.set(4, 4, 1);
+                            grp.add(halo);
+                            n.__halo = haloMat;
+                            n.__mesh = grp;
+                            grp.scale.setScalar(n.__r * n.__vis);
+                            grp.visible = n.__vis > 0.008;
+                            return grp;
+                        }
+                        n.__mesh = mesh;
                         mesh.scale.setScalar(n.__r * n.__vis);
                         mesh.visible = n.__vis > 0.008;
                         return mesh;
                     })
                     .nodeLabel(n => n.kind === 'game' ? String((n.__e && n.__e.title) || '') : '')
-                    .linkWidth(l => 0.05 + Math.min(visOf(l.source), visOf(l.target)) * 1.15)
+                    .linkWidth(l => linkVis(l) * 1.2)
+                    // hard switch too (plain THREE.Line ignores sub-pixel widths in
+                    // WebGL, so the old 0.05-floor links were ALWAYS drawn — the
+                    // real ghost-web cause; visibility is honored regardless)
+                    .linkVisibility(l => linkVis(l) > 0.02)
                     .linkOpacity(isDark() ? 0.28 : 0.4)
-                    .linkColor(() => isDark() ? '#4a443c' : '#c8bfae')
+                    .linkColor(l => {
+                        // relation-chain links glow champagne gold while a pick is
+                        // active (neural-dashboard's gold-accent language)
+                        if (relSet) {
+                            const a = lid(l.source), b = lid(l.target);
+                            if (relSet.has(a) && relSet.has(b)) return isDark() ? '#d9b36a' : '#b98a2f';
+                        }
+                        return isDark() ? '#4a443c' : '#c8bfae';
+                    })
                     .onNodeClick(n => onPick(n))
                     .onBackgroundClick(() => { applySel(null); })
                     .warmupTicks(20)
@@ -4755,8 +4814,16 @@
                         n.__mesh.visible = n.__vis > 0.008;
                     });
                     if (isFull) updateHubLabels();
-                    // fullscreen keeps the ticker alive even when idle so hub labels
-                    // track the autoRotate camera; mini stops when everything settled
+                    const anim = busy || api.playing;
+                    if (busy && !api.playing && now - (api.__lastRelink || 0) > 120) {
+                        // safety net for tweens not driven by a fresh setDay frame
+                        // (entrance pop after the engine cools, slider release):
+                        // keep lines glued to their dots at ~8 rebuilds/sec
+                        api.__lastRelink = now;
+                        relink();
+                    }
+                    if (api.__wasAnim && !anim) relink(); // one settle rebuild on the last tween frame
+                    api.__wasAnim = anim;
                     if (busy || api.playing || isFull) api.raf = requestAnimationFrame(tick);
                     else api.raf = null;
                 }
@@ -4788,10 +4855,25 @@
                         const st = matStyleFor(n);
                         n.__mat.color.set(st.color);
                         n.__mat.opacity = st.opacity;
+                        if (n.__halo) {
+                            // orb glow tracks theme + selection like the core sphere
+                            n.__halo.color.set(haloColor());
+                            n.__halo.opacity = (!relSet || relSet.has(n.id)) ? 0.55 : 0.15;
+                        }
                     });
+                    // 3d-force-graph freezes the link width/color buffers once the
+                    // engine cools; re-evaluate the accessors so lines pop WITH
+                    // their dots and the gold chain paints on selection (11.06.1).
+                    relink();
                     // Deliberately NO nodeThreeObject re-set: that rebuilds every mesh
                     // and resets materials to callback defaults (the 11.05.1 gray-star
                     // bug). Materials are mutated live; three reads them each frame.
+                }
+                function relink() {
+                    try {
+                        if (typeof graph.refresh === 'function') graph.refresh();
+                        else graph.linkWidth(graph.linkWidth());
+                    } catch (e) { /* oldest engine builds: lines just stay static */ }
                 }
                 api.refreshColors = refreshColors;
 
@@ -4868,8 +4950,8 @@
                     if (api.ro) api.ro.disconnect();
                     api.hubNodes.forEach(n => { if (n.__label && n.__label.parentNode) n.__label.parentNode.removeChild(n.__label); });
                     try { graph._destructor(); } catch (e) { /* older builds: best-effort */ }
-                    api.gameNodes.forEach(n => { n.__mesh = null; n.__mat = null; });
-                    api.hubNodes.forEach(n => { n.__mesh = null; n.__mat = null; });
+                    api.gameNodes.forEach(n => { n.__mesh = null; n.__mat = null; n.__halo = null; });
+                    api.hubNodes.forEach(n => { n.__mesh = null; n.__mat = null; n.__halo = null; });
                     try { container.innerHTML = ''; } catch (e) { }
                 };
                 api.pause = function () { try { graph.pauseAnimation(); if (graph.controls()) graph.controls().autoRotate = false; } catch (e) { } };
@@ -4877,7 +4959,8 @@
                 api.retheme = function () {
                     graph.backgroundColor(isDark() ? '#171310' : '#faf5ea');
                     graph.linkOpacity(isDark() ? 0.28 : 0.4);
-                    graph.linkColor(() => isDark() ? '#4a443c' : '#c8bfae');
+                    // linkColor is now a live accessor (gray/gold resolved per
+                    // evaluation) — no setter here; refreshColors() re-links below.
                     refreshColors();
                 };
                 return api;
@@ -11541,7 +11624,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.05.2';
+        window.BUILD_VERSION = '2026.11.06.1';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

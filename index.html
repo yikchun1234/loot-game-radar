@@ -4832,7 +4832,21 @@
                 } catch (e) { /* older scene API: stars fall back to ambient-only color */ }
                 graph.d3Force('charge').strength(isFull ? -36 : -16);
                 graph.d3Force('link').distance(l => l.__dl || (isFull ? 20 : 10));
-                graph.cameraPosition({ z: isFull ? 380 : 210 });
+                // 2026.11.06.7 — start OUTSIDE the cluster. Live probe (file://, 40-game
+                // fixture): camera sat on a HARDCODED z=380 while the layout spread from
+                // 103 to 139 in the first 3.1s, and the one-shot stop-fit (r→680) only
+                // landed at ~3.3s — cooldownTicks(140) stretched by entrance-tween main-
+                // thread contention. That 380 was tuned back when libraries were ~340
+                // stars; every bigger library outgrows it immediately = 用户说的「一开始
+                // 直接在 zoom 里面」. No constant can win — the FINAL extent scales with
+                // how much repulsion the data holds, empirically ~sqrt(nodeCount) (the
+                // probe: 62 nodes → fitted r=680 → factor 86; repulsion-limited spread
+                // cannot grow faster than sqrt). Open the camera at the fitted order of
+                // magnitude, keep the stop-fit EXACTLY as-is to fine-tune. Starting a bit
+                // too far out is self-correcting; too close was the visible bug.
+                graph.cameraPosition({ z: isFull
+                    ? Math.max(260, Math.min(2100, 86 * Math.sqrt(api.gameNodes.length + api.hubNodes.length)))
+                    : 210 });
                 if (!reduceMotion()) {
                     graph.controls().autoRotate = true;
                     graph.controls().rotateSpeed = isFull ? 0.35 : 0.55;
@@ -12125,7 +12139,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.06.6';
+        window.BUILD_VERSION = '2026.11.06.7';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

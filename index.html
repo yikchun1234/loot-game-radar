@@ -4851,11 +4851,14 @@
                     });
                     if (isFull) updateHubLabels();
                     const anim = busy || api.playing;
-                    // 2026.11.06.3 — NO per-frame relink during tweens. A relink IS a full
-                    // links digest (purge + rebuild every link object); with ~340 games that's
-                    // 1000+ edges rebuilt ~8x/s on both mini+full instances — what made opening
-                    // Loot Analytics lag. Lines start at width 0 anyway, so mid-tween they are
-                    // invisible regardless; the settle frame below paints all final widths once.
+                    // 2026.11.06.3 — Analytics-open lag fix. A relink is a FULL links digest
+                    // (purge + rebuild every link object); ~340 games = 1000+ edges rebuilt
+                    // every 120ms through the whole entrance was freezing the main thread the
+                    // moment the panel opened. Entrance now paints lines only on its settle
+                    // frame (widths start at 0, so mid-tween lines are invisible anyway).
+                    // Play sweeps and active slider drags keep the 11.06.1 dots+lines-together
+                    // look via the throttled relink — the user is watching the open overlay.
+                    if (busy && (api.playing || performance.now() - (api.__scrubT || 0) < 1200)) relink();
                     if (api.__wasAnim && !anim) relink(true); // one FORCED settle rebuild on the last tween frame = exact final widths
                     api.__wasAnim = anim;
                     if (busy || api.playing || isFull) api.raf = requestAnimationFrame(tick);
@@ -5046,6 +5049,7 @@
                 overlay.querySelector('#globe-slider').addEventListener('input', function () {
                     if (!full) return;
                     full.stopPlay();
+                    full.__scrubT = performance.now(); // 11.06.3: keeps lines glued to dots WHILE dragging (throttled relink); entrance alone is rebuild-free
                     full.setDay(Number(this.value), true);
                 });
                 document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && overlay && !overlay.classList.contains('globe-off')) closeFullscreen(); });

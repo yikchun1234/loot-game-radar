@@ -4456,7 +4456,7 @@
             const GRAPH_URL = 'https://cdn.jsdelivr.net/npm/3d-force-graph@1.70.3/dist/3d-force-graph.min.js';
             let libPromise = null;
             let mini = null, full = null, overlay = null;
-            let miniIO = null; // .07.3 scroll-watch that auto-plays the mini dial
+            // .10.2: miniIO removed — the .07.3 scroll-watch replay is retired for good
             let tRef = {}, localeRef = 'en';
             let themeObs = null;
             // 2026.11.05.2 — ONE globe instead of four switchable modes (the user's
@@ -5830,33 +5830,13 @@
                 if (full) { closeFullscreen(); }
                 sel = null; relSet = null;
             }
-            // .07.3 (user: 「那个globe div应该要到那个section才弄动画，动画要像play动画
-            // 一样」) — the mini dial used to just fade in every star at once whenever
-            // its panel scrolled past. Now every ENTRY into view (≥50% visible inside
-            // the stats modal's scroll root) replays the library the way the Play
-            // button does: sweep hand + chronological pops. One-shot per crossing, so
-            // sitting in view never re-triggers; scrolling away and back does (user
-            // picked 「每次滚到该 section 播一次」). Skips: no mini, already playing,
-            // fullscreen overlay open (its own stage), reduce-motion, single-day
-            // libraries where a sweep has nothing to show.
-            function armMiniAutoPlay() {
-                if (miniIO) { miniIO.disconnect(); miniIO = null; }
-                const el = document.getElementById('globe-mini-mount');
-                if (!el || typeof IntersectionObserver === 'undefined') return;
-                const root = el.closest('.library-scroll-area') || null;
-                miniIO = new IntersectionObserver(evts => {
-                    evts.forEach(en => {
-                        if (!en.isIntersecting || en.intersectionRatio < 0.5) return;
-                        if (!mini || mini.disposed || mini.playing) return;
-                        if (overlay && !overlay.classList.contains('globe-off')) return;
-                        if (reduceMotion()) return;
-                        const b = dayBounds();
-                        if (!(b.max > b.min)) return;
-                        mini.play(true);
-                    });
-                }, { root: root, threshold: [0.5] });
-                miniIO.observe(el);
-            }
+            // .07.3 armed a scroll-in sweep replay on the mini dial, but users saw the
+            // full library paint and then suddenly restart from zero (「完整出现才突然
+            // 从头动画过，看起来好像卡了」). .10.2 (user: 「mini globe 永远保持完整状态,
+            // 就算没触发也没关系」) REMOVES the IntersectionObserver replay entirely:
+            // mountMini renders the completed library every time (with the gentle
+            // staggered entrance) and nothing ever resets it. The Play button in
+            // fullscreen is still the way to watch the sweep animation.
             function mountMini() {
                 const el = document.getElementById('globe-mini-mount');
                 if (!el || !entries().length) return;
@@ -5872,16 +5852,16 @@
                     if (!document.getElementById('globe-mini-mount')) return; // re-rendered meanwhile
                     mini = buildGraph(el, false);
                     const b = dayBounds();
+                    // .10.2: always mount COMPLETE (staggered entrance only — the
+                    // old scroll-in sweep reset that read as a freeze/reload is gone)
                     mini.setDay(b.max, true);
                     // raced fullscreen: opened before this mini existed — keep it asleep
                     if (overlay && !overlay.classList.contains('globe-off')) mini.pause();
-                    armMiniAutoPlay(); // .07.3: this exact element now replays on entry
                 }).catch(() => {
                     el.innerHTML = `<div class="globe-fallback">${escG(tRef.globeLoadFail || 'The 3D engine could not load.')}</div>`;
                 });
             }
             function destroy() {
-                if (miniIO) { miniIO.disconnect(); miniIO = null; } // .07.3: the panel is closing — unwatch
                 if (full) { closeFullscreen(); }
                 if (mini) { mini.destroy(); mini = null; }
             }
@@ -12424,7 +12404,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.10.1';
+        window.BUILD_VERSION = '2026.11.10.2';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

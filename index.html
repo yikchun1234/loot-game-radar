@@ -4561,10 +4561,12 @@
             // keeps stars chunky — at camZ 170 anything thinner than ~4px vanished
             // (the 11.05.1 mini-sizing fix).
             function nodeRadius(n, isFull) {
-                return n.kind === 'main' ? (isFull ? 9 : 5.5)
-                    : n.kind === 'dim' ? (isFull ? 5 : 3.4)
-                        : n.kind === 'val' ? (isFull ? 3.6 : 2.5)
-                            : (isFull ? 3.0 : 4.5);
+                // .10.1: the pinned clock ring is ~4x the old force-cluster extent, so
+                // every world-space radius grew to keep the SAME on-screen proportions.
+                return n.kind === 'main' ? (isFull ? 20 : 12)
+                    : n.kind === 'dim' ? (isFull ? 11 : 7.5)
+                        : n.kind === 'val' ? (isFull ? 7 : 5.5)
+                            : (isFull ? 5.5 : 7.5);
             }
             // Relation chain for the current selection — every branch also lights
             // the ancestor path up to the main core (the user's list: app_1 →
@@ -4716,6 +4718,88 @@
                 return api;
             }
 
+            // 2026.11.10.1 — the 3D dial re-designed to MATCH THE 2D CLOCK (user:
+            // 「那个3d globe的design需要你design过，也要像2d的感觉。app要在外围」).
+            // The old 3D was a pure force cluster: stars floated wherever repulsion
+            // left them — 「在外围」 was coincidence and time order was invisible.
+            // Now every game star is PINNED onto one big outer rim at the SAME rank
+            // angle math the 2D dial uses since .07.1 (claim-date order stretched
+            // over the full 360°), while the value hubs sit on inner rings in three
+            // parallel z-layers (platform front, store back, month middle) and the
+            // dim hubs closer in, core at origin. Front view = the 2D clock itself;
+            // orbiting reveals the layered orrery and the links crossing planes.
+            // The engine still runs (fx/fy/fz just override it), so the .06.2 fit
+            // guards and the .06.7 sqrt opening distance keep working — the bbox
+            // is simply deterministic now (x/y spread ≈ 2·R_STAR·W > 60 gate).
+            function layoutClock3D(api, isFull) {
+                const W = 320;                                            // rim world radius scale
+                const rad3 = a => (a * Math.PI) / 180;
+                const SEC3 = { platform: [-142, -38], store: [-22, 82], month: [40, 140] };
+                const RD3 = 0.34, RV3 = 0.62, RVM3 = 0.78, RS3 = 0.93;
+                const ZL3 = { platform: -0.22, store: 0.22, month: 0 };   // per-dim z layer
+                // 2D draws y-DOWN so rad(TOP+f*360) reads clockwise-from-top on screen;
+                // 3D y is UP and the camera looks from +z — mirror the sweep (90 − f·360)
+                // and the front view matches the 2D dial exactly (rank 0 at top, going
+                // clockwise).
+                const rankAngle3 = f => rad3(90 - f * 360);
+                function hash01b(s) {
+                    let x = 2166136261;
+                    const str = String(s);
+                    for (let i = 0; i < str.length; i++) { x ^= str.charCodeAt(i); x = Math.imul(x, 16777619) >>> 0; }
+                    return (x % 1000) / 1000;
+                }
+                const ranked3 = api.gameNodes.slice().sort((p, q) => p.day - q.day || (p.id < q.id ? -1 : 1));
+                for (let i = 0; i < ranked3.length; i++) ranked3[i].__rank = i;
+                const S3 = ranked3.length;
+                function rankFrac3(day) { // fraction claimed at or before `day` (binary search)
+                    let lo = 0, hi = S3;
+                    while (lo < hi) { const mid = (lo + hi) >> 1; if (ranked3[mid].day <= day) lo = mid + 1; else hi = mid; }
+                    return S3 ? lo / S3 : 1;
+                }
+                const byId3 = {};
+                api.gameNodes.concat(api.hubNodes).forEach(nd => { byId3[nd.id] = nd; });
+                // main core: buildModel already pins fx/fy/fz = 0.
+                DIMS.forEach(d => {
+                    const dn = byId3[dimId(d)];
+                    if (dn) {
+                        const ca = rad3((SEC3[d][0] + SEC3[d][1]) / 2);
+                        dn.fx = Math.cos(ca) * RD3 * W; dn.fy = Math.sin(ca) * RD3 * W; dn.fz = ZL3[d] * W;
+                    }
+                });
+                ['platform', 'store'].forEach(d => {
+                    const vals = api.hubNodes.filter(nd => nd.kind === 'val' && nd.dim === d).sort((p, q) => p.__slot - q.__slot);
+                    vals.forEach((nd, i) => {
+                        const sec = SEC3[d];
+                        const a = rad3(vals.length < 2 ? (sec[0] + sec[1]) / 2 : sec[0] + (i / (vals.length - 1)) * (sec[1] - sec[0]));
+                        nd.fx = Math.cos(a) * RV3 * W; nd.fy = Math.sin(a) * RV3 * W; nd.fz = ZL3[d] * W;
+                    });
+                });
+                const monthArc3 = {};
+                ranked3.forEach(nd => {
+                    const k3 = valKeyOf(nd.__e, 'month');
+                    const sp = monthArc3[k3] || (monthArc3[k3] = [nd.__rank, nd.__rank]);
+                    sp[1] = nd.__rank;
+                });
+                api.hubNodes.filter(nd => nd.kind === 'val' && nd.dim === 'month')
+                    .sort((p, q) => (p.key < q.key ? -1 : 1))
+                    .forEach(nd => {
+                        const arc3 = monthArc3[nd.key];
+                        const mid = arc3 ? (arc3[0] + arc3[1] + 1) / 2 : S3 / 2;
+                        const a = rankAngle3(mid / Math.max(1, S3));
+                        nd.fx = Math.cos(a) * RVM3 * W; nd.fy = Math.sin(a) * RVM3 * W; nd.fz = 0;
+                    });
+                api.gameNodes.forEach(nd => {
+                    const a = rankAngle3((nd.__rank + 0.5) / Math.max(1, S3));
+                    const rr = (RS3 - 0.05 * hash01b(nd.id)) * W;    // tiny deterministic radial wobble
+                    nd.fx = Math.cos(a) * rr; nd.fy = Math.sin(a) * rr;
+                    nd.fz = (hash01b(nd.id + '#z') - 0.5) * 0.16 * W; // rim thickness: a Saturn band
+                });
+                return {
+                    W: W, rStar: RS3 * W,
+                    handAngle: d => rankAngle3(rankFrac3(d)),        // sweep hand rides the rank axis
+                };
+            }
+
             // --- one 3D instance (mini or fullscreen) ---
             function buildGraph(container, isFull) {
                 const THREE = window.THREE;
@@ -4755,6 +4839,7 @@
                 api.gameNodes = model.gameNodes;
                 api.hubNodes = model.hubNodes;
                 api.links = model.links;
+                const clock3 = layoutClock3D(api, isFull); // .10.1: pin the clock-ring layout
 
                 function visOf(x) { return (x && typeof x === 'object') ? (x.__vis || 0) : 0; }
                 function lid(x) { return (x && typeof x === 'object') ? x.id : x; }
@@ -4824,13 +4909,39 @@
                 // MeshStandardMaterial renders BLACK without lights. 3d-force-graph's
                 // scene ships no light rig, so add one here (ambient fills the sphere,
                 // a raised point light gives the stars a lit side + dim side).
+                let scene3 = null;
                 try {
-                    const sceneRef = graph.scene();
-                    sceneRef.add(new THREE.AmbientLight(0xffffff, 0.9));
+                    scene3 = graph.scene();
+                    scene3.add(new THREE.AmbientLight(0xffffff, 0.9));
                     const keyLight = new THREE.PointLight(0xffffff, 0.9);
-                    keyLight.position.set(150, 220, 260);
-                    sceneRef.add(keyLight);
+                    keyLight.position.set(420, 620, 740); // .10.1: pulled out for the ~4x bigger ring scale
+                    scene3.add(keyLight);
                 } catch (e) { /* older scene API: stars fall back to ambient-only color */ }
+                // .10.1 — clock visuals on top of the pinned layout, sharing the 2D
+                // language: a faint guide circle along the star rim, and a gold sweep
+                // hand that rides the SAME rank axis during play / slider scrub (the
+                // 2D dial's signature). scene3 null (old engine API) just skips them.
+                if (scene3) {
+                    const ringPts = [];
+                    for (let i = 0; i <= 96; i++) {
+                        const a = (i / 96) * Math.PI * 2;
+                        ringPts.push(Math.cos(a) * clock3.rStar, Math.sin(a) * clock3.rStar, 0);
+                    }
+                    const ringGeo = new THREE.BufferGeometry();
+                    ringGeo.setAttribute('position', new THREE.Float32BufferAttribute(ringPts, 3));
+                    api.__ring = new THREE.Line(ringGeo, new THREE.LineBasicMaterial({
+                        color: isDark() ? '#4a443c' : '#c8bfae', transparent: true, opacity: 0.35, depthWrite: false
+                    }));
+                    scene3.add(api.__ring);
+                    const handGeo = new THREE.CylinderGeometry(1.1, 2.6, clock3.rStar * 1.02, 6);
+                    handGeo.translate(0, clock3.rStar * 0.51, 0);
+                    handGeo.rotateZ(-Math.PI / 2); // base at the core, tip along +x — rotation.z then = rank angle
+                    api.__hand = new THREE.Mesh(handGeo, new THREE.MeshBasicMaterial({
+                        color: isDark() ? '#d9b36a' : '#b98a2f', transparent: true, opacity: 0.85, depthWrite: false
+                    }));
+                    api.__hand.visible = false;
+                    scene3.add(api.__hand);
+                }
                 graph.d3Force('charge').strength(isFull ? -36 : -16);
                 graph.d3Force('link').distance(l => l.__dl || (isFull ? 20 : 10));
                 // 2026.11.06.7 — start OUTSIDE the cluster. Live probe (file://, 40-game
@@ -4939,6 +5050,14 @@
                         n.__mesh.visible = n.__vis > 0.008;
                     });
                     if (isFull) updateHubLabels();
+                    // .10.1 gold sweep hand mirrors the 2D dial: shown while playing or
+                    // in the 1.2s slider-scrub window, pointing exactly where the rank
+                    // axis says the current day lives (mini.__scrubT never set → off).
+                    if (api.__hand) {
+                        const showHand = api.playing || performance.now() - (api.__scrubT || 0) < 1200;
+                        api.__hand.visible = showHand;
+                        if (showHand) api.__hand.rotation.z = clock3.handAngle(api.day);
+                    }
                     const anim = busy || api.playing;
                     // 2026.11.06.3 — Analytics-open lag fix. A relink is a FULL links digest
                     // (purge + rebuild every link object); ~340 games = 1000+ edges rebuilt
@@ -5092,6 +5211,17 @@
                     if (api.playRaf) cancelAnimationFrame(api.playRaf);
                     if (api.ro) api.ro.disconnect();
                     api.hubNodes.forEach(n => { if (n.__label && n.__label.parentNode) n.__label.parentNode.removeChild(n.__label); });
+                    // .10.1: the ring + sweep hand live on the shared scene, not in the
+                    // container DOM — remove and dispose them explicitly.
+                    try {
+                        ['__hand', '__ring'].forEach(key => {
+                            const o = api[key];
+                            if (!o) return;
+                            if (scene3) scene3.remove(o);
+                            o.geometry.dispose(); o.material.dispose();
+                            api[key] = null;
+                        });
+                    } catch (e) { /* best-effort, same spirit as _destructor */ }
                     try { graph._destructor(); } catch (e) { /* older builds: best-effort */ }
                     api.gameNodes.forEach(n => { n.__mesh = null; n.__mat = null; n.__halo = null; });
                     api.hubNodes.forEach(n => { n.__mesh = null; n.__mat = null; n.__halo = null; });
@@ -5102,6 +5232,8 @@
                 api.retheme = function () {
                     graph.backgroundColor(isDark() ? '#171310' : '#faf5ea');
                     graph.linkOpacity(isDark() ? 0.28 : 0.4);
+                    if (api.__ring) api.__ring.material.color.set(isDark() ? '#4a443c' : '#c8bfae'); // .10.1
+                    if (api.__hand) api.__hand.material.color.set(isDark() ? '#d9b36a' : '#b98a2f'); // .10.1
                     // linkColor is now a live accessor (gray/gold resolved per
                     // evaluation) — no setter here; refreshColors(true) re-links immediately.
                     refreshColors(true);
@@ -12292,7 +12424,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.07.3';
+        window.BUILD_VERSION = '2026.11.10.1';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

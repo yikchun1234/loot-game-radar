@@ -435,7 +435,7 @@
         #globe-mode-btn { position: absolute; right: 14px; bottom: calc(env(safe-area-inset-bottom, 0px) + 100px); z-index: 3; }
         #globe-slider { width: 100%; accent-color: #b45309; cursor: pointer; touch-action: none; }
         .dark #globe-slider { accent-color: #00f3ff; }
-        .globe-hub-label { position: absolute; transform: translate(-50%, -50%); font-size: 10px; font-weight: 800; letter-spacing: .04em; pointer-events: none; white-space: nowrap; color: #6b5d49; text-shadow: 0 0 6px rgba(255,255,255,.85); z-index: 1; }
+        .globe-hub-label { position: absolute; transform: translate(-50%, -50%); font-size: 10px; font-weight: 800; letter-spacing: .04em; pointer-events: auto; cursor: pointer; white-space: nowrap; color: #6b5d49; text-shadow: 0 0 6px rgba(255,255,255,.85); z-index: 1; } /* .10.4: clickable labels (was pointer-events:none) — tapping a label selects its hub */
         .dark .globe-hub-label { color: #d6d3d1; text-shadow: 0 0 7px rgba(0,0,0,.85); }
         #globe-info-card { position: absolute; left: 14px; bottom: calc(env(safe-area-inset-bottom, 0px) + 132px); width: 240px; border-radius: 16px; padding: 12px; background: rgba(255,253,247,.92); border: 1px solid rgba(180,83,9,.35); box-shadow: 0 10px 30px rgba(0,0,0,.12); z-index: 3; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
         .dark #globe-info-card { background: rgba(13,15,22,.88); border-color: rgba(0,243,255,.3); box-shadow: 0 10px 30px rgba(0,0,0,.5); }
@@ -5010,15 +5010,19 @@
                     if (ctl) { ctl.minDistance = isFull ? 90 : 60; ctl.maxDistance = isFull ? 2200 : 1200; }
                 } catch (e) { /* controls API drift: pinch keeps its old defaults */ }
 
-                // fullscreen labels: main + the three dim hubs always visible,
-                // value-hub labels only while their branch is highlighted
+                // .10.4 (user: 「除了app不用写label，其他都写，这样用户可以直接点label来看」)
+                // — EVERY hub label (core, 3 dims, all value hubs) is written ALWAYS;
+                // only the app stars stay anonymous (title still on hover + info card).
+                // Labels are now pointer-events:auto and clicking one selects its hub
+                // exactly like clicking the dot (same applySel path, same re-pick
+                // toggle, same .06.5 gesture guard so drags never fire a pick).
                 if (isFull) {
                     api.hubNodes.forEach(n => {
                         const lab = document.createElement('span');
                         lab.className = 'globe-hub-label';
                         lab.textContent = n.kind === 'main' ? (tRef.globeByAll || 'All loot') : n.kind === 'dim' ? dimLabel(n.dim) : (n.dim === 'month' ? monthLabel(n.key) : n.key);
                         if (n.kind === 'main') { lab.style.fontSize = '12px'; }
-                        if (n.kind === 'val') lab.style.display = 'none';
+                        lab.addEventListener('click', ev => { ev.stopPropagation(); if (gestureDirty()) return; applySel(selFromNode(n)); });
                         container.appendChild(lab);
                         n.__label = lab;
                     });
@@ -5089,8 +5093,8 @@
                 function updateHubLabels() {
                     api.hubNodes.forEach(n => {
                         if (!n.__label) return;
-                        // value-hub labels only surface when the branch is highlighted
-                        if (n.kind === 'val' && !(relSet && relSet.has(n.id))) { n.__label.style.display = 'none'; return; }
+                        // .10.4: value-hub labels are NO LONGER gated on the highlight —
+                        // every hub writes its label whenever its dot is visible.
                         if (n.__vis < 0.15 || api.disposed) { n.__label.style.display = 'none'; return; }
                         try {
                             // 3d-force-graph 1.70.3 has no getScreenPixelCoordinates —
@@ -5425,6 +5429,20 @@
                         const lim = (nd.kind === 'main' ? 18 : nd.kind === 'dim' ? 13 : nd.kind === 'val' ? 11 : 9) / view.k;
                         if (d < lim * lim && d < bestD) { bestD = d; hit = nd; }
                     });
+                    if (!hit) {
+                        // .10.4: the always-written label text is a click target too —
+                        // screen-space rect recorded by the last draw() frame (__lab2).
+                        const sx = e.clientX - rect.left, sy = e.clientY - rect.top;
+                        let bestL = 1e9;
+                        api.hubNodes.forEach(nd => {
+                            const lb = nd.__lab2;
+                            if (!lb) return;
+                            if (Math.abs(sx - lb.x) <= lb.hw && Math.abs(sy - lb.y) <= 8) {
+                                const d = Math.abs(sx - lb.x) + Math.abs(sy - lb.y);
+                                if (d < bestL) { bestL = d; hit = nd; }
+                            }
+                        });
+                    }
                     if (hit) applySel(selFromNode(hit)); else applySel(null);
                 });
 
@@ -5583,30 +5601,36 @@
                     api.gameNodes.forEach(nd => drawNd(nd, 3.4));
                     api.hubNodes.forEach(nd => { if (nd.kind === 'dim') drawNd(nd, 6); else if (nd.kind === 'val') drawNd(nd, 4.2); });
                     drawNd(mn, 9);
-                    // labels: core + dims always; month hubs get dial labels at the
-                    // range ends + whenever highlighted; other vals on highlight
-                    // only (mirrors the 3D label gate).
+                    // .10.4 (user: 「除了app不用写label，其他都写，用户可以直接点label来看」)
+                    // — every hub label is ALWAYS written (month __dialLabel + highlight
+                    // gates retired), and each drawn label records its SCREEN-space rect
+                    // (__lab2 = {x,y,hw} in CSS px) so the click handler can select its
+                    // hub from the text itself — tiny dots at low zoom stay easy to hit.
+                    api.hubNodes.forEach(nd => { nd.__lab2 = null; });
                     g.textAlign = 'center'; g.textBaseline = 'middle';
                     const lab = dark ? 'rgba(214,211,209,0.92)' : 'rgba(87,83,78,0.92)';
+                    const K2 = view.k; // ctx units → CSS px multiplier (screen = ctx * k)
                     g.fillStyle = lab;
                     g.font = '800 ' + (12 * zk) + 'px ui-rounded, system-ui, sans-serif';
-                    g.fillText(tRef.globeByAll || 'All loot', cx, cy - 26 * zk);
+                    const allTxt = tRef.globeByAll || 'All loot';
+                    g.fillText(allTxt, cx, cy - 26 * zk);
+                    mn.__lab2 = { x: cx + view.x, y: cy + view.y - 26, hw: g.measureText(allTxt).width * K2 / 2 + 4 };
                     g.font = '800 ' + (11 * zk) + 'px ui-rounded, system-ui, sans-serif';
                     DIMS.forEach(d => {
                         const dn = nodeById[dimId(d)];
                         if (!dn || (dn.__vis || 0) <= 0.15) return;
                         g.fillStyle = lab;
-                        g.fillText(dimLabel(d), cx + dn.x2 * s, cy + dn.y2 * s - 13 * zk);
+                        const dt = dimLabel(d);
+                        g.fillText(dt, cx + dn.x2 * s, cy + dn.y2 * s - 13 * zk);
+                        dn.__lab2 = { x: cx + view.x + dn.x2 * s * K2, y: cy + view.y + dn.y2 * s * K2 - 13, hw: g.measureText(dt).width * K2 / 2 + 4 };
                     });
                     g.font = '700 ' + (9 * zk) + 'px ui-rounded, system-ui, sans-serif';
                     api.hubNodes.forEach(nd => {
                         if (nd.kind !== 'val' || (nd.__vis || 0) <= 0.15 || nd.x2 == null) return;
-                        const lit = !!(relSet && relSet.has(nd.id));
-                        if (nd.dim === 'month' && !lit && !nd.__dialLabel) return;
-                        if (nd.dim !== 'month' && !lit) return;
                         g.fillStyle = lab;
                         const txt = nd.dim === 'month' ? monthShort(nd.key) : nd.key;
                         g.fillText(txt, cx + nd.x2 * s, cy + nd.y2 * s - 11 * zk);
+                        nd.__lab2 = { x: cx + view.x + nd.x2 * s * K2, y: cy + view.y + nd.y2 * s * K2 - 11, hw: g.measureText(txt).width * K2 / 2 + 4 };
                     });
                 }
 
@@ -12421,7 +12445,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.10.3';
+        window.BUILD_VERSION = '2026.11.10.4';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

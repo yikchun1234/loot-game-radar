@@ -4851,6 +4851,13 @@
                 // link objects after the simulation cools, where 3d-force-graph
                 // would otherwise freeze the widths from the first build.
                 function linkVis(l) { return Math.min(visOf(l.source), visOf(l.target)); }
+                // .10.3 — the SELECTION chain, identical predicate to the 2D dial's
+                // `chain` test: a link belongs to the highlighted relation chain only
+                // when BOTH endpoints are lit. 3D used to keep every gray line at the
+                // constant linkOpacity and paint the chain gold at the same width, so
+                // the pick read as "nothing highlighted, web still there" (user:
+                // 「选app后那个线没有highlight出来，没有关系的线应该要看不到」).
+                function chainL(l) { return !!(relSet && relSet.has(lid(l.source)) && relSet.has(lid(l.target))); }
                 const graph = ForceGraph3D()(container)
                     .showNavInfo(false)
                     .backgroundColor(isDark() ? '#171310' : '#faf5ea')
@@ -4885,11 +4892,14 @@
                         return mesh;
                     })
                     .nodeLabel(n => n.kind === 'game' ? String((n.__e && n.__e.title) || '') : '')
-                    .linkWidth(l => linkVis(l) * 1.2)
+                    .linkWidth(l => linkVis(l) * (chainL(l) ? 2.6 : 1.2))
                     // hard switch too (plain THREE.Line ignores sub-pixel widths in
                     // WebGL, so the old 0.05-floor links were ALWAYS drawn — the
                     // real ghost-web cause; visibility is honored regardless)
-                    .linkVisibility(l => linkVis(l) > 0.02)
+                    // .10.3: while a pick is active, ONLY the chain links exist at all
+                    // (2D's near-invisible 0.10/0.28 grays have no per-link opacity in
+                    // WebGL — hiding is the faithful equivalent of「看不到」).
+                    .linkVisibility(l => linkVis(l) > 0.02 && (!relSet || chainL(l)))
                     .linkOpacity(isDark() ? 0.28 : 0.4)
                     .linkColor(l => {
                         // relation-chain links glow champagne gold while a pick is
@@ -5111,6 +5121,13 @@
                     // setDay) NO LONGER relink here — 2026.11.06.3 moved all tween-time line
                     // rebuilds to the settle frame in tick(); rebuilding 1000+ link objects
                     // every 120ms while two graph instances animate was the Analytics lag.
+                    // .10.3 — linkOpacity is ONE constant for all links. Since non-chain
+                    // lines are hidden while a pick is active (linkVisibility above), the
+                    // only lines left ARE the chain, so the constant can go bright
+                    // champagne (0.85 = the 2D dial's chain alpha) and snap back to the
+                    // faint gray base on deselect. One-shot user action: the immediate
+                    // relink below re-reads width/visibility/color in the same digest.
+                    try { graph.linkOpacity(relSet ? 0.85 : (isDark() ? 0.28 : 0.4)); } catch (e) { }
                     if (force) relink(true);
                     // Deliberately NO nodeThreeObject re-set: that rebuilds every mesh
                     // and resets materials to callback defaults (the 11.05.1 gray-star
@@ -5129,7 +5146,7 @@
                     const now = performance.now();
                     if (!force && now - (api.__lastRelink || 0) < 120) return;
                     api.__lastRelink = now;
-                    try { graph.linkWidth(l => linkVis(l) * 1.2); } catch (e) { /* oldest engine builds: lines just stay static */ }
+                    try { graph.linkWidth(l => linkVis(l) * (chainL(l) ? 2.6 : 1.2)); } catch (e) { /* oldest engine builds: lines just stay static */ }
                 }
                 api.refreshColors = refreshColors;
 
@@ -12404,7 +12421,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.10.2';
+        window.BUILD_VERSION = '2026.11.10.3';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

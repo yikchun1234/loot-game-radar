@@ -5085,11 +5085,16 @@
                     // 2026.11.06.3 — Analytics-open lag fix. A relink is a FULL links digest
                     // (purge + rebuild every link object); ~340 games = 1000+ edges rebuilt
                     // every 120ms through the whole entrance was freezing the main thread the
-                    // moment the panel opened. Entrance now paints lines only on its settle
-                    // frame (widths start at 0, so mid-tween lines are invisible anyway).
-                    // Play sweeps and active slider drags keep the 11.06.1 dots+lines-together
-                    // look via the throttled relink — the user is watching the open overlay.
-                    if (busy && (api.playing || performance.now() - (api.__scrubT || 0) < 1200)) relink();
+                    // moment the panel opened. That verdict STANDS for the mini globe: it
+                    // mounts complete (.10.2) and its tweens never rebuild links.
+                    // 2026.11.11.4 — user: 「open the globe 的确有画圈出来，可是线条没有一起画
+                    // 出来…连线也一起动画」. Inside the FULLSCREEN overlay every busy window —
+                    // the open entrance pop, play sweeps, slider scrubs — now keeps the
+                    // throttled relink so lines grow WITH their dots (the play sweep already
+                    // proved ~8 digests/s stays smooth there; the user is watching this view).
+                    // The old play/scrub-only condition was the entrance's only exclusion;
+                    // __scrubT still drives the gold hand below, just no longer the relink.
+                    if (busy && isFull) relink();
                     if (api.__wasAnim && !anim) relink(true); // one FORCED settle rebuild on the last tween frame = exact final widths
                     api.__wasAnim = anim;
                     if (busy || api.playing || isFull) api.raf = requestAnimationFrame(tick);
@@ -5867,7 +5872,7 @@
                 overlay.querySelector('#globe-slider').addEventListener('input', function () {
                     if (!full) return;
                     full.stopPlay();
-                    full.__scrubT = performance.now(); // 11.06.3: keeps lines glued to dots WHILE dragging (throttled relink); entrance alone is rebuild-free
+                    full.__scrubT = performance.now(); // .10.1 gold hand window (since .11.11.4 the relink itself runs for ALL fullscreen busy windows, entrance included)
                     full.setDay(Number(this.value), true);
                 });
                 document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape' && overlay && !overlay.classList.contains('globe-off')) closeFullscreen(); });
@@ -12522,7 +12527,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.11.3';
+        window.BUILD_VERSION = '2026.11.11.4';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

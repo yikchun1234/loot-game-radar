@@ -4908,7 +4908,7 @@
                             const a = lid(l.source), b = lid(l.target);
                             if (relSet.has(a) && relSet.has(b)) return isDark() ? '#d9b36a' : '#b98a2f';
                         }
-                        return isDark() ? '#4a443c' : '#c8bfae';
+                        return '#4a443c'; // .11.11.1 (user: 「light mode 线应该要黑色」): the old light base #c8bfae@0.4 over #faf5ea was ΔL≈7% = invisible
                     })
                     .onNodeClick(n => { if (!gestureDirty()) onPick(n); })
                     .onBackgroundClick(() => { if (!gestureDirty()) applySel(null); })
@@ -4940,7 +4940,7 @@
                     const ringGeo = new THREE.BufferGeometry();
                     ringGeo.setAttribute('position', new THREE.Float32BufferAttribute(ringPts, 3));
                     api.__ring = new THREE.Line(ringGeo, new THREE.LineBasicMaterial({
-                        color: isDark() ? '#4a443c' : '#c8bfae', transparent: true, opacity: 0.35, depthWrite: false
+                        color: '#4a443c', transparent: true, opacity: 0.35, depthWrite: false // .11.11.1: guide ring dark in BOTH themes
                     }));
                     scene3.add(api.__ring);
                     const handGeo = new THREE.CylinderGeometry(1.1, 2.6, clock3.rStar * 1.02, 6);
@@ -5253,7 +5253,7 @@
                 api.retheme = function () {
                     graph.backgroundColor(isDark() ? '#171310' : '#faf5ea');
                     graph.linkOpacity(isDark() ? 0.28 : 0.4);
-                    if (api.__ring) api.__ring.material.color.set(isDark() ? '#4a443c' : '#c8bfae'); // .10.1
+                    if (api.__ring) api.__ring.material.color.set('#4a443c'); // .10.1 / .11.11.1 dark in both themes
                     if (api.__hand) api.__hand.material.color.set(isDark() ? '#d9b36a' : '#b98a2f'); // .10.1
                     // linkColor is now a live accessor (gray/gold resolved per
                     // evaluation) — no setter here; refreshColors(true) re-links immediately.
@@ -5545,7 +5545,7 @@
                         g.stroke();
                     });
                     // links: gray base batch, champagne-gold curve for the chain
-                    const gray = dark ? '#4a443c' : '#c8bfae';
+                    const gray = '#4a443c'; // .11.11.1: light-mode web was invisible at #c8bfae — user: 「线应该要黑色」
                     const gold = dark ? '#d9b36a' : '#b98a2f';
                     g.lineCap = 'round';
                     api.links.forEach(l => {
@@ -12445,7 +12445,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.10.4';
+        window.BUILD_VERSION = '2026.11.11.1';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

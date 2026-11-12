@@ -8842,6 +8842,27 @@
             });
 
             // --- Resolve a title for every tracked URL and group by cleaned name + platform ---
+            // 2026.11.12.2 IDENTITY VETO (user's equalizer follow-up: five records grouped
+            // together were DIFFERENT apps that merely share a name — the Android
+            // "Equalizer" family). A cleaned title is NOT proof of same-app. Entries that
+            // both carry a PACKAGE-GRADE identity (gplay:pkg / ios:id / steam / epic / gog
+            // slug) with different values are definitively separate giveaways and may never
+            // share a group or a merge offer. Unknown identity (raw mirror URL, synthetic
+            // android_xxx key) stays joinable — legit same-app multi-link pairs still reach
+            // MERGE ANY. gp: slugs are per-OFFER redirects, not app identity — never trusted.
+            const TRUSTED_ID_RE = /^(gplay:\S+|ios:id\d+|steam:\d+|epic:\S+|gog:\S+)$/i;
+            const trustedId = v => {
+                if (typeof v !== 'string') return '';
+                const s = v.trim();
+                if (!s) return '';
+                if (TRUSTED_ID_RE.test(s)) return s.toLowerCase();
+                if (/^https?:/i.test(s)) {
+                    let n = '';
+                    try { n = normalizeUrl(s) || ''; } catch (e) { return ''; }
+                    return (n !== s && TRUSTED_ID_RE.test(n)) ? n.toLowerCase() : '';
+                }
+                return '';
+            };
             const groups = {};
             let noTitleCount = 0;
             Array.from(allUrlsSet).forEach(url => {
@@ -8868,13 +8889,18 @@
                 // platform share the 'unknown' key and group as before.
                 const gKey = clean + '|' + platformKey(platforms);
                 if (!groups[gKey]) groups[gKey] = { title: title, platforms: platforms || '-', entries: [] };
+                const rawOriginalUrl = claimed ? (claimed.open_giveaway || url) : ((deleted && deleted.originalUrl) || denormalizeUrl(url));
                 groups[gKey].entries.push({
                     url: url,
                     normalizedId: normalizedId,
+                    // 2026.11.12.2: package-grade identity for the veto (see TRUSTED_ID_RE).
+                    identity: trustedId(normalizedId) || trustedId(url) ||
+                        trustedId(claimed && claimed.open_giveaway) || trustedId(deleted && deleted.originalUrl) ||
+                        trustedId(rawOriginalUrl),
                     // 2026.09.04.2: deleted records carry their own originalUrl —
                     // prefer it over denormalizeUrl so legacy keys (android_<title>)
                     // show (and safe-merge-match on) the REAL store URL.
-                    originalUrl: claimed ? (claimed.open_giveaway || url) : ((deleted && deleted.originalUrl) || denormalizeUrl(url)),
+                    originalUrl: rawOriginalUrl,
                     platforms: platforms || '-',
                     claimed: !!claimed,
                     deleted: deleted || null,
@@ -8892,9 +8918,34 @@
                 });
             });
 
-            const dupGroups = Object.entries(groups)
-                .filter(([, g]) => g.entries.length > 1)
-                .sort((a, b) => a[0].localeCompare(b[0]));
+            // 2026.11.12.2: sub-partition every title+platform group by known identity.
+            // 0 or 1 known identity -> one group (unknowns join it — the legit equalizer
+            // pair: gplay:pkg + unknown mirror URL). 2+ known identities -> one cluster
+            // per identity (five same-name-different-package apps = five silent
+            // singletons); unknowns attach to the LARGEST cluster so genuine variants
+            // of the dominant app still surface, and the amber confirm dialog keeps the
+            // human in charge.
+            const partitionByIdentity = entries => {
+                const byId = new Map();
+                const unknown = [];
+                entries.forEach(e => {
+                    if (e.identity) {
+                        if (!byId.has(e.identity)) byId.set(e.identity, []);
+                        byId.get(e.identity).push(e);
+                    } else unknown.push(e);
+                });
+                if (byId.size <= 1) return [entries];
+                const clusters = Array.from(byId.values()).sort((a, b) => b.length - a.length);
+                if (unknown.length) clusters[0].push(...unknown);
+                return clusters;
+            };
+            const dupGroups = [];
+            Object.entries(groups).forEach(([gKey, g]) => {
+                partitionByIdentity(g.entries).forEach(part => {
+                    if (part.length > 1) dupGroups.push([gKey + '|' + (part[0].identity || ''), { title: g.title, platforms: g.platforms, entries: part }]);
+                });
+            });
+            dupGroups.sort((a, b) => a[0].localeCompare(b[0]));
 
             if (dupGroups.length === 0) {
                 deleteBtn.classList.add('hidden');
@@ -8916,7 +8967,7 @@
             html += `<span class="px-2 py-1 bg-teal-500/10 text-teal-500 rounded text-[10px] font-bold">${dupGroups.length} groups (${totalExtra} same-name entries)</span>`;
             if (noTitleCount > 0) html += `<span class="px-2 py-1 bg-gray-500/10 text-gray-400 rounded text-[10px] font-bold">${noTitleCount} entries without title (skipped)</span>`;
             html += '</div>';
-            html += '<div class="text-[10px] text-gray-400 mb-3">Grouped by identical name + platform across ALL tracked apps (claimed + tracked + deleted). Same name on DIFFERENT platforms = separate giveaways, not grouped. KEEP = the recommended entry. Tap the trash button on ANY card (left or right) to delete that exact entry on the spot — or tick checkboxes and use Delete Selected for a batch. Groups whose entries share an EXACTLY identical URL get a green MERGE button: the OLDEST record survives (missing fields filled from the newer one), its key is updated to the canonical form, and the highest status wins (claimed &gt; paywall &gt; accidental &gt; expired &gt; failed &gt; tracked). Note: a LIVE entry is still served by an upstream feed — deleting its record will not remove it from the feed (it gets re-tracked on the next refresh); mark it Not Interested instead. When the URLs DIFFER (same app posted under different links), the group gets an amber MERGE ANY button: it shows every key + URL in the confirm dialog and folds them with the same oldest-data-wins rules — use it only when the cards are truly the same app.</div>';
+            html += '<div class="text-[10px] text-gray-400 mb-3">Grouped by identical name + platform across ALL tracked apps (claimed + tracked + deleted). Same name on DIFFERENT platforms = separate giveaways, not grouped. KEEP = the recommended entry. Tap the trash button on ANY card (left or right) to delete that exact entry on the spot — or tick checkboxes and use Delete Selected for a batch. Groups whose entries share an EXACTLY identical URL get a green MERGE button: the OLDEST record survives (missing fields filled from the newer one), its key is updated to the canonical form, and the highest status wins (claimed &gt; paywall &gt; accidental &gt; expired &gt; failed &gt; tracked). Note: a LIVE entry is still served by an upstream feed — deleting its record will not remove it from the feed (it gets re-tracked on the next refresh); mark it Not Interested instead. When the URLs DIFFER (same app posted under different links), the group gets an amber MERGE ANY button: it shows every key + URL in the confirm dialog and folds them with the same oldest-data-wins rules — use it only when the cards are truly the same app. Same name alone is NOT a duplicate: entries with DIFFERENT package IDs (gplay: / ios:id / steam: / epic: / gog:) are different apps and are no longer grouped or offered for merging at all.</div>';
 
             const fmtDate = ts => ts ? new Date(ts).toLocaleString() : '-';
             // 2026.09.03.1: escape titles embedded in data-title attributes
@@ -8974,7 +9025,7 @@
                     // 2026.11.12.1: URLs differ (e.g. two giveaway links for the SAME
                     // app on different sites) — safe-merge refuses by design, so offer
                     // an explicit force merge the user confirms after SEEING both URLs.
-                    const fmEntries = JSON.stringify(sorted.map(e => ({ k: e.url, u: e.originalUrl || '' })));
+                    const fmEntries = JSON.stringify(sorted.map(e => ({ k: e.url, u: e.originalUrl || '', i: e.identity || '' })));
                     html += `<button onclick="forceMergeTrackedDupGroup(this)" data-keep="${escAttr(keep.url)}" data-entries="${escAttr(fmEntries)}" title="URLs differ — only merge if these records are truly the SAME app. The KEEP record absorbs the others: older data wins, gaps fill from newer, double-counted savings are deducted" class="tdup-forcemerge-btn ml-auto px-2 py-0.5 text-[9px] font-bold bg-amber-500/15 text-amber-500 hover:bg-amber-500/30 rounded transition-colors flex-shrink-0"><i class="ph-bold ph-git-merge"></i> MERGE ANY</button>`;
                 }
                 html += `</div>`;
@@ -9002,6 +9053,7 @@
                 if (keep.originalUrl && keep.originalUrl !== keep.url) {
                     html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">URL:</span> <span class="font-mono break-all">${keep.originalUrl}</span></div>`;
                 }
+                if (keep.identity) html += `<div class="text-[10px] text-teal-500/90"><span class="font-bold">ID:</span> <span class="font-mono break-all">${keep.identity}</span></div>`;
                 html += `</div></div></div>`;
 
                 // Card 2..n: one swipe card per same-name entry (each with checkbox)
@@ -9027,6 +9079,7 @@
                     if (entry.originalUrl && entry.originalUrl !== entry.url) {
                         html += `<div class="text-[10px] text-gray-500"><span class="font-bold text-gray-400">URL:</span> <span class="font-mono break-all">${entry.originalUrl}</span></div>`;
                     }
+                    if (entry.identity) html += `<div class="text-[10px] text-teal-500/90"><span class="font-bold">ID:</span> <span class="font-mono break-all">${entry.identity}</span></div>`;
                     html += `</div></div></div>`;
                     checkboxIdx++;
                 });
@@ -9338,9 +9391,19 @@
             const keepRec = (state.claimedGames || {})[keepKey];
             const keepEntry0 = all.find(e => e.k === keepKey) || null;
             const keepU = (keepRec && keepRec.open_giveaway) || (keepEntry0 && keepEntry0.u) || '';
+            // 2026.11.12.2: belt & suspenders — grouping already vetoes conflicting
+            // package IDs, but a stale report (or a hand-built button) must NEVER
+            // fold two definitively different apps. Only PACKAGE-GRADE ids count:
+            // claimed.normalizedId can hold a raw URL, which is NOT an identity.
+            const TRUSTED_ID_RE2 = /^(gplay:\S+|ios:id\d+|steam:\d+|epic:\S+|gog:\S+)$/i;
+            const rawKeepI = (keepEntry0 && keepEntry0.i) || (keepRec && keepRec.normalizedId) || '';
+            const keepI = TRUSTED_ID_RE2.test(String(rawKeepI).trim()) ? String(rawKeepI).trim().toLowerCase() : '';
+            const trusted2 = v => TRUSTED_ID_RE2.test(String(v || '').trim()) ? String(v).trim().toLowerCase() : '';
+            const clashing = losers.filter(e => trusted2(e.i) && keepI && trusted2(e.i) !== keepI);
+            if (clashing.length) { alert('Refused: ' + clashing.map(e => e.k + ' [' + e.i + ']').join(', ') + ' has a DIFFERENT package ID than KEEP [' + keepI + '] — these are different apps, not duplicates.'); return; }
             const titleOf = k => { const c = (state.claimedGames || {})[k]; return c && c.title ? c.title : (keepRec && keepRec.title) || 'group'; };
-            const absorbed = losers.map(e => '  - ' + e.k + (e.u ? '\n    ' + e.u : '')).join('\n');
-            if (!confirm('FORCE-merge ' + losers.length + ' record(s) into KEEP "' + titleOf(keepKey) + '"?\n\nKEEP: ' + keepKey + (keepU ? '\n    ' + keepU : '') + '\nABSORB:\n' + absorbed + '\n\nThese records have DIFFERENT store URLs — continue only if they are truly the SAME app (title variants, mirrors, promo links). The KEEP record survives under its canonical key; the oldest data wins, missing fields fill from the newer record, claimed outranks deletion reasons, and double-counted savings are deducted. This CANNOT be undone!')) return;
+            const absorbed = losers.map(e => '  - ' + e.k + (e.i ? '\n    ID: ' + e.i : '') + (e.u ? '\n    ' + e.u : '')).join('\n');
+            if (!confirm('FORCE-merge ' + losers.length + ' record(s) into KEEP "' + titleOf(keepKey) + '"?\n\nKEEP: ' + keepKey + (keepI ? '\n    ID: ' + keepI : '') + (keepU ? '\n    ' + keepU : '') + '\nABSORB:\n' + absorbed + '\n\nThese records have DIFFERENT store URLs — continue only if they are truly the SAME app (title variants, mirrors, promo links). The KEEP record survives under its canonical key; the oldest data wins, missing fields fill from the newer record, claimed outranks deletion reasons, and double-counted savings are deducted. This CANNOT be undone!')) return;
             const keepOrig = keepU || denormalizeUrl(keepKey) || keepKey;
             const canonKey = normalizeUrl(keepOrig) || keepKey;
             let did = 0, failed = 0;
@@ -12631,7 +12694,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.12.1';
+        window.BUILD_VERSION = '2026.11.12.2';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

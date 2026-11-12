@@ -1140,6 +1140,9 @@
                     <button onclick="detectTrackedDuplicates()" class="px-3 py-1.5 text-[10px] font-bold bg-teal-500/20 text-teal-500 hover:bg-teal-500/30 rounded-lg transition-colors">
                       <i class="ph-bold ph-magnifying-glass"></i> Detect
                     </button>
+                    <button type="button" onclick="toggleTdupStrict()" id="dev-tdup-strict-btn" class="px-3 py-1.5 text-[10px] font-bold rounded-lg transition-colors bg-amber-500/25 text-amber-500 hover:bg-amber-500/35">
+                      <i class="ph-bold ph-link"></i> APP STRICT: ON (link-check dedup)
+                    </button>
                     <button onclick="setAllTrackedDupCheckboxes(true)" title="Tick every delete checkbox" class="px-3 py-1.5 text-[10px] font-bold bg-blue-500/20 text-blue-500 hover:bg-blue-500/30 rounded-lg transition-colors">
                       <i class="ph-bold ph-check-square"></i> Select All
                     </button>
@@ -8841,9 +8844,17 @@
                 if (fid && g.platforms && !feedPlatformMap[fid]) feedPlatformMap[fid] = g.platforms;
             });
 
-            // --- Resolve a title for every tracked URL and group by cleaned name + platform ---
+            // --- Resolve a title for every tracked URL and group ---
+            // 2026.11.12.4 APP STRICT (user rule 「查看 app link 才做 dedup」):
+            // STRICT ON  -> group by store package ID extracted from the app LINK;
+            //               records whose link yields NO verifiable ID (old data)
+            //               are never touched — not grouped, not merge-offered.
+            // STRICT OFF -> exactly the pre-2026.11.12.4 name + platform behavior.
+            const strict = window.isTdupStrict();
+            window.renderTdupStrictBtn();
             const groups = {};
             let noTitleCount = 0;
+            let noIdCount = 0;
             Array.from(allUrlsSet).forEach(url => {
                 const claimed = claimedGames[url];
                 const deleted = deletedMap[url];
@@ -8852,25 +8863,43 @@
 
                 let title = claimed ? (claimed.title || '') : (deleted ? (deleted.title || '') : '');
                 if (!title) title = feedTitleMap[normalizedId] || '';
+
+                // 2026.09.04.2: deleted records carry their own originalUrl —
+                // prefer it over denormalizeUrl so legacy keys (android_<title>)
+                // show (and safe-merge-match on) the REAL store URL.
+                const originalUrl = claimed ? (claimed.open_giveaway || url) : ((deleted && deleted.originalUrl) || denormalizeUrl(url));
+
+                // 2026.11.12.4: link identity — trustworthy store package IDs only
+                // (gplay/ios/steam/epic/gog). 'gp:' gamerpower slugs are per-OFFER
+                // redirects, NOT app identity (2026.11.12 false-merge lesson).
+                const identity = strict
+                    ? (window.tdupTrustedId(normalizedId) || window.tdupTrustedId(url) || window.tdupTrustedId(originalUrl)
+                        || window.tdupTrustedId(claimed && claimed.open_giveaway)
+                        || window.tdupTrustedId(deleted && deleted.normalizedId) || window.tdupTrustedId(deleted && deleted.originalUrl))
+                    : '';
+
                 const clean = (title || '').toLowerCase().replace(/\s+/g, ' ').trim();
-                if (!clean) { noTitleCount++; return; } // no title -> cannot group
+                if (strict) {
+                    if (!identity) { noIdCount++; return; } // 不碰: no verifiable ID in the link
+                } else if (!clean) {
+                    noTitleCount++; return; // loose mode: no title -> cannot group
+                }
 
                 // Platform resolution: claimed -> deleted -> live feed
                 let platforms = claimed ? (claimed.platforms || '') : (deleted ? (deleted.platforms || '') : '');
                 if (!platforms) platforms = feedPlatformMap[normalizedId] || '';
 
-                // Group by name + platform: the iOS and Android giveaways of one
-                // game are separate freebies, not duplicates. Entries with unknown
-                // platform share the 'unknown' key and group as before.
-                const gKey = clean + '|' + platformKey(platforms);
-                if (!groups[gKey]) groups[gKey] = { title: title, platforms: platforms || '-', entries: [] };
+                // STRICT: the ID IS the app — one identity = one group (titles may
+                // differ in case/whitespace). LOOSE: name + platform, because the
+                // iOS and Android giveaways of one game are separate freebies.
+                const gKey = strict ? ('id:' + identity) : (clean + '|' + platformKey(platforms));
+                if (!groups[gKey]) groups[gKey] = { title: title || identity, platforms: platforms || '-', entries: [] };
+                else if (!groups[gKey].title && title) groups[gKey].title = title;
                 groups[gKey].entries.push({
                     url: url,
                     normalizedId: normalizedId,
-                    // 2026.09.04.2: deleted records carry their own originalUrl —
-                    // prefer it over denormalizeUrl so legacy keys (android_<title>)
-                    // show (and safe-merge-match on) the REAL store URL.
-                    originalUrl: claimed ? (claimed.open_giveaway || url) : ((deleted && deleted.originalUrl) || denormalizeUrl(url)),
+                    identity: identity,
+                    originalUrl: originalUrl,
                     platforms: platforms || '-',
                     claimed: !!claimed,
                     deleted: deleted || null,
@@ -8897,8 +8926,12 @@
                 if (mergeBtn) mergeBtn.classList.add('hidden');
                 window._tdupMergePlans = [];
                 let okHtml = '<div class="p-3 bg-green-500/10 border border-green-500/30 rounded-lg text-green-500 text-[11px] font-bold">';
-                okHtml += '<i class="ph-bold ph-check-circle mr-1"></i> No same-name duplicates found among ' + allUrlsSet.size + ' tracked apps.';
-                if (noTitleCount > 0) okHtml += ' <span class="text-gray-400 font-normal">(' + noTitleCount + ' entries have no title and were skipped)</span>';
+                okHtml += '<i class="ph-bold ph-check-circle mr-1"></i> ';
+                okHtml += strict
+                    ? ('No link-verified duplicates found among ' + allUrlsSet.size + ' tracked apps.')
+                    : ('No same-name duplicates found among ' + allUrlsSet.size + ' tracked apps.');
+                if (strict && noIdCount > 0) okHtml += ' <span class="text-gray-400 font-normal">(' + noIdCount + ' entries have no store-link ID and were NOT touched — turn APP STRICT off for the legacy name view)</span>';
+                if (!strict && noTitleCount > 0) okHtml += ' <span class="text-gray-400 font-normal">(' + noTitleCount + ' entries have no title and were skipped)</span>';
                 okHtml += '</div>';
                 report.innerHTML = okHtml;
                 return;
@@ -8909,10 +8942,13 @@
             // group buttons reference them by index.
             window._tdupMergePlans = [];
             let html = '<div class="flex gap-3 mb-3 flex-wrap">';
-            html += `<span class="px-2 py-1 bg-teal-500/10 text-teal-500 rounded text-[10px] font-bold">${dupGroups.length} groups (${totalExtra} same-name entries)</span>`;
-            if (noTitleCount > 0) html += `<span class="px-2 py-1 bg-gray-500/10 text-gray-400 rounded text-[10px] font-bold">${noTitleCount} entries without title (skipped)</span>`;
+            html += `<span class="px-2 py-1 bg-teal-500/10 text-teal-500 rounded text-[10px] font-bold">${dupGroups.length} groups (${totalExtra} ${strict ? 'same-link' : 'same-name'} entries)</span>`;
+            if (strict && noIdCount > 0) html += `<span class="px-2 py-1 bg-amber-500/10 text-amber-500 rounded text-[10px] font-bold" title="APP STRICT never touches records whose app link has no verifiable store package ID (old data). Turn APP STRICT off for the legacy name-based view.">${noIdCount} entries NOT touched (no store-link ID)</span>`;
+            if (!strict && noTitleCount > 0) html += `<span class="px-2 py-1 bg-gray-500/10 text-gray-400 rounded text-[10px] font-bold">${noTitleCount} entries without title (skipped)</span>`;
             html += '</div>';
-            html += '<div class="text-[10px] text-gray-400 mb-3">Grouped by identical name + platform across ALL tracked apps (claimed + tracked + deleted). Same name on DIFFERENT platforms = separate giveaways, not grouped. KEEP = the recommended entry. Tap the trash button on ANY card (left or right) to delete that exact entry on the spot — or tick checkboxes and use Delete Selected for a batch. Groups whose entries share an EXACTLY identical URL get a green MERGE button: the OLDEST record survives (missing fields filled from the newer one), its key is updated to the canonical form, and the highest status wins (claimed &gt; paywall &gt; accidental &gt; expired &gt; failed &gt; tracked). Note: a LIVE entry is still served by an upstream feed — deleting its record will not remove it from the feed (it gets re-tracked on the next refresh); mark it Not Interested instead.</div>';
+            html += strict
+                ? '<div class="text-[10px] text-amber-500/90 mb-3"><b>APP STRICT is ON</b> (dedup only after CHECKING THE APP LINK): entries group ONLY when their app link resolves to the SAME store package ID (Play Store / App Store / Steam / Epic / GOG). Different package IDs are DIFFERENT apps even when the names match. Records whose link carries no verifiable ID (old data) are NEVER touched here — turn APP STRICT off for the legacy name-based cleanup view. KEEP = the recommended entry. Tap the trash button on ANY card to delete that exact entry on the spot — or tick checkboxes and use Delete Selected for a batch. Groups whose entries share an EXACTLY identical URL get a green MERGE button (safe merge: oldest data wins, key becomes canonical, highest status wins). Note: a LIVE entry is still served by an upstream feed — deleting its record will not remove it from the feed; mark it Not Interested instead.</div>'
+                : '<div class="text-[10px] text-gray-400 mb-3">Grouped by identical name + platform across ALL tracked apps (claimed + tracked + deleted). Same name on DIFFERENT platforms = separate giveaways, not grouped. KEEP = the recommended entry. Tap the trash button on ANY card (left or right) to delete that exact entry on the spot — or tick checkboxes and use Delete Selected for a batch. Groups whose entries share an EXACTLY identical URL get a green MERGE button: the OLDEST record survives (missing fields filled from the newer one), its key is updated to the canonical form, and the highest status wins (claimed &gt; paywall &gt; accidental &gt; expired &gt; failed &gt; tracked). Note: a LIVE entry is still served by an upstream feed — deleting its record will not remove it from the feed (it gets re-tracked on the next refresh); mark it Not Interested instead.</div>';
 
             const fmtDate = ts => ts ? new Date(ts).toLocaleString() : '-';
             // 2026.09.03.1: escape titles embedded in data-title attributes
@@ -8999,7 +9035,7 @@
                     const dImg = entry.image ? `<img src="${entry.image}" class="w-8 h-8 rounded object-cover flex-shrink-0" onerror="this.style.display='none'">` : '';
                     html += `<div class="flex-shrink-0 w-[240px] snap-start p-2 bg-red-500/10 border border-red-500/30 rounded-lg">`;
                     html += `<div class="flex items-center justify-between mb-1 gap-2">`;
-                    html += `<div class="text-[10px] font-bold text-red-500 flex items-center gap-1 flex-wrap"><i class="ph-bold ph-copy"></i> SAME NAME #${di + 1} ${statusHtml(entry)} ${liveBadge(entry)}</div>`;
+                    html += `<div class="text-[10px] font-bold text-red-500 flex items-center gap-1 flex-wrap"><i class="ph-bold ph-copy"></i> ${strict ? 'LINK MATCH #' : 'SAME NAME #'}${di + 1} ${statusHtml(entry)} ${liveBadge(entry)}</div>`;
                     html += `<div class="flex items-center gap-2">`;
                     html += `<label class="flex items-center cursor-pointer" title="Tick to include in batch Delete Selected">`;
                     html += `<input type="checkbox" class="tdup-checkbox" data-storage-key="${entry.url}">`;
@@ -9041,6 +9077,53 @@
                 }
             }
         };
+
+        // ===== 2026.11.12.4 APP STRICT helpers (Same-Name Duplicates panel ONLY) =====
+        // User verdict 2026-11-12 after the name-based false-merge incident:
+        // 「要在查看 app link 才做 dedup」+ 旧数据没有对 id 时「不碰」.
+        // Scope: ONLY this dev panel — the feed claimed-mask (isClaimedMatch) and
+        // cross-source title merges intentionally keep their current behavior.
+        const TDUP_STRICT_KEY = 'lootradar_tdup_strict';
+        // Trustworthy APP IDENTITY prefixes only. 'gp:' gamerpower slugs are
+        // per-OFFER redirect ids (one offer != one app) and epic slugs from a
+        // gamerpower link are unverifiable — see the 2026.11.12 rollback log.
+        const TDUP_TRUSTED_ID_RE = /^(gplay:\S+|ios:id\d+|steam:\d+|epic:\S+|gog:\S+)$/i;
+        // Default ON: link-checked dedup is the safe mode. The persisted '0'
+        // (written by the toggle) restores the legacy name+platform grouping.
+        window.isTdupStrict = function() {
+            try { return localStorage.getItem(TDUP_STRICT_KEY) !== '0'; } catch (e) { return true; }
+        };
+        window.tdupTrustedId = function(v) {
+            if (!v || typeof v !== 'string') return '';
+            const s = v.trim();
+            if (!s) return '';
+            if (TDUP_TRUSTED_ID_RE.test(s)) return s.toLowerCase();
+            if (/^https?:\/\//i.test(s)) {
+                const n = normalizeUrl(s);
+                if (n && n !== s && TDUP_TRUSTED_ID_RE.test(n)) return n.toLowerCase();
+            }
+            return '';
+        };
+        window.renderTdupStrictBtn = function() {
+            const btn = document.getElementById('dev-tdup-strict-btn');
+            if (!btn || !btn.classList) return;
+            const on = window.isTdupStrict();
+            btn.classList.add(on ? 'bg-amber-500/25' : 'bg-gray-500/20');
+            btn.classList.remove(on ? 'bg-gray-500/20' : 'bg-amber-500/25');
+            btn.classList.add(on ? 'text-amber-500' : 'text-gray-400');
+            btn.classList.remove(on ? 'text-gray-400' : 'text-amber-500');
+            btn.innerHTML = '<i class="ph-bold ph-link"></i> APP STRICT: ' + (on ? 'ON (link-check dedup)' : 'OFF (legacy name view)');
+            btn.title = 'ON: entries dedup ONLY when their app link carries the same verifiable store package ID; records without one are never touched. OFF: legacy grouping by identical name + platform.';
+        };
+        window.toggleTdupStrict = function() {
+            const on = !window.isTdupStrict();
+            try { localStorage.setItem(TDUP_STRICT_KEY, on ? '1' : '0'); } catch (e) { }
+            window.renderTdupStrictBtn();
+            window.detectTrackedDuplicates();
+        };
+        // Paint the persisted mode onto the button at boot (isTdupStrict is
+        // try-guarded, so this is safe even where localStorage throws).
+        try { if (document.getElementById('dev-tdup-strict-btn')) window.renderTdupStrictBtn(); } catch (e) { }
 
         // Permanently delete the ticked same-name entries (full tracked-app
         // delete: claimed library + publish_dates + deleted history, same core
@@ -12579,7 +12662,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.12.3';
+        window.BUILD_VERSION = '2026.11.12.4';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

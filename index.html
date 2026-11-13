@@ -3583,10 +3583,7 @@
             // 現價 is always t.free. 原價 = the stored worth string; when the source
             // never recorded a real price ('N/A' / 'Free' / missing) fall back to the
             // numeric value, and if that is missing too show N/A. No new schema.
-            window.renderDeletePriceLine = function (game) {
-                const wasEl = document.getElementById('delete-was-price');
-                const nowEl = document.getElementById('delete-now-price');
-                if (!wasEl || !nowEl) return;
+            window.buildPriceRecap = function (game) {
                 const L = (typeof i18n !== 'undefined' && i18n[state.lang]) || (typeof i18n !== 'undefined' && i18n.en) || {};
                 const wasLabel = L.worth || 'Was ';
                 const freeLabel = L.free || 'FREE';
@@ -3594,12 +3591,18 @@
                 const w = game && game.worth ? String(game.worth).trim() : '';
                 if (w && w !== 'N/A' && !/^free$/i.test(w) && /\d/.test(w)) disp = w;
                 else if (game && typeof game.value === 'number' && game.value > 0) disp = '$' + game.value.toFixed(2);
-                const has = !!disp;
-                wasEl.textContent = wasLabel + (has ? disp : 'N/A');
-                wasEl.classList.toggle('line-through', has);
-                wasEl.classList.toggle('decoration-red-500', has);
-                wasEl.classList.toggle('decoration-2', has);
-                nowEl.textContent = freeLabel;
+                return { wasText: wasLabel + (disp || 'N/A'), hasPrice: !!disp, freeText: freeLabel };
+            };
+            window.renderDeletePriceLine = function (game) {
+                const wasEl = document.getElementById('delete-was-price');
+                const nowEl = document.getElementById('delete-now-price');
+                if (!wasEl || !nowEl || !game) return;
+                const pr = window.buildPriceRecap(game);
+                wasEl.textContent = pr.wasText;
+                wasEl.classList.toggle('line-through', pr.hasPrice);
+                wasEl.classList.toggle('decoration-red-500', pr.hasPrice);
+                wasEl.classList.toggle('decoration-2', pr.hasPrice);
+                nowEl.textContent = pr.freeText;
             };
 
             window.handleDeleteFromLibrary = function(e, gameId) {
@@ -3831,15 +3834,30 @@
                 const yes = t.chYes || 'Yes, keep';
                 const no = t.chNo || 'No, change status';
                 // 2026.09.01.7: show WHICH app the question is about.
+                // 2026.11.13.3: + the price recap line (原價 struck-through / 現價 FREE)
+                // so the keep-or-change decision happens WITH the price visible.
+                let g = null;
                 let gTitle = '';
-                try { const g = JSON.parse(decodeURIComponent(gameObjStr)); if (g && g.title) gTitle = String(g.title); } catch (err) { gTitle = ''; }
-                const safeTitle = gTitle.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                try { g = JSON.parse(decodeURIComponent(gameObjStr)); if (g && g.title) gTitle = String(g.title); } catch (err) { g = null; gTitle = ''; }
+                const escT = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+                const safeTitle = escT(gTitle);
+                let priceLine = '';
+                if (window.buildPriceRecap && g) {
+                    try {
+                        const pr = window.buildPriceRecap(g);
+                        const wasStyle = pr.hasPrice
+                            ? 'color:#9ca3af;text-decoration:line-through;text-decoration-color:#ef4444;text-decoration-thickness:2px;'
+                            : 'color:#9ca3af;';
+                        priceLine = '<div style="font-size:12px;line-height:1.35;"><span style="' + wasStyle + '">' + escT(pr.wasText) + '</span><span style="font-weight:800;color:#34d399;margin-left:8px;">' + escT(pr.freeText) + '</span></div>';
+                    } catch (err) { priceLine = ''; }
+                }
                 const toast = document.createElement('div');
                 toast.id = 'claim-status-toast';
                 toast.style.cssText = 'position:fixed;bottom:24px;left:50%;transform:translate(-50%,90px);z-index:10000;display:flex;flex-direction:column;gap:9px;padding:14px 16px;border-radius:16px;background:#1f2937;color:#fff;border:1px solid rgba(245,158,11,0.4);box-shadow:0 8px 24px rgba(0,0,0,0.35);transition:transform 0.4s cubic-bezier(0.175,0.885,0.32,1.275);max-width:min(94vw,400px);animation:lootClaimGlow 1.6s ease-in-out infinite;';
                 toast.innerHTML =
                     '<div style="display:flex;align-items:flex-start;gap:8px;font-weight:600;font-size:13px;line-height:1.4;"><i class="ph-fill ph-check-circle" style="font-size:17px;color:#34d399;flex-shrink:0;margin-top:1px;"></i><span>' + msg + '</span></div>' +
                     (safeTitle ? '<div style="font-weight:700;font-size:13px;color:#fbbf24;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%;min-width:0;">' + safeTitle + '</div>' : '') +
+                    priceLine +
                     '<div style="font-weight:700;font-size:13px;">' + ask + '</div>' +
                     '<div style="display:flex;gap:8px;">' +
                         '<button type="button" onclick="window.claimToastKeep()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(52,211,153,0.14);border:1px solid rgba(52,211,153,0.5);color:#34d399;font-weight:700;font-size:12px;padding:9px 10px;border-radius:9999px;cursor:pointer;white-space:nowrap;"><i class="ph-bold ph-check-circle" style="font-size:14px;"></i>' + yes + '</button>' +
@@ -12695,7 +12713,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.13.2';
+        window.BUILD_VERSION = '2026.11.13.3';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

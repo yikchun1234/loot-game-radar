@@ -27,8 +27,10 @@ function normalizeUrl(url) {
   const playMatch = url.match(/play\.google\.com\/store\/apps\/details\?id=([^&"'#\s]+)/);
   if (playMatch) return 'gplay:' + playMatch[1];
 
-  // App Store: extract /id123456789
-  const appleMatch = url.match(/apple\.com.*\/id(\d+)/i);
+  // App Store: extract /id123456789. 2026.11.13.2: ALSO Apple offer-code REDEEM
+  // links (apps.apple.com/redeem?...&id=NNN&code=XXX) and itunes lookup?id=NNN —
+  // same numeric app-id space; branch 1 stays byte-identical for old matches.
+  const appleMatch = url.match(/apple\.com.*\/id(\d+)/i) || url.match(/apple\.com\/[^\s"']*[?&]id=(\d{4,})/i);
   if (appleMatch) return 'ios:id' + appleMatch[1];
 
   // Steam: extract /app/12345

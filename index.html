@@ -10717,8 +10717,12 @@
             // Google Play: extract ?id=com.xxx.yyy
             const playMatch = url.match(/play\.google\.com\/store\/apps\/details\?id=([^&"'#\s]+)/);
             if (playMatch) return 'gplay:' + playMatch[1];
-            // App Store: extract /id123456789
-            const appleMatch = url.match(/apple\.com.*\/id(\d+)/i);
+            // App Store: extract /id123456789. 2026.11.13.2: ALSO recognize Apple
+            // offer-code REDEEM links (apps.apple.com/redeem?ctx=offercodes&id=NNN
+            // &code=XXX) and itunes lookup?id=NNN — the numeric app id is the SAME
+            // id space, so the same app must share one identity. Branch 1 keeps
+            // byte-identical output for every URL it already matched (additive only).
+            const appleMatch = url.match(/apple\.com.*\/id(\d+)/i) || url.match(/apple\.com\/[^\s"']*[?&]id=(\d{4,})/i);
             if (appleMatch) return 'ios:id' + appleMatch[1];
             // Steam: extract /app/12345
             const steamMatch = url.match(/steampowered\.com\/app\/(\d+)/i);
@@ -12691,7 +12695,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.13.1';
+        window.BUILD_VERSION = '2026.11.13.2';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

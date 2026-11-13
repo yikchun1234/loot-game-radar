@@ -851,6 +851,7 @@
                 </div>
                 <h3 id="ui-del-title" class="text-xl font-bold dark:text-white">Remove from Library?</h3>
                 <p id="delete-game-title" class="text-sm font-bold text-blue-500 mt-1 truncate px-2">Game Title</p>
+                <p id="delete-price-line" class="text-[11px] mt-0.5 px-2 leading-tight"><span id="delete-was-price" class="text-gray-400 dark:text-gray-500"></span><span id="delete-now-price" class="font-black text-green-600 dark:text-green-400 ml-2"></span></p>
                 <p id="ui-del-desc" class="text-xs text-gray-500 dark:text-gray-400 mt-2">Why are you removing this item?</p>
             </div>
     
@@ -3575,6 +3576,32 @@
             let activeDeleteId = null;
             let activeFeedGame = null; // set when the reason modal is opened from a feed card
 
+            // 2026.11.13.1: price recap line inside the reason modal (display-only).
+            // All ingestion sources only ever capture items that are FREE right now
+            // (Epic freeGamesPromotions, app-sales /nowfree, cheapcharts nowfree,
+            // Reddit titles gated on /free|100%|giveaway/, GamerPower giveaways), so
+            // 現價 is always t.free. 原價 = the stored worth string; when the source
+            // never recorded a real price ('N/A' / 'Free' / missing) fall back to the
+            // numeric value, and if that is missing too show N/A. No new schema.
+            window.renderDeletePriceLine = function (game) {
+                const wasEl = document.getElementById('delete-was-price');
+                const nowEl = document.getElementById('delete-now-price');
+                if (!wasEl || !nowEl) return;
+                const L = (typeof i18n !== 'undefined' && i18n[state.lang]) || (typeof i18n !== 'undefined' && i18n.en) || {};
+                const wasLabel = L.worth || 'Was ';
+                const freeLabel = L.free || 'FREE';
+                let disp = '';
+                const w = game && game.worth ? String(game.worth).trim() : '';
+                if (w && w !== 'N/A' && !/^free$/i.test(w) && /\d/.test(w)) disp = w;
+                else if (game && typeof game.value === 'number' && game.value > 0) disp = '$' + game.value.toFixed(2);
+                const has = !!disp;
+                wasEl.textContent = wasLabel + (has ? disp : 'N/A');
+                wasEl.classList.toggle('line-through', has);
+                wasEl.classList.toggle('decoration-red-500', has);
+                wasEl.classList.toggle('decoration-2', has);
+                nowEl.textContent = freeLabel;
+            };
+
             window.handleDeleteFromLibrary = function(e, gameId) {
                 e.preventDefault();
                 e.stopPropagation();
@@ -3599,6 +3626,7 @@
 
                 // 🛠️ CHANGED THIS LINE TO innerHTML:
                 document.getElementById('delete-game-title').innerHTML = game.title;
+                if (window.renderDeletePriceLine) window.renderDeletePriceLine(game);
                 document.getElementById('confirm-delete-btn').onclick = executeDeletion;
 
                 const modal = document.getElementById('delete-confirm-modal');
@@ -3696,6 +3724,7 @@
                 document.getElementById('ui-del-title').textContent = t.fdTitle || 'Mark Item Status';
                 document.getElementById('ui-del-desc').textContent = t.fdDesc || 'Pick a status for this item.';
                 document.getElementById('delete-game-title').innerHTML = game.title || '';
+                if (window.renderDeletePriceLine) window.renderDeletePriceLine(game);
                 const dupRow = document.getElementById('del-reason-duplicate-row');
                 if (dupRow) dupRow.classList.add('hidden');
                 // Default selection: Not Interested / Accident
@@ -12662,7 +12691,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.12.4';
+        window.BUILD_VERSION = '2026.11.13.1';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

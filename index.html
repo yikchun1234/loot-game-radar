@@ -5350,12 +5350,24 @@
                 // pinned at 0 for seconds) — so the globe read as a static 2D poster, exactly
                 // the 「滑到那个页面没有动画」 complaint. Now we drive a tiny Y-orbit ourselves on
                 // a dedicated rAF: spins ONLY after 5s without pointer/wheel activity on this
-                // globe, yields to play sweeps, respects reduced-motion and hidden mounts, and
-                // the sign makes the FRONT of the sphere travel LEFT→RIGHT (NDC-drift probe).
-                // Any touch stops it instantly and re-arms the 5s gate.
+                // globe, respects reduced-motion and hidden mounts, and the sign makes the
+                // FRONT of the sphere travel LEFT→RIGHT (NDC-drift probe).
+                // 2026.11.17.2 (user verdict ①「整族一起弄吧。play也可以不管自转(会继续自转
+                // 的意思)」+ ②「(hover)我觉得可以改」): "activity" now means TOUCHING THE GLOBE.
+                // The whole head-chrome .globe-btn family (line/label/play/close/mode) never
+                // pauses the spin; the play sweep no longer suppresses it either; and a bare
+                // hover (pointermove with no button pressed) is not a drag. Presses and
+                // pressed-moves on the globe surface + wheel/pinch keep re-arming the 5s gate.
                 const SPIN_IDLE_MS = 5000, SPIN_RAD = 0.0015; // ≈5.2°/s at 60fps → ~69s per revolution
                 api.__lastAct = performance.now();
-                const markAct = () => { api.__lastAct = performance.now(); };
+                const markAct = (ev) => {
+                    if (ev) {
+                        const tg = ev.target;
+                        if (tg && tg.closest && tg.closest('.globe-btn')) return; // verdict ①: head-chrome buttons are not "touching the globe"
+                        if (ev.type === 'pointermove' && !ev.buttons) return;     // verdict ②: hover is not a drag — only a PRESSED move counts
+                    }
+                    api.__lastAct = performance.now();
+                };
                 const SPINEV = ['pointerdown', 'pointermove', 'wheel'];
                 SPINEV.forEach(ev => container.addEventListener(ev, markAct, { passive: true }));
                 if (isFull && overlay) SPINEV.forEach(ev => overlay.addEventListener(ev, markAct, { passive: true }));
@@ -5365,8 +5377,7 @@
                     if (api.disposed) return;
                     try {
                         const behindFull = !isFull && overlay && !overlay.classList.contains('globe-off'); // mini hidden behind the open fullscreen
-                        if (!behindFull && container.clientWidth && !reduceMotion() && !api.playing &&
-                            performance.now() - api.__lastAct > SPIN_IDLE_MS) {
+                        if (!behindFull && container.clientWidth && !reduceMotion() && performance.now() - api.__lastAct > SPIN_IDLE_MS) {
                             const cam = graph.camera(), ctr = graph.controls();
                             const tx = ctr && ctr.target ? ctr.target.x : 0;
                             const ty = ctr && ctr.target ? ctr.target.y : 0;
@@ -12788,7 +12799,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.17.1';
+        window.BUILD_VERSION = '2026.11.17.2';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

@@ -5092,7 +5092,32 @@
                     if (!(spread > 60)) return;
                     autoFitted = true;
                     try { graph.zoomToFit(500, isFull ? 46 : 14); } catch (e) { /* zoom race with user gesture is harmless */ }
+                    if (api.__onFit) { const cbF = api.__onFit; api.__onFit = null; try { cbF(); } catch (e) { } }
                 });
+                // 2026.11.17.1 (user verdict ②: 「去掉吧」 — the scroll-in reveal must
+                // never show a zoom): the MINI camera is framed ONCE at the first
+                // engine tick. layoutClock3D pins every node (fx/fy/fz), so the bbox
+                // is FINAL from tick one — zoomToFit(0) jumps instantly while the globe
+                // is still empty and unwatched, and the old 500ms settle pull that read
+                // as 「直接zoom出来」 never runs for mini (autoFitted is pre-set). The
+                // stop-fit above stays as the mini fallback if this early fit throws,
+                // and UNCHANGED for fullscreen (.06.7 sqrt opening + one settle fit;
+                // the .06.2 zoom-storm guard — fit once, spread>60 — intact).
+                if (!isFull) {
+                    let earlyFit = false;
+                    graph.onEngineTick(() => {
+                        if (earlyFit || api.disposed) return;
+                        try {
+                            const bb2 = graph.getGraphBbox();
+                            const sp2 = Math.min(Math.abs(bb2.x[1] - bb2.x[0]), Math.abs(bb2.y[1] - bb2.y[0]), Math.abs(bb2.z[1] - bb2.z[0]));
+                            if (!(sp2 > 60)) return; // degenerate frame: retry next tick (guard parity with .06.2)
+                            earlyFit = true;
+                            graph.zoomToFit(0, 14);
+                            autoFitted = true; // the stop-fit must not pull the camera a second time
+                            if (api.__onFit) { const cbE = api.__onFit; api.__onFit = null; cbE(); }
+                        } catch (e) { /* engine not ready — retry; the stop-fit fallback still frames */ }
+                    });
+                }
                 // OrbitControls ships minDistance=0.1 — nothing stopped a pinch (or an
                 // old runaway fit) from diving INTO the core. Clamp the dolly to a sane
                 // shell around the cluster so zoom always stays recoverable.
@@ -5290,20 +5315,27 @@
                 }
                 api.clearSel = function () { applySel(null); };
 
-                api.play = function (on) {
+                api.play = function (on, ms) {
                     api.playing = on;
                     if (!on) { if (api.playRaf) cancelAnimationFrame(api.playRaf); api.playRaf = null; syncPlayBtn(); return; }
                     const bounds = dayBounds();
-                    const step = Math.max(1, Math.round((bounds.max - bounds.min) / 220));
+                    const total = Math.max(1, bounds.max - bounds.min);
+                    // 2026.11.17.1: WALL-CLOCK duration, not frame-count steps. The old
+                    // math (220 frames) ran 3.7s at 60Hz but only 1.8s on 120Hz phones.
+                    // Full Play keeps ~3.7s; the mini scroll-in reveal passes 2000ms
+                    // (user verdict ①: 「固定到2秒」).
+                    const DUR = (ms && ms > 0) ? ms : 3700;
                     let cur = bounds.min;
                     api.setDay(cur, false);
+                    let startTs = null; // NOT 0: an rAF timestamp can legitimately be 0 and a falsy check would re-anchor every frame (test-harness-caught)
                     const slider = overlay && overlay.querySelector('#globe-slider');
-                    const frame = () => {
+                    const frame = (ts) => {
                         if (!api.playing || api.disposed) return;
-                        cur += step;
-                        if (cur >= bounds.max) { cur = bounds.max; api.setDay(cur, true); if (slider) slider.value = cur; stopPlay(); return; }
-                        api.setDay(cur, false);
-                        if (slider) slider.value = cur;
+                        if (startTs === null) startTs = ts;
+                        const p = Math.min(1, (ts - startTs) / DUR);
+                        const next = bounds.min + Math.floor(total * p);
+                        if (next !== cur) { cur = next; api.setDay(cur, false); if (slider) slider.value = cur; }
+                        if (p >= 1) { cur = bounds.max; api.setDay(cur, true); if (slider) slider.value = cur; stopPlay(); return; }
                         api.playRaf = requestAnimationFrame(frame);
                     };
                     api.playRaf = requestAnimationFrame(frame);
@@ -6014,6 +6046,7 @@
                 ensureOverlay(); applyOverlayLabels();
                 overlay.classList.remove('globe-off');
                 watchTheme();
+                if (mini && (mini.__revealPending || mini.playing)) { mini.__revealSkipRestore = true; mini.__revealPending = false; clearMiniReveal(); } // 2026.11.17.1: a birth sweep (pending OR mid-run) is abandoned the moment fullscreen takes the stage
                 if (mini) { mini.stopPlay(); mini.pause(); } // .07.3: kill an auto-play sweep before it repaints behind the fullscreen
                 if (globeMode === '3d' && !hasWebGL()) globeMode = '2d'; // the 2D dial needs no WebGL
                 if (full) { full.destroy(); full = null; }
@@ -6039,6 +6072,7 @@
                 overlay.classList.add('globe-off');
                 if (full) { full.destroy(); full = null; }
                 if (mini) mini.resume();
+                if (mini && mini.__revealSkipRestore) { mini.__revealSkipRestore = false; mini.setDay(dayBounds().max, false); } // 2026.11.17.1: came back WITHOUT having watched the birth → completed library (.10.2 contract)
             }
 
             function onStatsRendered() {
@@ -6051,6 +6085,7 @@
                 const tt = (typeof i18n !== 'undefined' && st) ? (i18n[st.lang] || {}) : {};
                 tRef = tt;
                 localeRef = st && (st.lang === 'zh-CN' || st.lang === 'zh-TW') ? st.lang : 'en-US';
+                clearMiniReveal(); // 2026.11.17.1: the observed element dies with this render
                 if (mini) { mini.destroy(); mini = null; }
                 if (full) { closeFullscreen(); }
                 sel = null; relSet = null;
@@ -6058,15 +6093,34 @@
             // .07.3 armed a scroll-in sweep replay on the mini dial, but users saw the
             // full library paint and then suddenly restart from zero (「完整出现才突然
             // 从头动画过，看起来好像卡了」). .10.2 (user: 「mini globe 永远保持完整状态,
-            // 就算没触发也没关系」) REMOVES the IntersectionObserver replay entirely:
-            // mountMini renders the completed library every time (with the gentle
-            // staggered entrance) and nothing ever resets it. The Play button in
-            // fullscreen is still the way to watch the sweep animation.
+            // 就算没触发也没关系」) removed the replay and always rendered the completed
+            // library. 2026.11.17.1 RESTORES a scroll-in CREATION per the user (「不要
+            // zoom 出来。要变成创造那个globe出来…像里面的play一样」+「滑进视野才播,
+            // 不然浪费动画了」) without .07.3's failure mode: the mini mounts EMPTY
+            // (day zero, core + guide ring only) so there is never a completed paint to
+            // rewind; one IntersectionObserver shot (disconnected on first fire, nothing
+            // re-arms while the modal stays open), fixed 2s sweep after the early-tick
+            // camera fit. Every fallback path — reduced-motion, fullscreen race, no-IO
+            // browsers, abandoned reveal — lands on the COMPLETED library (.10.2 contract).
+            const MINI_REVEAL_MS = 2000;
+            let miniRevealIO = null, miniSettleTimer = null, miniArmed = false;
+            function clearMiniReveal() {
+                miniArmed = false;
+                if (miniRevealIO) { try { miniRevealIO.disconnect(); } catch (e) { } miniRevealIO = null; }
+                if (miniSettleTimer) { clearTimeout(miniSettleTimer); miniSettleTimer = null; }
+            }
+            function startMiniReveal() {
+                clearMiniReveal();
+                if (!mini || mini.disposed || !mini.__revealPending) return;
+                mini.__revealPending = false;
+                try { mini.play(true, MINI_REVEAL_MS); } catch (e) { if (mini && !mini.disposed) mini.setDay(dayBounds().max, false); }
+            }
             function mountMini() {
                 const el = document.getElementById('globe-mini-mount');
                 if (!el || !entries().length) return;
                 watchTheme(); // theme flips must recolor the mini even without fullscreen
                 if (!el.clientWidth) return; // modal still hidden; toggleStats re-calls this after the slide-in
+                clearMiniReveal();
                 if (mini) { mini.destroy(); mini = null; }
                 if (!hasWebGL()) {
                     el.innerHTML = `<div class="globe-fallback">${escG(tRef.globeNoWebGL || '3D is not available in this browser.')}</div>`;
@@ -6077,9 +6131,29 @@
                     if (!document.getElementById('globe-mini-mount')) return; // re-rendered meanwhile
                     mini = buildGraph(el, false);
                     const b = dayBounds();
-                    // .10.2: always mount COMPLETE (staggered entrance only — the
-                    // old scroll-in sweep reset that read as a freeze/reload is gone)
-                    mini.setDay(b.max, true);
+                    if (reduceMotion() || (overlay && !overlay.classList.contains('globe-off'))) {
+                        mini.setDay(b.max, false); // motion-off or the user is already fullscreen: paint complete straight away
+                    } else {
+                        // 2026.11.17.1: mount EMPTY — the birth sweep starts when the
+                        // panel first scrolls into view, day one → latest in 2s.
+                        mini.setDay(b.min - 1, false);
+                        mini.__revealPending = true;
+                        const armReveal = () => {
+                            if (miniArmed || !mini || mini.disposed) return;
+                            miniArmed = true; // camera settled (early fit, or the settle timer gave up) — watch the viewport
+                            if ('IntersectionObserver' in window) {
+                                miniRevealIO = new IntersectionObserver(ents => {
+                                    if (!ents.some(en => en.isIntersecting)) return;
+                                    startMiniReveal();
+                                }, { threshold: 0.25 });
+                                miniRevealIO.observe(el);
+                            } else {
+                                startMiniReveal(); // ancient browsers: sweep straight away, better than never
+                            }
+                        };
+                        mini.__onFit = armReveal; // buildGraph fires it the moment the camera reaches its final framing
+                        miniSettleTimer = setTimeout(armReveal, 4000); // pathologically slow engine: arm on whatever framing exists
+                    }
                     // raced fullscreen: opened before this mini existed — keep it asleep
                     if (overlay && !overlay.classList.contains('globe-off')) mini.pause();
                 }).catch(() => {
@@ -6087,6 +6161,7 @@
                 });
             }
             function destroy() {
+                clearMiniReveal(); // 2026.11.17.1: modal closed mid-pending/mid-sweep — drop the watcher + settle timer
                 if (full) { closeFullscreen(); }
                 if (mini) { mini.destroy(); mini = null; }
             }
@@ -12713,7 +12788,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.13.3';
+        window.BUILD_VERSION = '2026.11.17.1';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

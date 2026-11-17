@@ -4716,6 +4716,8 @@
                 card.classList.remove('globe-off');
             }
             function hideInfo() { const card = overlay && overlay.querySelector('#globe-info-card'); if (card) card.classList.add('globe-off'); }
+            let globeSearchUiHook = null;      // 2026.11.17.4 verdict 1: wireGlobeSearch installs this; any selection change the GLOBE itself caused (star/background/label click, 2D tap, programmatic clearSel — all funnel through applySel) clears the stale search text
+            let searchSelDriving = false;      // the guard that keeps a search PICK's own applySel from wiping the text it just wrote
             function applySel(next) {
                 // re-picking the same star/hub toggles the highlight off
                 sel = selKeyStr(next) === selKeyStr(sel) ? null : (next || null);
@@ -4726,6 +4728,7 @@
                     if (sel && sel.kind === 'game') { const e = entries().find(x => x.id === sel.id); if (e) showInfo(e); else hideInfo(); }
                     else hideInfo();
                 }
+                if (!searchSelDriving && globeSearchUiHook) globeSearchUiHook(); // 2026.11.17.4: box text must never outlive the selection it came from
             }
             // Single source of truth for a node's look. Applied BOTH when
             // three-render-3d builds the mesh (nodeThreeObject callback) and when
@@ -4840,22 +4843,28 @@
             // guards and the .06.7 sqrt opening distance keep working — the bbox
             // is simply deterministic now (x/y spread ≈ 2·R_STAR·W > 60 gate).
             function layoutClock3D(api, isFull) {
-                const W = 320;                                            // rim world radius scale
+                const W = 320;                                            // outer (star) shell world radius
                 const rad3 = a => (a * Math.PI) / 180;
-                const SEC3 = { platform: [-142, -38], store: [-22, 82], month: [40, 140] };
-                const RD3 = 0.34, RV3 = 0.62, RVM3 = 0.78, RS3 = 0.93;
-                const ZL3 = { platform: -0.22, store: 0.22, month: 0 };   // per-dim z layer
-                // 2D draws y-DOWN so rad(TOP+f*360) reads clockwise-from-top on screen;
-                // 3D y is UP and the camera looks from +z — mirror the sweep (90 − f·360)
-                // and the front view matches the 2D dial exactly (rank 0 at top, going
-                // clockwise).
-                const rankAngle3 = f => rad3(90 - f * 360);
+                const RD3 = 0.34, RV3 = 0.62, RVM3 = 0.78, RS3 = 0.93;    // concentric SHELL radii = hierarchy
+                // 2026.11.17.4 TRUE SPHERE (user verdict B, 「3d其实还是蛮2d的…那才算globe」): the .10.1
+                // flat-clock mapping (everything in XY, SEC3 sectors, ZL3 layers, a ±0.08W Saturn band)
+                // is retired. Now: TIME = longitude around Y — the very axis the idle spin already
+                // orbits, so rotation finally reveals something; HIERARCHY = shell radius;
+                // LATITUDE = deterministic hash spread (verdict B: sky-bands, no new data dimension).
+                // Hub longitudes are the CIRCULAR MEAN of their member stars, so chain lines point
+                // outward instead of slicing the globe. Pin contract (fx/fy/fz set once, layoutClock3D
+                // name, rStar return) unchanged → reveal/play/setDay/chain never notice. The 2D dial
+                // has its own untouched math (distinct names rad/TOP/rankAngle, globe_test asserts it).
                 function hash01b(s) {
                     let x = 2166136261;
                     const str = String(s);
                     for (let i = 0; i < str.length; i++) { x ^= str.charCodeAt(i); x = Math.imul(x, 16777619) >>> 0; }
                     return (x % 1000) / 1000;
                 }
+                const lon3 = f => f * Math.PI * 2;                        // rank fraction → longitude (0 → newest lap)
+                const sph = (nd, r, lon, lat) => { nd.fx = r * Math.cos(lat) * Math.sin(lon); nd.fy = r * Math.sin(lat); nd.fz = r * Math.cos(lat) * Math.cos(lon); };
+                const lat3 = (key, spread) => (hash01b(key + '#lat') - 0.5) * rad3(spread);
+                const circMean3 = lons => { let sx = 0, sz = 0; lons.forEach(L => { sx += Math.sin(L); sz += Math.cos(L); }); return Math.atan2(sx, sz); };
                 const ranked3 = api.gameNodes.slice().sort((p, q) => p.day - q.day || (p.id < q.id ? -1 : 1));
                 for (let i = 0; i < ranked3.length; i++) ranked3[i].__rank = i;
                 const S3 = ranked3.length;
@@ -4867,44 +4876,33 @@
                 const byId3 = {};
                 api.gameNodes.concat(api.hubNodes).forEach(nd => { byId3[nd.id] = nd; });
                 // main core: buildModel already pins fx/fy/fz = 0.
-                DIMS.forEach(d => {
-                    const dn = byId3[dimId(d)];
-                    if (dn) {
-                        const ca = rad3((SEC3[d][0] + SEC3[d][1]) / 2);
-                        dn.fx = Math.cos(ca) * RD3 * W; dn.fy = Math.sin(ca) * RD3 * W; dn.fz = ZL3[d] * W;
-                    }
-                });
-                ['platform', 'store'].forEach(d => {
-                    const vals = api.hubNodes.filter(nd => nd.kind === 'val' && nd.dim === d).sort((p, q) => p.__slot - q.__slot);
-                    vals.forEach((nd, i) => {
-                        const sec = SEC3[d];
-                        const a = rad3(vals.length < 2 ? (sec[0] + sec[1]) / 2 : sec[0] + (i / (vals.length - 1)) * (sec[1] - sec[0]));
-                        nd.fx = Math.cos(a) * RV3 * W; nd.fy = Math.sin(a) * RV3 * W; nd.fz = ZL3[d] * W;
-                    });
-                });
-                const monthArc3 = {};
-                ranked3.forEach(nd => {
-                    const k3 = valKeyOf(nd.__e, 'month');
-                    const sp = monthArc3[k3] || (monthArc3[k3] = [nd.__rank, nd.__rank]);
-                    sp[1] = nd.__rank;
-                });
-                api.hubNodes.filter(nd => nd.kind === 'val' && nd.dim === 'month')
-                    .sort((p, q) => (p.key < q.key ? -1 : 1))
-                    .forEach(nd => {
-                        const arc3 = monthArc3[nd.key];
-                        const mid = arc3 ? (arc3[0] + arc3[1] + 1) / 2 : S3 / 2;
-                        const a = rankAngle3(mid / Math.max(1, S3));
-                        nd.fx = Math.cos(a) * RVM3 * W; nd.fy = Math.sin(a) * RVM3 * W; nd.fz = 0;
-                    });
                 api.gameNodes.forEach(nd => {
-                    const a = rankAngle3((nd.__rank + 0.5) / Math.max(1, S3));
-                    const rr = (RS3 - 0.05 * hash01b(nd.id)) * W;    // tiny deterministic radial wobble
-                    nd.fx = Math.cos(a) * rr; nd.fy = Math.sin(a) * rr;
-                    nd.fz = (hash01b(nd.id + '#z') - 0.5) * 0.16 * W; // rim thickness: a Saturn band
+                    nd.__lon3 = lon3((nd.__rank + 0.5) / Math.max(1, S3));
+                    sph(nd, (RS3 - 0.05 * hash01b(nd.id)) * W, nd.__lon3, lat3(nd.id, 50)); // outer shell, ±25° sky band
+                });
+                const members3 = { platform: {}, store: {}, month: {} };
+                DIMS.forEach(d => api.gameNodes.forEach(nd => {
+                    const k = valKeyOf(nd.__e, d);
+                    (members3[d][k] || (members3[d][k] = [])).push(nd);
+                }));
+                const hubLon3 = { platform: {}, store: {}, month: {} };
+                DIMS.forEach((d, di) => {
+                    const vals = api.hubNodes.filter(nd => nd.kind === 'val' && nd.dim === d).sort((p, q) => String(p.key) < String(q.key) ? -1 : 1);
+                    vals.forEach((nd, i) => {
+                        const mem = members3[d][nd.key];
+                        const lon = (mem && mem.length) ? circMean3(mem.map(m => m.__lon3)) : lon3(i / Math.max(1, vals.length) + di * 0.31); // no members (junk-data guard): even spread, per-dim offset
+                        hubLon3[d][nd.key] = lon;
+                        sph(nd, (d === 'month' ? RVM3 : RV3) * W, lon, lat3(nd.key + '|' + d, 16));
+                    });
+                    const dn = byId3[dimId(d)];
+                    if (!dn) return;
+                    const own = Object.keys(hubLon3[d]);
+                    const lon = own.length ? circMean3(own.map(k => hubLon3[d][k])) : lon3(0.5); // empty dim: tuck behind the camera
+                    sph(dn, RD3 * W, lon, lat3(dimId(d), 10));
                 });
                 return {
                     W: W, rStar: RS3 * W,
-                    handAngle: d => rankAngle3(rankFrac3(d)),        // sweep hand rides the rank axis
+                    handLon: d => lon3(rankFrac3(d)),        // the sweep hand rides the star shell's equator, same rank axis
                 };
             }
 
@@ -5053,7 +5051,8 @@
                     scene3.add(api.__ring);
                     const handGeo = new THREE.CylinderGeometry(1.1, 2.6, clock3.rStar * 1.02, 6);
                     handGeo.translate(0, clock3.rStar * 0.51, 0);
-                    handGeo.rotateZ(-Math.PI / 2); // base at the core, tip along +x — rotation.z then = rank angle
+                    handGeo.rotateZ(-Math.PI / 2); // base at the core, tip along +x
+                    handGeo.rotateY(-Math.PI / 2); // 2026.11.17.4 sphere: tip now along +z, so rotation.y = the star shell's longitude (the old XY-plane sweep pointed at nothing once time wrapped to Y)
                     api.__hand = new THREE.Mesh(handGeo, new THREE.MeshBasicMaterial({
                         color: isDark() ? '#d9b36a' : '#b98a2f', transparent: true, opacity: 0.85, depthWrite: false
                     }));
@@ -5206,7 +5205,7 @@
                     if (api.__hand) {
                         const showHand = api.playing || performance.now() - (api.__scrubT || 0) < 1200;
                         api.__hand.visible = showHand;
-                        if (showHand) api.__hand.rotation.z = clock3.handAngle(api.day);
+                        if (showHand) api.__hand.rotation.y = clock3.handLon(api.day);
                     }
                     const anim = busy || api.playing;
                     // 2026.11.06.3 — Analytics-open lag fix. A relink is a FULL links digest
@@ -5344,24 +5343,32 @@
                     try {
                         const cam = graph.camera(), ctr = graph.controls();
                         const tx = ctr && ctr.target ? ctr.target.x : 0, ty = ctr && ctr.target ? ctr.target.y : 0, tz = ctr && ctr.target ? ctr.target.z : 0;
-                        const want = Math.atan2(n.x - tx, n.z - tz); // azimuth parameterization identical to spinFrame (x = r·sin a, z = r·cos a)
-                        const from = Math.atan2(cam.position.x - tx, cam.position.z - tz);
-                        let delta = want - from;
-                        while (delta > Math.PI) delta -= Math.PI * 2;
-                        while (delta < -Math.PI) delta += Math.PI * 2;
-                        if (!isFinite(delta)) return;
-                        const dx0 = cam.position.x - tx, dz0 = cam.position.z - tz;
-                        const r = Math.sqrt(dx0 * dx0 + dz0 * dz0) || 1;
-                        const y = cam.position.y;
-                        const place = (a) => { cam.position.set(tx + r * Math.sin(a), y, tz + r * Math.cos(a)); cam.lookAt(tx, ty, tz); };
-                        if (Math.abs(delta) < 0.02 || reduceMotion()) { if (Math.abs(delta) >= 0.02) place(want); api.__lastAct = performance.now(); return; } // tiny nudge: no show; reduced-motion: instant
+                        const dx = cam.position.x - tx, dy = cam.position.y - ty, dz = cam.position.z - tz;
+                        const R = Math.sqrt(dx * dx + dy * dy + dz * dz) || 1;                 // full 3D distance — the glide is a rotation on THIS sphere, never a zoom
+                        const nx = n.x - tx, ny = n.y - ty, nz = n.z - tz;
+                        const nR = Math.sqrt(nx * nx + ny * ny + nz * nz) || 1;
+                        // 2026.11.17.4: true sphere verdict B put stars at ±25° LATITUDE, so azimuth-only
+                        // facing (the .17.3 math) would swing under a high star. Now the camera orbits in
+                        // BOTH angles — same 550ms ease-out, radius untouched (verdict A stays 「转过去面对
+                        // 它」 faithfully). Azimuth parameterization matches spinFrame's Y-orbit (x=r·sin a, z=r·cos a).
+                        const wantAz = Math.atan2(nx, nz), wantEl = Math.asin(Math.max(-1, Math.min(1, ny / nR)));
+                        const fromAz = Math.atan2(dx, dz), fromEl = Math.asin(Math.max(-1, Math.min(1, dy / R)));
+                        let dAz = wantAz - fromAz;
+                        while (dAz > Math.PI) dAz -= Math.PI * 2;
+                        while (dAz < -Math.PI) dAz += Math.PI * 2;
+                        const dEl = wantEl - fromEl;
+                        if (!isFinite(dAz) || !isFinite(dEl)) return;
+                        const small = Math.abs(dAz) < 0.02 && Math.abs(dEl) < 0.02;
+                        const place = (az, el) => { const h = R * Math.cos(el); cam.position.set(tx + h * Math.sin(az), ty + R * Math.sin(el), tz + h * Math.cos(az)); cam.lookAt(tx, ty, tz); };
+                        if (small || reduceMotion()) { if (!small) place(wantAz, wantEl); api.__lastAct = performance.now(); return; } // tiny nudge: no show; reduced-motion: instant
                         api.__faceT0 = performance.now(); // stamp continuously during the glide so the idle spin never fights it
                         const DURF = 550;
                         const step = (nowT) => {
                             if (api.disposed) { api.faceRaf = null; return; }
                             api.faceRaf = null;
                             const p = Math.min(1, (nowT - api.__faceT0) / DURF);
-                            place(from + delta * (1 - Math.pow(1 - p, 3))); // ease-out cubic
+                            const k = 1 - Math.pow(1 - p, 3); // ease-out cubic
+                            place(fromAz + dAz * k, fromEl + dEl * k);
                             api.__lastAct = nowT;
                             if (p < 1) api.faceRaf = requestAnimationFrame(step);
                         };
@@ -6089,6 +6096,7 @@
                 const input = ov.querySelector('#globe-search'), listEl = ov.querySelector('#globe-search-list'), xBtn = ov.querySelector('#globe-search-x'), wrap = ov.querySelector('.globe-search-wrap');
                 if (!input || !listEl || !xBtn || !wrap) return;
                 let matches = [], hl = -1;
+                globeSearchUiHook = () => { input.value = ''; xBtn.style.display = 'none'; closeList(); }; // 2026.11.17.4 verdict 1: globe-side clicks clear the box (UI only — selection belongs to the globe)
                 const closeList = () => { listEl.style.display = 'none'; listEl.innerHTML = ''; matches = []; hl = -1; input.setAttribute('aria-expanded', 'false'); };
                 const paintHl = () => { [...listEl.children].forEach((li, i) => li.classList.toggle('globe-search-hl', i === hl)); if (hl >= 0 && listEl.children[hl]) listEl.children[hl].scrollIntoView({ block: 'nearest' }); };
                 const render = () => {
@@ -6110,7 +6118,7 @@
                     if (sliderEl && Number(sliderEl.value) !== target) { sliderEl.value = target; sliderEl.dispatchEvent(new Event('input')); } // the slider's OWN chain runs stopPlay + __scrubT + setDay in both renderers
                     const node = full.findGame ? full.findGame(e.id) : null;
                     if (!node) return;
-                    if (!(sel && selKeyStr(sel) === selKeyStr(node))) applySel(node); // same pick twice must KEEP the highlight — applySel's toggle-off is for star clicks
+                    if (!(sel && selKeyStr(sel) === selKeyStr(node))) { searchSelDriving = true; try { applySel(node); } finally { searchSelDriving = false; } } // same pick twice must KEEP the highlight — applySel's toggle-off is for star clicks
                     if (full.faceNode) full.faceNode(node); // verdict A — horizontal orbit only; the 2D dial has neither method and just highlights
                 };
                 input.addEventListener('input', render);
@@ -6122,7 +6130,20 @@
                 });
                 listEl.addEventListener('mousedown', (ev) => ev.preventDefault()); // keep the caret in the input
                 listEl.addEventListener('click', (ev) => { const row = ev.target.closest ? ev.target.closest('.globe-search-item') : null; if (row) pick(Number(row.dataset.i)); });
-                xBtn.addEventListener('click', () => { input.value = ''; xBtn.style.display = 'none'; closeList(); input.focus(); });
+                const resetFull = () => {
+                    // 2026.11.17.4 verdict 1: X is the REAL reset — text gone, selection gone
+                    // (chain back to all-soft/all-lit, info card hides), slider back to the
+                    // NEWEST day — exactly the state the globe opens with, in 3D and 2D alike.
+                    // Esc deliberately stays light (dismiss typing, no rewind).
+                    input.value = ''; xBtn.style.display = 'none'; closeList();
+                    if (!full) { input.focus(); return; }
+                    if (sel) applySel(null); // the hook re-clears the UI — idempotent
+                    const sliderEl = ov.querySelector('#globe-slider');
+                    const b = dayBounds();
+                    if (sliderEl && Number(sliderEl.value) !== b.max) { sliderEl.value = b.max; sliderEl.dispatchEvent(new Event('input')); } // slider's own chain: stopPlay + __scrubT + setDay(max)
+                    input.focus();
+                };
+                xBtn.addEventListener('click', resetFull);
                 document.addEventListener('pointerdown', (ev) => { if (!wrap.contains(ev.target)) closeList(); }, true); // clicking the globe — or anywhere else — collapses the list
             }
             function syncLabelBtn() {
@@ -12915,7 +12936,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.17.3';
+        window.BUILD_VERSION = '2026.11.17.4';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

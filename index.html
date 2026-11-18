@@ -5251,6 +5251,10 @@
                     if (!labelsOn) { api.hubNodes.forEach(n => { if (n.__label) n.__label.style.display = 'none'; }); return; }
                     api.hubNodes.forEach(n => {
                         if (!n.__label) return;
+                        // 2026.11.18.2 (user: 「选了app不管是search或者点选。label 只display跟app有关的字」):
+                        // while a pick is active the hub TEXT follows the SAME relSet the gold chain lines
+                        // already use — unrelated labels hide, clearing the pick brings them all back.
+                        if (relSet && !relSet.has(n.id)) { n.__label.style.display = 'none'; return; }
                         // .10.4: value-hub labels are NO LONGER gated on the highlight —
                         // every hub writes its label whenever its dot is visible.
                         if (n.__vis < 0.15 || api.disposed) { n.__label.style.display = 'none'; return; }
@@ -5930,7 +5934,7 @@
                     g.font = '800 ' + (11 * zk) + 'px ui-rounded, system-ui, sans-serif';
                     DIMS.forEach(d => {
                         const dn = nodeById[dimId(d)];
-                        if (!dn || (dn.__vis || 0) <= 0.15) return;
+                        if (!dn || (dn.__vis || 0) <= 0.15 || (relSet && !relSet.has(dn.id))) return; // 2026.11.18.2: dim text joins the chain gate
                         g.fillStyle = lab;
                         const dt = dimLabel(d);
                         g.fillText(dt, cx + dn.x2 * s, cy + dn.y2 * s - 13 * zk);
@@ -5938,7 +5942,7 @@
                     });
                     g.font = '700 ' + (9 * zk) + 'px ui-rounded, system-ui, sans-serif';
                     api.hubNodes.forEach(nd => {
-                        if (nd.kind !== 'val' || (nd.__vis || 0) <= 0.15 || nd.x2 == null) return;
+                        if (nd.kind !== 'val' || (nd.__vis || 0) <= 0.15 || nd.x2 == null || (relSet && !relSet.has(nd.id))) return; // 2026.11.18.2: val text joins the chain gate (month labels too — they are val nodes)
                         g.fillStyle = lab;
                         const txt = nd.dim === 'month' ? monthShort(nd.key) : nd.key;
                         g.fillText(txt, cx + nd.x2 * s, cy + nd.y2 * s - 11 * zk);
@@ -13016,7 +13020,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.18.1';
+        window.BUILD_VERSION = '2026.11.18.2';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

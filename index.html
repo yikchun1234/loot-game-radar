@@ -447,7 +447,7 @@
            dropdown is GONE (it was an un-styled native select — the .14.4
            dropdown layer only enhances the five app selects, not this one).
            The fullscreen overlay sits at z-index 3500. */
-        .globe-mount-wrap { position: relative; aspect-ratio: 16 / 7; min-height: 230px; max-height: 360px; border-radius: 18px; overflow: hidden; background: #faf5ea; border: 1px solid #e8dfcd; } /* 2026.11.18.3 (user 「好像可以做」): mini globe grows with its container so wide viewports (foldable inner screen, desktop) no longer show a tiny constellation stranded in a 7:1 letterbox; phones keep the exact 230px look (min floor) */
+        .globe-mount-wrap { position: relative; height: 230px; border-radius: 18px; overflow: hidden; background: #faf5ea; border: 1px solid #e8dfcd; }
         .dark .globe-mount-wrap { background: #171310; border-color: #2c2621; }
         .globe-mount-wrap canvas { display: block; outline: none; }
         #globe-full-overlay { position: fixed; inset: 0; z-index: 3500; background: #f6f1e6; color: #44403c; }
@@ -13020,7 +13020,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.18.3';
+        window.BUILD_VERSION = '2026.11.18.4';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

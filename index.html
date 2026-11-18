@@ -489,7 +489,10 @@
         .dark #globe-slider { accent-color: #00f3ff; }
         .globe-hub-label { position: absolute; transform: translate(-50%, -50%); font-size: 10px; font-weight: 800; letter-spacing: .04em; pointer-events: auto; cursor: pointer; white-space: nowrap; color: #6b5d49; text-shadow: 0 0 6px rgba(255,255,255,.85); z-index: 1; } /* .10.4: clickable labels (was pointer-events:none) — tapping a label selects its hub */
         .dark .globe-hub-label { color: #d6d3d1; text-shadow: 0 0 7px rgba(0,0,0,.85); }
-        #globe-info-card { position: absolute; left: 14px; bottom: calc(env(safe-area-inset-bottom, 0px) + 132px); width: 240px; border-radius: 16px; padding: 12px; background: rgba(255,253,247,.92); border: 1px solid rgba(180,83,9,.35); box-shadow: 0 10px 30px rgba(0,0,0,.12); z-index: 3; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        /* 2026.11.18.1 (user: 「左下会有弹框出来…会遮起来那个globe。可能你要把它移上去」): the card
+           moved from bottom-LEFT over the sphere to the top-RIGHT column under the search row —
+           same side as the buttons/pill, sphere center stays clear; capped height on short screens. */
+        #globe-info-card { position: absolute; right: 14px; top: 106px; width: 240px; max-height: calc(100vh - 250px); overflow-y: auto; border-radius: 16px; padding: 12px; background: rgba(255,253,247,.92); border: 1px solid rgba(180,83,9,.35); box-shadow: 0 10px 30px rgba(0,0,0,.12); z-index: 3; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
         .dark #globe-info-card { background: rgba(13,15,22,.88); border-color: rgba(0,243,255,.3); box-shadow: 0 10px 30px rgba(0,0,0,.5); }
         #globe-info-card.globe-off { display: none; }
         #globe-info-card img { width: 100%; height: 108px; object-fit: cover; border-radius: 10px; margin-bottom: 8px; background: rgba(0,0,0,.06); }
@@ -2020,16 +2023,16 @@
         Object.assign(i18n.ko, { yearCalendar: "전리품 캘린더", yearCalendarDesc: "1년간의 획득 활동", hourScatter: "심야 헌터", hourScatterDesc: "획득 시각 × 게임 가치", lootFunnel: "전리품 퍼널", lootFunnelDesc: "추적 → 삭제 → 보관", funnelTracked: "추적됨", funnelRemoved: "삭제됨", funnelKept: "보관 중", platformRise: "플랫폼 흥망사", platformRiseDesc: "월별 획득 가치를 플랫폼별로 쌓은 차트", platformOther: "기타", hourNight: "심야", hourMorning: "오전", hourAfternoon: "오후", hourEvening: "저녁", lootClock: "24시간 전리품 시계", lootClockDesc: "시간대별 획득 가치", removalCalendar: "삭제 캘린더", removalCalendarDesc: "1년간의 삭제 활동", storeActivity: "스토어 활동", storeActivityDesc: "월별 클레임을 스토어별로 누적", storeActEmpty: "아직 클레임이 없습니다", avgClaimPerDay: "일평균 획득", keepRate: "보유율", keepRateKept: "유지", keepRatePassed: "제거", since: "시작", rescueDone: "데이터 복구됨! 라이브러리가 마지막 백업에서 복원되었습니다." });
         Object.assign(i18n.pt, { yearCalendar: "Calendário de Loot", yearCalendarDesc: "Sua atividade de resgate ao longo do ano", hourScatter: "Caçador Noturno", hourScatterDesc: "Hora do dia vs valor do jogo", lootFunnel: "Funil de Loot", lootFunnelDesc: "Rastreado → Removido → Mantido", funnelTracked: "Rastreados", funnelRemoved: "Removidos", funnelKept: "Mantidos", platformRise: "Ascensão e Queda das Plataformas", platformRiseDesc: "Valor mensal resgatado empilhado por plataforma", platformOther: "Outros", hourNight: "Noite", hourMorning: "Manhã", hourAfternoon: "Tarde", hourEvening: "Serão", lootClock: "Relógio de Loot 24h", lootClockDesc: "Valor resgatado a cada hora do dia", removalCalendar: "Calendário de Remoção", removalCalendarDesc: "Sua atividade de remoção ao longo do ano", storeActivity: "Atividade por Loja", storeActivityDesc: "Claims mensais empilhados por loja", storeActEmpty: "Ainda sem claims", avgClaimPerDay: "Média de Resgates por Dia", keepRate: "Taxa de Retenção", keepRateKept: "mantidos", keepRatePassed: "descartados", since: "desde", rescueDone: "Dados recuperados! Sua biblioteca foi restaurada do seu último backup." });
         // Loot Globe i18n keys (2026.11.05.1 - replaces Streak Flame panel + Claim Streak card)
-        Object.assign(i18n.en, { lootGlobe: "Loot Globe", lootGlobeDesc: "Every game you have claimed, as a living constellation - spin it, zoom in, tap a star.", globeExpand: "Open the globe", globeClose: "Close", globeByAll: "All loot", globeLines: "Lines", globeLabels: "Labels", globeByPlatform: "Platform", globeByStore: "Store", globeByMonth: "Month", globeHint: "Drag to orbit - pinch or scroll to zoom - tap a star to light up its month, platform and store chain to the core", globePlay: "Play from day one", globePause: "Pause", globeSearch: "Search apps…",globeTo2D: "Switch to the 2D ring map", globeTo3D: "Switch back to the 3D sky", globeLoading: "Loading the 3D engine...", globeNoWebGL: "3D is not available in this browser.", globeLoadFail: "The 3D engine could not load. Reopen Analytics when online.", globeInView: "in view", globeViewDeal: "View deal" });
-        Object.assign(i18n['zh-CN'], { lootGlobe: "战利星球", lootGlobeDesc: "你领取的每款游戏，都是一颗活的星球——旋转、缩放、点一颗星星看看。", globeExpand: "打开星球", globeClose: "关闭", globeByAll: "全部战利", globeLines: "连线", globeLabels: "标签", globeByPlatform: "平台", globeByStore: "商店", globeByMonth: "月份", globeHint: "拖动旋转 · 双指或滚轮缩放 · 点一颗星，点亮它通往核心的月份/平台/商店链", globePlay: "从第一天播放", globePause: "暂停", globeSearch: "搜索应用…",globeTo2D: "切换到 2D 圆环图", globeTo3D: "切回 3D 星空", globeLoading: "正在加载 3D 引擎…", globeNoWebGL: "此浏览器不支持 3D。", globeLoadFail: "3D 引擎加载失败，请联网后重新打开分析。", globeInView: "在视野中", globeViewDeal: "查看礼包" });
-        Object.assign(i18n['zh-TW'], { lootGlobe: "戰利星球", lootGlobeDesc: "你領取的所有遊戲，都是一顆活的星球——旋轉、縮放、點一顆星星看看。", globeExpand: "打開星球", globeClose: "關閉", globeByAll: "全部戰利", globeLines: "連線", globeLabels: "標籤", globeByPlatform: "平台", globeByStore: "商店", globeByMonth: "月份", globeHint: "拖動旋轉 · 雙指或滾輪縮放 · 點一顆星，點亮它通往核心的月份/平台/商店鏈", globePlay: "從第一天播放", globePause: "暫停", globeSearch: "搜尋應用…",globeTo2D: "切換到 2D 圓環圖", globeTo3D: "切回 3D 星空", globeLoading: "正在載入 3D 引擎…", globeNoWebGL: "此瀏覽器不支援 3D。", globeLoadFail: "3D 引擎載入失敗，請聯網後重新開啟分析。", globeInView: "在視野中", globeViewDeal: "查看礼包" });
-        Object.assign(i18n['ja'], { lootGlobe: "ルートグローブ", lootGlobeDesc: "あなたが獲得した全てのゲームが息づく星座——回して、ズームして、星をタップ。", globeExpand: "グローブを開く", globeClose: "閉じる", globeByAll: "全ルート", globeLines: "線", globeLabels: "ラベル", globeByPlatform: "プラットフォーム", globeByStore: "ストア", globeByMonth: "月", globeHint: "ドラッグで回転 · ピンチやスクロールでズーム · 星をタップすると月・プラットフォーム・ストアのつながりが光ります", globePlay: "初日から再生", globePause: "一時停止", globeSearch: "アプリを検索…",globeTo2D: "2D 環状マップに切替", globeTo3D: "3D 星空に戻す", globeLoading: "3Dエンジン読み込み中…", globeNoWebGL: "このブラウザでは3Dを利用できません。", globeLoadFail: "3Dエンジンを読み込めませんでした。オンラインで分析を開き直してください。", globeInView: "表示中", globeViewDeal: "ギフトを見る" });
-        Object.assign(i18n['ko'], { lootGlobe: "전리품 지구", lootGlobeDesc: "받은 모든 게임이 살아있는 별자리로 — 회전하고, 확대하고, 별을 탭하세요.", globeExpand: "지구 열기", globeClose: "닫기", globeByAll: "전체 전리품", globeLines: "선", globeLabels: "라벨", globeByPlatform: "플랫폼", globeByStore: "스토어", globeByMonth: "월", globeHint: "드래그 회전 · 핀치/휠 확대 · 별을 탭하면 월·플랫폼·스토어 연결이 빛납니다", globePlay: "첫날부터 재생", globePause: "일시정지", globeSearch: "앱 검색…",globeTo2D: "2D 링 맵으로 전환", globeTo3D: "3D 하늘로 복귀", globeLoading: "3D 엔진 로드 중…", globeNoWebGL: "이 브라우저에서는 3D를 사용할 수 없습니다.", globeLoadFail: "3D 엔진을 불러올 수 없습니다. 온라인에서 분석을 다시 여세요.", globeInView: "표시 중", globeViewDeal: "게임 보기" });
-        Object.assign(i18n['es'], { lootGlobe: "Globo de Botín", lootGlobeDesc: "Cada juego que has reclamado, como una constelación viva: gíralo, acerca, toca una estrella.", globeExpand: "Abrir el globo", globeClose: "Cerrar", globeByAll: "Todo el botín", globeLines: "Líneas", globeLabels: "Etiquetas", globeByPlatform: "Plataforma", globeByStore: "Tienda", globeByMonth: "Mes", globeHint: "Arrastra para orbitar, pellizca o rueda para zoom, toca una estrella para encender su cadena de mes, plataforma y tienda hasta el núcleo", globePlay: "Reproducir desde el primer día", globePause: "Pausa", globeSearch: "Buscar apps…",globeTo2D: "Cambiar al mapa 2D de anillos", globeTo3D: "Volver al cielo 3D", globeLoading: "Cargando motor 3D...", globeNoWebGL: "3D no está disponible en este navegador.", globeLoadFail: "El motor 3D no se pudo cargar. Reabre Analytics con conexión.", globeInView: "en vista", globeViewDeal: "Ver oferta" });
-        Object.assign(i18n['fr'], { lootGlobe: "Globe de Butin", lootGlobeDesc: "Chaque jeu réclamé, en constellation vivante : fais-le tourner, zoome, touche une étoile.", globeExpand: "Ouvrir le globe", globeClose: "Fermer", globeByAll: "Tout le butin", globeLines: "Lignes", globeLabels: "Étiquettes", globeByPlatform: "Plateforme", globeByStore: "Boutique", globeByMonth: "Mois", globeHint: "Glisser pour orbiter, pincer ou moletter pour zoomer, toucher une étoile pour allumer sa chaîne mois, plateforme et boutique jusqu'au noyau", globePlay: "Lire depuis le premier jour", globePause: "Pause", globeSearch: "Rechercher des applis…",globeTo2D: "Passer en vue 2D (anneaux)", globeTo3D: "Revenir au ciel 3D", globeLoading: "Chargement du moteur 3D...", globeNoWebGL: "La 3D n'est pas disponible dans ce navigateur.", globeLoadFail: "Le moteur 3D n'a pas pu se charger. Rouvrez Analytics en ligne.", globeInView: "visibles", globeViewDeal: "Voir l'offre" });
-        Object.assign(i18n['de'], { lootGlobe: "Loot-Globus", lootGlobeDesc: "Jedes geholte Spiel als lebendiges Sternbild – drehen, zoomen, Stern antippen.", globeExpand: "Globus öffnen", globeClose: "Schließen", globeByAll: "Alle Beute", globeLines: "Linien", globeLabels: "Beschriftungen", globeByPlatform: "Plattform", globeByStore: "Store", globeByMonth: "Monat", globeHint: "Ziehen zum Drehen, Pinch oder Scroll zum Zoomen, Stern antippen – Monat, Plattform und Store-Kette zum Kern leuchten auf", globePlay: "Ab dem ersten Tag abspielen", globePause: "Pause", globeSearch: "Apps suchen…",globeTo2D: "Zur 2D-Ringkarte wechseln", globeTo3D: "Zurück zum 3D-Himmel", globeLoading: "3D-Engine wird geladen...", globeNoWebGL: "3D ist in diesem Browser nicht verfügbar.", globeLoadFail: "Die 3D-Engine konnte nicht geladen werden. Öffne Analytics erneut online.", globeInView: "im Bild", globeViewDeal: "Angebot ansehen" });
-        Object.assign(i18n['ru'], { lootGlobe: "Лут-глобус", lootGlobeDesc: "Каждая забранная игра — живое созвездие: вращай, приближай, нажимай на звезду.", globeExpand: "Открыть глобус", globeClose: "Закрыть", globeByAll: "Весь лут", globeLines: "Линии", globeLabels: "Метки", globeByPlatform: "Платформа", globeByStore: "Магазин", globeByMonth: "Месяц", globeHint: "Тяните, чтобы вращать; пинч или колесо для зума; нажмите звезду — подсветятся цепочка месяца, платформы и магазина к ядру", globePlay: "С первого дня", globePause: "Пауза", globeSearch: "Поиск приложений…",globeTo2D: "Переключить на 2D-карту колец", globeTo3D: "Вернуться к 3D-небу", globeLoading: "Загрузка 3D-движка...", globeNoWebGL: "3D недоступен в этом браузере.", globeLoadFail: "3D-движок не загрузился. Откройте Analytics снова в сети.", globeInView: "в поле", globeViewDeal: "Смотреть" });
-        Object.assign(i18n['pt'], { lootGlobe: "Globo de Loot", lootGlobeDesc: "Cada jogo resgatado, numa constelação viva — gire, dê zoom, toque numa estrela.", globeExpand: "Abrir o globo", globeClose: "Fechar", globeByAll: "Todo o loot", globeLines: "Linhas", globeLabels: "Rótulos", globeByPlatform: "Plataforma", globeByStore: "Loja", globeByMonth: "Mês", globeHint: "Arraste para orbitar, pinça ou roda para zoom, toque numa estrela para acender a corrente de mês, plataforma e loja até o núcleo", globePlay: "Reproduzir do primeiro dia", globePause: "Pausar", globeSearch: "Buscar apps…",globeTo2D: "Mudar para o mapa 2D de anéis", globeTo3D: "Voltar ao céu 3D", globeLoading: "Carregando motor 3D...", globeNoWebGL: "3D não está disponível neste navegador.", globeLoadFail: "O motor 3D não pôde carregar. Reabra Analytics com conexão.", globeInView: "na vista", globeViewDeal: "Ver oferta" });
+        Object.assign(i18n.en, { lootGlobe: "Loot Globe", lootGlobeDesc: "Every game you have claimed, as a living constellation - spin it, zoom in, tap a star.", globeExpand: "Open the globe", globeClose: "Close", globeByAll: "All loot", globeLines: "Lines", globeLabels: "Labels", globeByPlatform: "Platform", globeByStore: "Store", globeByMonth: "Month", globeHint: "Drag to orbit - pinch or scroll to zoom - tap a star to light up its month, platform and store chain to the core", globePlay: "Play from day one", globePause: "Pause", globeSearch: "Search apps…",globeReset: "Reset the globe",globeTo2D: "Switch to the 2D ring map", globeTo3D: "Switch back to the 3D sky", globeLoading: "Loading the 3D engine...", globeNoWebGL: "3D is not available in this browser.", globeLoadFail: "The 3D engine could not load. Reopen Analytics when online.", globeInView: "in view", globeViewDeal: "View deal" });
+        Object.assign(i18n['zh-CN'], { lootGlobe: "战利星球", lootGlobeDesc: "你领取的每款游戏，都是一颗活的星球——旋转、缩放、点一颗星星看看。", globeExpand: "打开星球", globeClose: "关闭", globeByAll: "全部战利", globeLines: "连线", globeLabels: "标签", globeByPlatform: "平台", globeByStore: "商店", globeByMonth: "月份", globeHint: "拖动旋转 · 双指或滚轮缩放 · 点一颗星，点亮它通往核心的月份/平台/商店链", globePlay: "从第一天播放", globePause: "暂停", globeSearch: "搜索应用…",globeReset: "重置星球",globeTo2D: "切换到 2D 圆环图", globeTo3D: "切回 3D 星空", globeLoading: "正在加载 3D 引擎…", globeNoWebGL: "此浏览器不支持 3D。", globeLoadFail: "3D 引擎加载失败，请联网后重新打开分析。", globeInView: "在视野中", globeViewDeal: "查看礼包" });
+        Object.assign(i18n['zh-TW'], { lootGlobe: "戰利星球", lootGlobeDesc: "你領取的所有遊戲，都是一顆活的星球——旋轉、縮放、點一顆星星看看。", globeExpand: "打開星球", globeClose: "關閉", globeByAll: "全部戰利", globeLines: "連線", globeLabels: "標籤", globeByPlatform: "平台", globeByStore: "商店", globeByMonth: "月份", globeHint: "拖動旋轉 · 雙指或滾輪縮放 · 點一顆星，點亮它通往核心的月份/平台/商店鏈", globePlay: "從第一天播放", globePause: "暫停", globeSearch: "搜尋應用…",globeReset: "重設星球",globeTo2D: "切換到 2D 圓環圖", globeTo3D: "切回 3D 星空", globeLoading: "正在載入 3D 引擎…", globeNoWebGL: "此瀏覽器不支援 3D。", globeLoadFail: "3D 引擎載入失敗，請聯網後重新開啟分析。", globeInView: "在視野中", globeViewDeal: "查看礼包" });
+        Object.assign(i18n['ja'], { lootGlobe: "ルートグローブ", lootGlobeDesc: "あなたが獲得した全てのゲームが息づく星座——回して、ズームして、星をタップ。", globeExpand: "グローブを開く", globeClose: "閉じる", globeByAll: "全ルート", globeLines: "線", globeLabels: "ラベル", globeByPlatform: "プラットフォーム", globeByStore: "ストア", globeByMonth: "月", globeHint: "ドラッグで回転 · ピンチやスクロールでズーム · 星をタップすると月・プラットフォーム・ストアのつながりが光ります", globePlay: "初日から再生", globePause: "一時停止", globeSearch: "アプリを検索…",globeReset: "グローブをリセット",globeTo2D: "2D 環状マップに切替", globeTo3D: "3D 星空に戻す", globeLoading: "3Dエンジン読み込み中…", globeNoWebGL: "このブラウザでは3Dを利用できません。", globeLoadFail: "3Dエンジンを読み込めませんでした。オンラインで分析を開き直してください。", globeInView: "表示中", globeViewDeal: "ギフトを見る" });
+        Object.assign(i18n['ko'], { lootGlobe: "전리품 지구", lootGlobeDesc: "받은 모든 게임이 살아있는 별자리로 — 회전하고, 확대하고, 별을 탭하세요.", globeExpand: "지구 열기", globeClose: "닫기", globeByAll: "전체 전리품", globeLines: "선", globeLabels: "라벨", globeByPlatform: "플랫폼", globeByStore: "스토어", globeByMonth: "월", globeHint: "드래그 회전 · 핀치/휠 확대 · 별을 탭하면 월·플랫폼·스토어 연결이 빛납니다", globePlay: "첫날부터 재생", globePause: "일시정지", globeSearch: "앱 검색…",globeReset: "지구 재설정",globeTo2D: "2D 링 맵으로 전환", globeTo3D: "3D 하늘로 복귀", globeLoading: "3D 엔진 로드 중…", globeNoWebGL: "이 브라우저에서는 3D를 사용할 수 없습니다.", globeLoadFail: "3D 엔진을 불러올 수 없습니다. 온라인에서 분석을 다시 여세요.", globeInView: "표시 중", globeViewDeal: "게임 보기" });
+        Object.assign(i18n['es'], { lootGlobe: "Globo de Botín", lootGlobeDesc: "Cada juego que has reclamado, como una constelación viva: gíralo, acerca, toca una estrella.", globeExpand: "Abrir el globo", globeClose: "Cerrar", globeByAll: "Todo el botín", globeLines: "Líneas", globeLabels: "Etiquetas", globeByPlatform: "Plataforma", globeByStore: "Tienda", globeByMonth: "Mes", globeHint: "Arrastra para orbitar, pellizca o rueda para zoom, toca una estrella para encender su cadena de mes, plataforma y tienda hasta el núcleo", globePlay: "Reproducir desde el primer día", globePause: "Pausa", globeSearch: "Buscar apps…",globeReset: "Restablecer el globo",globeTo2D: "Cambiar al mapa 2D de anillos", globeTo3D: "Volver al cielo 3D", globeLoading: "Cargando motor 3D...", globeNoWebGL: "3D no está disponible en este navegador.", globeLoadFail: "El motor 3D no se pudo cargar. Reabre Analytics con conexión.", globeInView: "en vista", globeViewDeal: "Ver oferta" });
+        Object.assign(i18n['fr'], { lootGlobe: "Globe de Butin", lootGlobeDesc: "Chaque jeu réclamé, en constellation vivante : fais-le tourner, zoome, touche une étoile.", globeExpand: "Ouvrir le globe", globeClose: "Fermer", globeByAll: "Tout le butin", globeLines: "Lignes", globeLabels: "Étiquettes", globeByPlatform: "Plateforme", globeByStore: "Boutique", globeByMonth: "Mois", globeHint: "Glisser pour orbiter, pincer ou moletter pour zoomer, toucher une étoile pour allumer sa chaîne mois, plateforme et boutique jusqu'au noyau", globePlay: "Lire depuis le premier jour", globePause: "Pause", globeSearch: "Rechercher des applis…",globeReset: "Réinitialiser le globe",globeTo2D: "Passer en vue 2D (anneaux)", globeTo3D: "Revenir au ciel 3D", globeLoading: "Chargement du moteur 3D...", globeNoWebGL: "La 3D n'est pas disponible dans ce navigateur.", globeLoadFail: "Le moteur 3D n'a pas pu se charger. Rouvrez Analytics en ligne.", globeInView: "visibles", globeViewDeal: "Voir l'offre" });
+        Object.assign(i18n['de'], { lootGlobe: "Loot-Globus", lootGlobeDesc: "Jedes geholte Spiel als lebendiges Sternbild – drehen, zoomen, Stern antippen.", globeExpand: "Globus öffnen", globeClose: "Schließen", globeByAll: "Alle Beute", globeLines: "Linien", globeLabels: "Beschriftungen", globeByPlatform: "Plattform", globeByStore: "Store", globeByMonth: "Monat", globeHint: "Ziehen zum Drehen, Pinch oder Scroll zum Zoomen, Stern antippen – Monat, Plattform und Store-Kette zum Kern leuchten auf", globePlay: "Ab dem ersten Tag abspielen", globePause: "Pause", globeSearch: "Apps suchen…",globeReset: "Globus zurücksetzen",globeTo2D: "Zur 2D-Ringkarte wechseln", globeTo3D: "Zurück zum 3D-Himmel", globeLoading: "3D-Engine wird geladen...", globeNoWebGL: "3D ist in diesem Browser nicht verfügbar.", globeLoadFail: "Die 3D-Engine konnte nicht geladen werden. Öffne Analytics erneut online.", globeInView: "im Bild", globeViewDeal: "Angebot ansehen" });
+        Object.assign(i18n['ru'], { lootGlobe: "Лут-глобус", lootGlobeDesc: "Каждая забранная игра — живое созвездие: вращай, приближай, нажимай на звезду.", globeExpand: "Открыть глобус", globeClose: "Закрыть", globeByAll: "Весь лут", globeLines: "Линии", globeLabels: "Метки", globeByPlatform: "Платформа", globeByStore: "Магазин", globeByMonth: "Месяц", globeHint: "Тяните, чтобы вращать; пинч или колесо для зума; нажмите звезду — подсветятся цепочка месяца, платформы и магазина к ядру", globePlay: "С первого дня", globePause: "Пауза", globeSearch: "Поиск приложений…",globeReset: "Сбросить глобус",globeTo2D: "Переключить на 2D-карту колец", globeTo3D: "Вернуться к 3D-небу", globeLoading: "Загрузка 3D-движка...", globeNoWebGL: "3D недоступен в этом браузере.", globeLoadFail: "3D-движок не загрузился. Откройте Analytics снова в сети.", globeInView: "в поле", globeViewDeal: "Смотреть" });
+        Object.assign(i18n['pt'], { lootGlobe: "Globo de Loot", lootGlobeDesc: "Cada jogo resgatado, numa constelação viva — gire, dê zoom, toque numa estrela.", globeExpand: "Abrir o globo", globeClose: "Fechar", globeByAll: "Todo o loot", globeLines: "Linhas", globeLabels: "Rótulos", globeByPlatform: "Plataforma", globeByStore: "Loja", globeByMonth: "Mês", globeHint: "Arraste para orbitar, pinça ou roda para zoom, toque numa estrela para acender a corrente de mês, plataforma e loja até o núcleo", globePlay: "Reproduzir do primeiro dia", globePause: "Pausar", globeSearch: "Buscar apps…",globeReset: "Redefinir o globo",globeTo2D: "Mudar para o mapa 2D de anéis", globeTo3D: "Voltar ao céu 3D", globeLoading: "Carregando motor 3D...", globeNoWebGL: "3D não está disponível neste navegador.", globeLoadFail: "O motor 3D não pôde carregar. Reabra Analytics com conexão.", globeInView: "na vista", globeViewDeal: "Ver oferta" });
         // ------------------------------------------
 
         // Loot Wrapped i18n keys (2026.10.05.6)
@@ -5111,6 +5114,19 @@
                     if (!(spread > 60)) return;
                     autoFitted = true;
                     try { graph.zoomToFit(500, isFull ? 46 : 14); } catch (e) { /* zoom race with user gesture is harmless */ }
+                    // 2026.11.18.1 (user verdict 「全视角+全状态」): remember HOW this instance was framed
+                    // the first time — spherical pose + target. The head RESET button glides back to it.
+                    // 700ms > the 500ms zoomToFit tween; recording once keeps even a super-early drag honest.
+                    if (isFull && !api.__homeCam) setTimeout(() => {
+                        try {
+                            if (api.disposed || api.__homeCam) return;
+                            const camH = graph.camera(), ctrH = graph.controls();
+                            const htx = ctrH && ctrH.target ? ctrH.target.x : 0, hty = ctrH && ctrH.target ? ctrH.target.y : 0, htz = ctrH && ctrH.target ? ctrH.target.z : 0;
+                            const hdx = camH.position.x - htx, hdy = camH.position.y - hty, hdz = camH.position.z - htz;
+                            const hR = Math.sqrt(hdx * hdx + hdy * hdy + hdz * hdz) || 1;
+                            api.__homeCam = { tx: htx, ty: hty, tz: htz, R: hR, az: Math.atan2(hdx, hdz), el: Math.asin(Math.max(-1, Math.min(1, hdy / hR))) };
+                        } catch (e) { /* engine gone — reset button falls back to a refit */ }
+                    }, 700);
                     if (api.__onFit) { const cbF = api.__onFit; api.__onFit = null; try { cbF(); } catch (e) { } }
                 });
                 // 2026.11.17.1 (user verdict ②: 「去掉吧」 — the scroll-in reveal must
@@ -5375,6 +5391,50 @@
                         if (api.faceRaf) cancelAnimationFrame(api.faceRaf);
                         api.faceRaf = requestAnimationFrame(step);
                     } catch (e) { /* engine mid-teardown — highlight alone already landed */ }
+                };
+                // 2026.11.18.1 (user verdict 「全视角+全状态」): glide the camera BACK to the pose this
+                // instance first framed at (`__homeCam`), so the head RESET button truly returns the
+                // original globe design. Same spherical parameterization as faceNode (az shortest-wrap,
+                // el direct), same 550ms ease-out, stamps __lastAct every frame so the idle spin never
+                // fights it; target lerps too (pans are undone as well). reduce-motion = instant.
+                api.resetView = function () {
+                    if (api.disposed) return;
+                    const h = api.__homeCam;
+                    if (!h) { try { graph.zoomToFit(500, 46); } catch (e) { } return; } // never framed: a fresh fit is the honest fallback
+                    try {
+                        const cam = graph.camera(), ctr = graph.controls();
+                        const ftx = ctr && ctr.target ? ctr.target.x : 0, fty = ctr && ctr.target ? ctr.target.y : 0, ftz = ctr && ctr.target ? ctr.target.z : 0;
+                        const fdx = cam.position.x - ftx, fdy = cam.position.y - fty, fdz = cam.position.z - ftz;
+                        const fR = Math.sqrt(fdx * fdx + fdy * fdy + fdz * fdz) || 1;
+                        const fromAz = Math.atan2(fdx, fdz), fromEl = Math.asin(Math.max(-1, Math.min(1, fdy / fR)));
+                        let dAz = h.az - fromAz;
+                        while (dAz > Math.PI) dAz -= Math.PI * 2;
+                        while (dAz < -Math.PI) dAz += Math.PI * 2;
+                        const dEl = h.el - fromEl, dR = h.R - fR;
+                        if (!isFinite(dAz) || !isFinite(dEl) || !isFinite(dR)) return;
+                        const placeV = (k) => {
+                            const az = fromAz + dAz * k, el = fromEl + dEl * k, R2 = fR + dR * k;
+                            const tx = ftx + (h.tx - ftx) * k, ty = fty + (h.ty - fty) * k, tz = ftz + (h.tz - ftz) * k;
+                            if (ctr && ctr.target && ctr.target.set) ctr.target.set(tx, ty, tz);
+                            const hh = R2 * Math.cos(el);
+                            cam.position.set(tx + hh * Math.sin(az), ty + R2 * Math.sin(el), tz + hh * Math.cos(az));
+                            cam.lookAt(tx, ty, tz);
+                        };
+                        if (reduceMotion()) { placeV(1); api.__lastAct = performance.now(); return; }
+                        api.__lastAct = performance.now();
+                        const DURV = 550, t0 = performance.now();
+                        const stepV = (nowT) => {
+                            if (api.disposed) { api.viewRaf = null; return; }
+                            api.viewRaf = null;
+                            const p = Math.min(1, (nowT - t0) / DURV);
+                            const k = 1 - Math.pow(1 - p, 3); // ease-out cubic — faceNode's house style
+                            placeV(k);
+                            api.__lastAct = nowT;
+                            if (p < 1) api.viewRaf = requestAnimationFrame(stepV);
+                        };
+                        if (api.viewRaf) cancelAnimationFrame(api.viewRaf);
+                        api.viewRaf = requestAnimationFrame(stepV);
+                    } catch (e) { /* engine mid-teardown — state resets already landed */ }
                 };
 
                 api.play = function (on, ms) {
@@ -6041,6 +6101,7 @@
                     <div id="globe-full-head">
                         <span class="globe-title" id="globe-full-title"></span>
                         <span style="flex:1 1 auto;"></span>
+                        <button type="button" class="globe-btn globe-icon-btn" id="globe-reset-btn"><i class="ph-bold ph-arrow-counter-clockwise"></i></button>
                         <button type="button" class="globe-btn globe-icon-btn" id="globe-line-btn" aria-pressed="true"><i class="ph-bold ph-intersect"></i></button>
                         <button type="button" class="globe-btn globe-icon-btn" id="globe-label-btn" aria-pressed="true"><i class="ph-bold ph-text-t"></i></button>
                         <button type="button" class="globe-btn globe-icon-btn" id="globe-play-btn"></button>
@@ -6058,6 +6119,18 @@
                     <button type="button" class="globe-btn" id="globe-mode-btn" style="display:none"></button>`;
                 document.body.appendChild(overlay);
                 overlay.querySelector('#globe-close-btn').addEventListener('click', () => closeFullscreen());
+                // 2026.11.18.1 (user: 「右上角的4个button最左边加一个reset button可以让用户reset成原本globe design」
+                // + verdict 「全视角+全状态」): everything X does (search text, selection → all-soft chain,
+                // slider → newest) PLUS the camera gliding back to the pose this globe was first framed at.
+                // The X button by contrast never touches the camera — 「如果用户drag了，就根据drag后的design变回去」.
+                // lines/labels stay as the user set them (persisted preferences, not "design state").
+                overlay.querySelector('#globe-reset-btn').addEventListener('click', () => {
+                    try { if (full) { if (full.stopPlay) full.stopPlay(); else if (full.playing) full.play(false); } } catch (e) { } // 2D dial has no stopPlay — pause it through its own flag
+                    if (globeSearchUiHook) globeSearchUiHook(); // clears the box even when nothing was selected
+                    if (sel) applySel(null);
+                    rewindSliderToNewest();
+                    if (full && full.resetView) full.resetView(); // camera home is 3D-only (verdict: 全视角+全状态); the 2D dial has no camera to restore
+                });
                 overlay.querySelector('#globe-play-btn').addEventListener('click', () => { if (full) full.play(!full.playing); });
                 // .11.11.3: 右上角 label 开关 — flips the module flag + persists it; both renderers
                 // pick it up on their next frame (fullscreen tick loops are permanent, .06.3 design).
@@ -6091,6 +6164,14 @@
                     .filter(e => String(e.title || '').toLowerCase().includes(s))
                     .sort((a, b) => b.day - a.day || String(a.title || '').localeCompare(String(b.title || '')))
                     .slice(0, 12);
+            }
+            // 2026.11.18.1 — ONE rewind for both reset paths (the search X + the head RESET button):
+            // the slider's OWN input chain carries stopPlay + __scrubT + setDay for BOTH renderers,
+            // so "back to the newest day" is exactly one dispatch — never hand-roll it twice.
+            function rewindSliderToNewest() {
+                const sliderEl = overlay && overlay.querySelector('#globe-slider');
+                const b = dayBounds();
+                if (sliderEl && Number(sliderEl.value) !== b.max) { sliderEl.value = b.max; sliderEl.dispatchEvent(new Event('input')); }
             }
             function wireGlobeSearch(ov) {
                 const input = ov.querySelector('#globe-search'), listEl = ov.querySelector('#globe-search-list'), xBtn = ov.querySelector('#globe-search-x'), wrap = ov.querySelector('.globe-search-wrap');
@@ -6138,9 +6219,7 @@
                     input.value = ''; xBtn.style.display = 'none'; closeList();
                     if (!full) { input.focus(); return; }
                     if (sel) applySel(null); // the hook re-clears the UI — idempotent
-                    const sliderEl = ov.querySelector('#globe-slider');
-                    const b = dayBounds();
-                    if (sliderEl && Number(sliderEl.value) !== b.max) { sliderEl.value = b.max; sliderEl.dispatchEvent(new Event('input')); } // slider's own chain: stopPlay + __scrubT + setDay(max)
+                    rewindSliderToNewest(); // 2026.11.18.1 — shared rewind; X deliberately NEVER touches the camera (verdict 「如果用户drag了，就根据drag后的design变回去」)
                     input.focus();
                 };
                 xBtn.addEventListener('click', resetFull);
@@ -6174,6 +6253,7 @@
                 if (!overlay) return;
                 overlay.querySelector('#globe-full-title').textContent = tRef.lootGlobe || 'Loot Globe';
                 const sIn = overlay.querySelector('#globe-search'); if (sIn) sIn.placeholder = tRef.globeSearch || 'Search apps…'; // 2026.11.17.3 — re-localizes with the language like every other head label
+                const rBtn = overlay.querySelector('#globe-reset-btn'); if (rBtn) rBtn.title = tRef.globeReset || 'Reset the globe'; // 2026.11.18.1
                 if (full) full.syncPlayBtn();
                 syncModeBtn(); // button label/tip must re-localize with the language
                 syncLabelBtn(); // .11.11.3 also re-localizes + re-syncs the label toggle
@@ -12936,7 +13016,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.17.4';
+        window.BUILD_VERSION = '2026.11.18.1';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

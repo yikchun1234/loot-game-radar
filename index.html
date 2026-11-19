@@ -2092,8 +2092,61 @@
         Object.assign(i18n.ko, { platTogglesTitle: "플랫폼", platTogglesDesc: "끄면 해당 탭과 게임이 피드에서 숨겨집니다." });
         Object.assign(i18n.pt, { platTogglesTitle: "Plataformas", platTogglesDesc: "Desative uma plataforma para ocultar sua aba e seus jogos do feed." });
 
-        // --- LOCAL STORAGE COMPRESSION HELPERS ---
+        // --- DATA STORE (2026.11.19.1: OPFS PRIMARY ERA — LZ-String retired for storage) ---
+        // The keys that used to be LZ-compressed into localStorage now live in the
+        // in-memory DS map, persisted (PLAIN JSON, zero compression) into the OPFS
+        // snapshot file — which IS the primary store since this release. The old
+        // ~5 MB localStorage ceiling is gone; quota is disk-level (navigator.storage).
+        // Settings keys (theme/lang/saved_money/…) were never LZ-compressed and
+        // stay in localStorage untouched. loadSafeStorage/saveSafeStorage keep
+        // their exact signatures — the 60+ call sites did not change.
+        const DS_MANAGED_KEYS = [
+            'lootradar_claimed_v2', 'lootradar_publish_dates', 'lootradar_deleted_history',
+            'lootradar_feed_status_filter', 'lootradar_merged_xsrc_ids', 'lootradar_claimed'
+        ];
+        window.__DS = {
+            map: {},        // managed key -> PLAIN JSON string
+            ready: false,   // true once hydrated (from snapshot OR migrated)
+            migrated: false,// this boot ran the one-time localStorage -> DS migration
+            fromSnap: false,// DS was hydrated from an OPFS snapshot (the normal boot)
+            dirty: false    // DS-side writes not yet in a VERIFIED file
+        };
+        window.__DS.setRaw = function (key, plainStr) {
+            this.map[key] = plainStr; this.dirty = true;
+            // Fallback era (OPFS unavailable / boot not finished): the plaintext
+            // value goes straight to localStorage so nothing is session-only.
+            if (!this.ready) { try { localStorage.setItem(key, plainStr); } catch (e) {} }
+            try { opfsScheduleSnapshot(1200); } catch (e) {}
+        };
+        window.__DS.setObj = function (key, obj) { this.setRaw(key, JSON.stringify(obj)); };
+        window.__DS.remove = function (key) {
+            delete this.map[key]; this.dirty = true;
+            try { opfsScheduleSnapshot(300); } catch (e) {}
+        };
+        window.__DS.getObj = function (key) {
+            const s = this.map[key];
+            if (typeof s !== 'string') return undefined;
+            try { return JSON.parse(s); } catch (e) { return undefined; }
+        };
+        // Decode ANY era's value (plain JSON, LZ-UTF16 legacy, legacy plain strings
+        // like 'true') into a plaintext JSON string the DS can hold. null = junk.
+        function dsPlaintext(raw) {
+            if (typeof raw !== 'string' || raw === '') return null;
+            if (raw.startsWith('{') || raw.startsWith('[')) return raw; // already plain
+            let v = null;
+            try { const d = LZString.decompressFromUTF16(raw); if (d) { JSON.parse(d); v = d; } } catch (e) { v = null; }
+            if (v !== null) return v;
+            try { return JSON.stringify(JSON.parse(raw)); } catch (e) {} // 'true'/'123' scalar legacy values
+            return null;
+        }
+
+        // --- LEGACY STORAGE HELPERS (pre-migration reads + no-OPFS fallback) ---
         function loadSafeStorage(key) {
+            // OPFS-primary era: the DS map answers first for managed keys.
+            if (window.__DS && window.__DS.ready && Object.prototype.hasOwnProperty.call(window.__DS.map, key)) {
+                const parsed = window.__DS.getObj(key);
+                return (parsed === undefined) ? null : parsed;
+            }
             let raw = null;
             try { raw = localStorage.getItem(key); } catch (e) { raw = null; }
             // 2026.10.05.2: if localStorage was full (quota), saveSafeStorage keeps
@@ -2128,77 +2181,102 @@
         }
 
         function saveSafeStorage(key, data) {
-            // Compress heavily before saving to bypass the 5MB browser limit
-            const compressed = LZString.compressToUTF16(JSON.stringify(data));
+            if (window.__DS && window.__DS.ready) {
+                // 2026.11.19.1: PLAIN JSON into the DS map + debounced verified
+                // OPFS write. LZ-String is retired on every storage path.
+                window.__DS.setObj(key, data);
+                return;
+            }
+            // Pre-hydration or storage layer unavailable → plaintext localStorage
+            // write (never LZ again; loadSafeStorage's plain branch reads it back).
+            // 2026.11.19.1: writes still land in localStorage too when OPFS is
+            // down, so a later boot can migrate them forward instead of losing.
+            const plain = JSON.stringify(data);
             try {
-                localStorage.setItem(key, compressed);
+                localStorage.setItem(key, plain);
                 if (window.__opfsOverrides) delete window.__opfsOverrides[key];
             } catch (e) {
-                // 2026.10.05.2: quota exceeded — keep the value in memory (so
-                // loadSafeStorage still sees it) and in the OPFS snapshot below.
-                (window.__opfsOverrides = window.__opfsOverrides || {})[key] = compressed;
+                (window.__opfsOverrides = window.__opfsOverrides || {})[key] = plain;
                 try { window.logError('saveSafeStorage quota exceeded [' + key + ']: ' + (e && e.message ? e.message : e), 'storage'); } catch (_) {}
             }
             // 2026.10.05.2: dual-write era — mirror into OPFS as well (debounced)
             try { opfsScheduleSnapshot(1200); } catch (e) {}
         }
 
-        // ===== 2026.10.05.2: OPFS SNAPSHOT MIRROR (dual-write era) =====
-        // localStorage REMAINS the synchronous runtime store: the `state` object
-        // initializes via loadSafeStorage at script-PARSE time — before any async
-        // API could resolve — and 60+ call sites read/write it synchronously.
-        // OPFS receives a verified lz-string-compressed snapshot of EVERY data key:
-        //   • written after every saveSafeStorage (debounced), on a fingerprint
-        //     timer that catches DIRECT localStorage writes (data imports, filters,
-        //     saved_money, error log) and removals, and on pagehide/hidden flush;
-        //   • verified by reading the file back, decompressing and comparing EVERY
-        //     key's value string-for-string — only a verified write counts as
-        //     "in sync" (the user's zero-error migration rule);
-        //   • OPFS-FIRST BOOT (2026.10.05.4): initStorageLayer reads the snapshot
-        //     BEFORE the app initializes and treats it as the authoritative copy —
-        //     newer snapshot (or wiped localStorage) → RESTORE + one-shot guarded
-        //     reload; equal seqs → fingerprint-verify both copies are identical and
-        //     declare OPFS the boot source. localStorage only takes over when the
-        //     snapshot has a PROBLEM: unsupported browser, missing/corrupt file, or
-        //     a stale snapshot (localStorage holds newer un-mirrored edits — falling
-        //     back protects them; the catch-up write re-mirrors immediately).
-        //     Every boot decision is recorded in st.bootSource / st.bootReason and
-        //     shown in Dev Mode → Storage Analyzer → DATA SOURCE.
-        // Any failure falls back to pure-localStorage behavior — the layer can
-        // never kill boot (2026.09.02.6 rule). Plan: keep dual-write ~1 year;
-        // once proven stable the localStorage side gets removed and reads switch
-        // to an OPFS-hydrated in-memory mirror.
+        // ===== OPFS PRIMARY STORE (2026.11.19.1 — the planned cutover landed) =====
+        // The dual-write era (2026.10.05.2/.4) proved OPFS reliable in production
+        // for six weeks. This release executes the pre-announced plan: the snapshot
+        // file IS the primary data store. Managed keys (see DS_MANAGED_KEYS) live
+        // in window.__DS (plain JSON strings) and persist to the verified OPFS
+        // file; localStorage keeps only settings keys (never LZ-compressed anyway).
+        //   • file format UNCHANGED (magic v1, seq, keys) — pre-OPFS-era builds
+        //   can still restore it, which is the rollback bridge;
+        //   • values in the file are now PLAIN JSON (zero LZ on any storage path);
+        //   • every write stays READ-BACK VERIFIED (string-for-string), plus a
+        //     one-shot *_v1_keep.bin leave-good-era copy + *_prev.bin generation
+        //     rotation so a torn/poisoned main file can never strand the user;
+        //   • boot (initStorageLayer): snapshot → prev → localStorage migration →
+        //     fresh; failures fall back to plaintext localStorage, boot survives
+        //     even if OPFS hangs outright (6 s boot timeout).
+        //   • navigator.storage.persist() is requested at boot; Dev Mode shows
+        //     persisted/quota so eviction risk is visible, not assumed.
         window.__opfs = {
             supported: false, active: false,
-            mode: 'localstorage', // 'opfs' = verified & in sync | 'restored' | 'localstorage'
+            mode: 'localstorage', // 'opfs' = primary & verified | 'restored' | 'localstorage'
             seq: 0, snapSeq: -1, snapBytes: 0, snapSavedAt: null, snapKeys: 0,
             lastError: null, lastWriteAt: null, lastRestoreAt: null, lastAttemptAt: 0,
             writing: false, pending: false, autoSyncStarted: false, dir: null,
             // 2026.10.05.4: OPFS-first boot authority — which store the boot
             // actually trusted, and why (surfaced in Dev Mode DATA SOURCE).
-            bootSource: null, bootReason: ''
+            bootSource: null, bootReason: '',
+            // 2026.11.19.1 primary-era fields
+            keepSaved: false,      // *_v1_keep.bin already written (one-shot)
+            prevBytes: null,       // last-known-good main file bytes (for rotation)
+            prevFile: null,        // null = untried, true = written, false = failed
+            persisted: null,       // navigator.storage.persist() result this boot
+            quotaBytes: 0, usageBytes: 0
         };
         const OPFS_SNAPSHOT_FILE = 'lootradar_snapshot.bin';
+        const OPFS_KEEP_FILE = 'lootradar_snapshot_v1_keep.bin';
+        const OPFS_PREV_FILE = 'lootradar_snapshot_prev.bin';
         const OPFS_SEQ_KEY = 'lootradar_opfs_seq';
         const OPFS_RESTORE_GUARD = 'lootradar_opfs_restored';
         const OPFS_LAST_RESTORE_KEY = 'lootradar_opfs_last_restore';
+        const OPFS_FELLBACK_KEY = 'lootradar_opfs_fellback';
         let _opfsFingerprint = null;
         let _opfsDebounceTimer = null;
 
-        // All data keys worth mirroring: everything lootradar_* plus the
-        // prefix-less Cloud Sync rescue snapshot (sync_last_payload). The seq
-        // bookkeeping key itself is excluded (it is derived, not data).
+        // What goes INTO the snapshot file: (a) the DS map — the primary data in
+        // the OPFS era; (b) every remaining lootradar_* settings key plus the
+        // prefix-less Cloud Sync rescue snapshot (sync_last_payload), so the file
+        // stays a superset compatible with pre-OPFS-era code (rollback bridge);
+        // (c) quota overrides. Bookkeeping keys are excluded (derived, not data).
+        const OPFS_BOOKKEEP = ['lootradar_opfs_seq', 'lootradar_opfs_last_restore', 'lootradar_opfs_fellback'];
         function opfsCollectKeys() {
             const keys = {};
             try {
                 for (let i = 0; i < localStorage.length; i++) {
                     const k = localStorage.key(i);
-                    if (!k || k === OPFS_SEQ_KEY) continue;
+                    if (!k || OPFS_BOOKKEEP.indexOf(k) !== -1) continue;
                     if (k.indexOf('lootradar_') === 0 || k === 'sync_last_payload') {
                         keys[k] = localStorage.getItem(k);
                     }
                 }
             } catch (e) { /* private mode etc — mirror what we can */ }
+            // DS first (primary truth — merged even when the boot layer timed
+            // out, so rescue/setRaw values in the map are never lost), then
+            // managed-key localStorage leftovers (written while OPFS was down —
+            // migrating them forward = newer wins).
+            const ds = window.__DS;
+            if (ds) {
+                Object.keys(ds.map).forEach(function (k) { keys[k] = ds.map[k]; });
+                DS_MANAGED_KEYS.forEach(function (k) {
+                    if (Object.prototype.hasOwnProperty.call(ds.map, k)) return;
+                    let lv = null;
+                    try { lv = localStorage.getItem(k); } catch (e) {}
+                    if (typeof lv === 'string' && lv.length > 1) keys[k] = lv;
+                });
+            }
             // Quota overrides: newest values that never fit into localStorage.
             // If localStorage caught up (key present again) drop the override;
             // if the key was deliberately REMOVED, the removal wins — drop too.
@@ -2265,7 +2343,8 @@
             try {
                 const keys = opfsCollectKeys();
                 const fp = opfsFingerprintOf(keys);
-                if (reason !== 'force' && fp === _opfsFingerprint && st.active && st.snapSeq === st.seq) {
+                const dsDirty = !!(window.__DS && window.__DS.dirty);
+                if (reason !== 'force' && fp === _opfsFingerprint && st.active && st.snapSeq === st.seq && !dsDirty) {
                     return true; // nothing changed since the last verified write
                 }
                 const seq = st.seq + 1;
@@ -2278,40 +2357,91 @@
                     keys: keys
                 });
                 const bytes = LZString.compressToUint8Array(payload);
-                const fh = await st.dir.getFileHandle(OPFS_SNAPSHOT_FILE, { create: true });
-                const w = await fh.createWritable();
-                await w.write(bytes);
-                await w.close();
-                // READ-BACK VERIFICATION (zero-error rule): decompress the stored
-                // bytes and compare EVERY key's value string-for-string against
-                // what we intended to store. Unverified writes never count.
-                const rh = await st.dir.getFileHandle(OPFS_SNAPSHOT_FILE);
-                const rf = await rh.getFile();
-                const back = new Uint8Array(await rf.arrayBuffer());
-                const json = LZString.decompressFromUint8Array(back);
-                const parsed = json ? JSON.parse(json) : null;
-                if (!parsed || parsed.magic !== 'lootradar-opfs-snapshot' || parsed.seq !== seq || !parsed.keys) {
+                // ONE-TIME LEAVE-GOOD-ERA-FILE: before the FIRST write of the
+                // OPFS-primary era, copy the old dual-write snapshot (values still
+                // LZ-compressed = the exact pre-migration bytes) to *_v1_keep.bin.
+                // The rollback-drill and disaster restore read this file. "One-time"
+                // is decided by the FILE'S EXISTENCE, not a per-session flag — a
+                // reboot after the era copy exists must never overwrite it.
+                if (!st.keepSaved) {
+                    try {
+                        try { await st.dir.getFileHandle(OPFS_KEEP_FILE); st.keepSaved = true; }
+                        catch (noKeep) {
+                            let ob = null;
+                            try {
+                                const oh = await st.dir.getFileHandle(OPFS_SNAPSHOT_FILE);
+                                const of = await oh.getFile();
+                                ob = new Uint8Array(await of.arrayBuffer());
+                            } catch (noMain) { /* fresh install — nothing to keep */ }
+                            if (ob && ob.length > 0) {
+                                const kh = await st.dir.getFileHandle(OPFS_KEEP_FILE, { create: true });
+                                const kw = await kh.createWritable();
+                                await kw.write(ob);
+                                await kw.close();
+                            }
+                            st.keepSaved = true;
+                        }
+                    } catch (e) { /* keep-file probe failed — retry next write */ }
+                }
+                let back = null, parsed = null;
+                for (let attempt = 0; attempt < 2; attempt++) {
+                    const fh = await st.dir.getFileHandle(OPFS_SNAPSHOT_FILE, { create: true });
+                    const w = await fh.createWritable();
+                    await w.write(bytes);
+                    await w.close();
+                    // READ-BACK VERIFICATION (zero-error rule): decompress the stored
+                    // bytes and compare EVERY key's value string-for-string against
+                    // what we intended to store. Unverified writes never count.
+                    // 2026.11.19.1: now that this file IS the primary store, a
+                    // failed verification gets ONE rewrite retry before erroring.
+                    const rh = await st.dir.getFileHandle(OPFS_SNAPSHOT_FILE);
+                    const rf = await rh.getFile();
+                    back = new Uint8Array(await rf.arrayBuffer());
+                    const json = LZString.decompressFromUint8Array(back);
+                    parsed = json ? JSON.parse(json) : null;
+                    if (parsed && parsed.magic === 'lootradar-opfs-snapshot' && parsed.seq === seq && parsed.keys) {
+                        const wantNames = Object.keys(keys);
+                        let mismatch = null;
+                        if (Object.keys(parsed.keys).length === wantNames.length) {
+                            for (let i = 0; i < wantNames.length; i++) {
+                                if (parsed.keys[wantNames[i]] !== keys[wantNames[i]]) { mismatch = wantNames[i]; break; }
+                            }
+                        } else mismatch = '(key count)';
+                        if (mismatch === null) break; // VERIFIED
+                        parsed = null;
+                        if (attempt === 0) continue;
+                        throw new Error('read-back failed (value mismatch: ' + mismatch + ')');
+                    }
+                    parsed = null;
+                    if (attempt === 0) continue;
                     throw new Error('read-back failed (bad payload)');
                 }
-                const wantNames = Object.keys(keys);
-                if (Object.keys(parsed.keys).length !== wantNames.length) {
-                    throw new Error('read-back failed (key count)');
+                // 2026.11.19.1 PREV GENERATION: rotate the previous verified file's
+                // bytes into *_prev.bin (best-effort; never blocks the commit).
+                // Rotated on EVERY verified write so prev is always exactly one
+                // generation behind main. Main file torn (killed mid-write) or
+                // poisoned content → boot reads prev via readOpfsSnapshot.
+                if (back && st.prevBytes) {
+                    try {
+                        const ph = await st.dir.getFileHandle(OPFS_PREV_FILE, { create: true });
+                        const pw = await ph.createWritable();
+                        await pw.write(st.prevBytes);
+                        await pw.close();
+                        st.prevFile = true;
+                    } catch (e) { st.prevFile = false; }
                 }
-                for (let i = 0; i < wantNames.length; i++) {
-                    if (parsed.keys[wantNames[i]] !== keys[wantNames[i]]) {
-                        throw new Error('read-back failed (value mismatch: ' + wantNames[i] + ')');
-                    }
-                }
+                st.prevBytes = back;
                 st.seq = seq;
                 st.snapSeq = seq;
                 st.snapBytes = back.length;
                 st.snapSavedAt = parsed.savedAt;
-                st.snapKeys = wantNames.length;
+                st.snapKeys = Object.keys(parsed.keys).length;
                 st.active = true;
                 if (st.mode !== 'restored') st.mode = 'opfs';
                 st.lastWriteAt = new Date().toISOString();
                 st.lastError = null;
                 _opfsFingerprint = fp;
+                if (window.__DS) window.__DS.dirty = false;
                 try { localStorage.setItem(OPFS_SEQ_KEY, String(seq)); } catch (e) {}
                 try { updateOpfsEngineUI(); } catch (e) {}
                 return true;
@@ -2333,22 +2463,24 @@
             if (!st.supported || st.autoSyncStarted) return;
             st.autoSyncStarted = true;
             // Fingerprint timer: catches every DIRECT localStorage write that
-            // bypasses saveSafeStorage (imports, filters, saved_money, error log)
-            // and every removal (Clear Selective Data). Retries a failed mirror
-            // at most once a minute.
+            // bypasses saveSafeStorage (settings keys, saved_money, error log)
+            // and every removal (Clear Selective Data). 2026.11.19.1: also covers
+            // DS-side writes whose debounced flush failed — __DS.dirty until a
+            // VERIFIED write clears it. Retries a failed mirror at most a minute.
             setInterval(function () {
                 try {
                     if (!st.supported || st.writing) return;
                     if (!st.active && st.lastAttemptAt && Date.now() - st.lastAttemptAt < 60000) return;
                     const fp = opfsFingerprintOf(opfsCollectKeys());
-                    if (fp !== _opfsFingerprint || !st.active) opfsScheduleSnapshot(200);
+                    const dsDirty = !!(window.__DS && window.__DS.dirty);
+                    if (fp !== _opfsFingerprint || dsDirty || !st.active) opfsScheduleSnapshot(200);
                 } catch (e) {}
             }, 10000);
             const flush = function () {
                 try {
                     if (!st.supported || !st.dir) return;
                     const fp = opfsFingerprintOf(opfsCollectKeys());
-                    if (fp !== _opfsFingerprint) opfsWriteSnapshot('pagehide');
+                    if (fp !== _opfsFingerprint || (window.__DS && window.__DS.dirty)) opfsWriteSnapshot('pagehide');
                 } catch (e) {}
             };
             window.addEventListener('pagehide', flush);
@@ -2396,121 +2528,237 @@
             }
         }
 
+        // --- 2026.11.19.1 DS helpers (OPFS-primary boot) ---
+        function opfsDecodeSnap(buf) {
+            try {
+                const json = LZString.decompressFromUint8Array(buf);
+                const parsed = json ? JSON.parse(json) : null;
+                if (parsed && parsed.magic === 'lootradar-opfs-snapshot' && parsed.keys && typeof parsed.seq === 'number') return { snap: parsed, bytes: buf };
+            } catch (e) {}
+            return null;
+        }
+        // Fill the DS map from a snapshot's keys. 2026.11.19.1: values are
+        // NORMALIZED to plaintext — the first boot on an old dual-era snapshot
+        // carries LZ-compressed strings, and the DS read path expects plain JSON.
+        // Normalization marks DS dirty so the 10 s verifier rewrites the primary
+        // file in the new plaintext form even when the user changes nothing.
+        function dsHydrateFromSnap(snap) {
+            const ds = window.__DS;
+            let normalized = 0;
+            Object.keys(snap.keys).forEach(function (k) {
+                if (DS_MANAGED_KEYS.indexOf(k) === -1) return; // settings stay in the localStorage world
+                const v = snap.keys[k];
+                if (typeof v !== 'string') return;
+                let plain = v;
+                const p = dsPlaintext(v);
+                if (p !== null && p !== v) { plain = p; normalized++; }
+                if (p === null) return; // undecodable junk — leave it out of the DS
+                ds.map[k] = plain;
+            });
+            ds.ready = true;
+            ds.fromSnap = true;
+            if (normalized) ds.dirty = true;
+        }
+        // ONE-TIME MIGRATION (LZ era → OPFS era): decode every managed key out of
+        // localStorage (LZ or plain), hold plaintext in DS, delete the ls copies.
+        // Unreadable values are LEFT in localStorage (never destroyed) and logged.
+        function dsMigrateFromLocalStorage() {
+            const ds = window.__DS;
+            let migratedCount = 0;
+            DS_MANAGED_KEYS.forEach(function (k) {
+                let raw = null;
+                try { raw = localStorage.getItem(k); } catch (e) { return; }
+                if (raw === null || raw === '') return;
+                const plain = dsPlaintext(raw);
+                if (plain === null) { try { window.logError('DS migration: UNREADABLE value kept in localStorage [' + k + ']', 'storage'); } catch (_) {} return; }
+                ds.map[k] = plain;
+                migratedCount++;
+                try { localStorage.removeItem(k); } catch (e) {}
+            });
+            ds.ready = true;
+            ds.migrated = true;
+            ds.dirty = migratedCount > 0;
+            return migratedCount;
+        }
+        // A snapshot exists but localStorage also holds managed-key data: it can
+        // only be newer than the snapshot (writes during an OPFS outage, or a
+        // post-rollback re-migration). Migrate them forward — newest-wins.
+        function dsApplyManagedLeftovers() {
+            let applied = 0;
+            DS_MANAGED_KEYS.forEach(function (k) {
+                let raw = null;
+                try { raw = localStorage.getItem(k); } catch (e) { return; }
+                if (raw === null || raw === '') return;
+                const plain = dsPlaintext(raw);
+                if (plain === null) return;
+                if (plain === window.__DS.map[k]) {
+                    // Redundant era copy (identical value already in DS — the
+                    // normal cut-over boot). Delete it from localStorage so the
+                    // analyzer stays clean; nothing to merge, not dirty.
+                    try { localStorage.removeItem(k); } catch (e) {}
+                    return;
+                }
+                window.__DS.map[k] = plain;
+                applied++;
+                try { localStorage.removeItem(k); } catch (e) {}
+            });
+            if (applied) { window.__DS.dirty = true; window.__DS.mergedLeftovers = applied; }
+            return applied;
+        }
+        // No-OPFS browser: still leave the LZ era behind — rewrite managed keys in
+        // localStorage as PLAINTEXT (loadSafeStorage reads plain natively).
+        function dsPlainMigrateToLocal() {
+            DS_MANAGED_KEYS.forEach(function (k) {
+                let raw = null;
+                try { raw = localStorage.getItem(k); } catch (e) { return; }
+                if (raw === null || raw === '') return;
+                const plain = dsPlaintext(raw);
+                if (plain === null) return;
+                try { if (plain !== raw) localStorage.setItem(k, plain); } catch (e) {}
+            });
+            window.__DS.ready = true;
+            window.__DS.migrated = true;
+        }
+        function requestOpfsPersist() {
+            const st = window.__opfs;
+            try {
+                if (!(navigator.storage && navigator.storage.persisted)) return;
+                Promise.resolve(navigator.storage.persisted()).then(function (p) {
+                    st.persisted = !!p;
+                    if (!p && navigator.storage.persist) {
+                        return navigator.storage.persist().then(function (gr) { st.persisted = !!gr; });
+                    }
+                }).then(function () {
+                    try { updateOpfsEngineUI(); } catch (e) {}
+                }).catch(function () {});
+                if (navigator.storage.estimate) {
+                    navigator.storage.estimate().then(function (e2) {
+                        st.quotaBytes = (e2 && e2.quota) || 0;
+                        st.usageBytes = (e2 && e2.usage) || 0;
+                    }).catch(function () {});
+                }
+            } catch (e) {}
+        }
+
         async function initStorageLayer() {
             const st = window.__opfs;
+            const ds = window.__DS;
             if (!(navigator.storage && typeof navigator.storage.getDirectory === 'function')) {
                 st.supported = false;
                 st.mode = 'localstorage';
                 st.lastError = 'OPFS not supported by this browser';
                 st.bootSource = 'localstorage';
-                st.bootReason = 'OPFS unsupported in this browser — localStorage is the only store';
+                st.bootReason = 'OPFS unsupported — plaintext localStorage fallback (LZ still retired)';
+                try { dsPlainMigrateToLocal(); } catch (e) {}
+                requestOpfsPersist(); // estimate()/persisted() still work without OPFS
                 return;
             }
             st.supported = true;
             st.dir = await navigator.storage.getDirectory();
+            requestOpfsPersist();
             try { st.seq = parseInt(localStorage.getItem(OPFS_SEQ_KEY) || '0', 10) || 0; } catch (e) { st.seq = 0; }
             try { st.lastRestoreAt = localStorage.getItem(OPFS_LAST_RESTORE_KEY) || null; } catch (e) {}
-            // OPFS-FIRST BOOT (2026.10.05.4): the snapshot is read and evaluated
-            // BEFORE anything else — it is the authoritative copy of the user's
-            // data. localStorage only becomes the source when the snapshot has a
-            // "problem": missing, corrupt, or older than localStorage (un-mirrored
-            // newer edits — falling back protects them from being rolled back).
-            let snap = null;
-            let snapFileFound = false;
-            try {
-                const fh = await st.dir.getFileHandle(OPFS_SNAPSHOT_FILE);
-                snapFileFound = true;
-                const f = await fh.getFile();
-                const buf = new Uint8Array(await f.arrayBuffer());
-                const json = LZString.decompressFromUint8Array(buf);
-                const parsed = json ? JSON.parse(json) : null;
-                if (parsed && parsed.magic === 'lootradar-opfs-snapshot' && parsed.keys && typeof parsed.seq === 'number') {
-                    snap = parsed;
-                    st.snapSeq = parsed.seq;
-                    st.snapBytes = buf.length;
-                    st.snapSavedAt = parsed.savedAt || null;
-                    st.snapKeys = Object.keys(parsed.keys).length;
-                }
-            } catch (e) { snap = null; }
-            if (snap) {
-                const lsHasData = opfsLocalStorageHasData();
-                if (snap.seq > st.seq || (!lsHasData && st.snapKeys > 0)) {
-                    // OPFS is newer (or localStorage was wiped/rolled back) → OPFS WINS
-                    st.bootSource = 'opfs';
-                    st.bootReason = 'snapshot (seq ' + snap.seq + ') newer than localStorage (seq ' + st.seq + ') — data restored from OPFS';
-                    opfsRestoreFromSnapshot(snap);
-                    return;
-                }
-                // Normal boot: clear the one-shot reload guard (only lives between a
-                // restore and its reload).
-                try { sessionStorage.removeItem(OPFS_RESTORE_GUARD); } catch (e) {}
-                if (snap.seq === st.seq) {
-                    // Same generation — verify the two copies are truly identical.
-                    const snapFp = opfsFingerprintOf(snap.keys);
-                    const lsFp = opfsFingerprintOf(opfsCollectKeys());
-                    if (lsFp === snapFp) {
-                        // Identical: the data the app runs on IS the OPFS snapshot.
-                        st.active = true;
-                        st.mode = 'opfs';
-                        _opfsFingerprint = snapFp;
-                        st.bootSource = 'opfs';
-                        st.bootReason = 'snapshot seq ' + snap.seq + ' read first and verified identical to localStorage';
-                        opfsStartAutoSync();
-                        return;
-                    }
-                    // Same seq but content drift = localStorage moved after the last
-                    // verified mirror (e.g. a save whose snapshot write failed). The
-                    // snapshot is STALE — that is an OPFS problem, so localStorage
-                    // keeps the newer edits and the catch-up write re-mirrors them.
-                    st.bootSource = 'localstorage';
-                    st.bootReason = 'snapshot seq ' + snap.seq + ' stale (localStorage has newer un-mirrored edits) — re-mirroring to OPFS';
-                } else {
-                    st.bootSource = 'localstorage';
-                    st.bootReason = 'snapshot older than localStorage (seq ' + snap.seq + ' < ' + st.seq + ') — rebuilding mirror';
-                }
-            } else {
-                try { sessionStorage.removeItem(OPFS_RESTORE_GUARD); } catch (e) {}
-                st.bootSource = 'localstorage';
-                st.bootReason = snapFileFound
-                    ? 'snapshot file corrupt/unreadable — localStorage in charge, rebuilding mirror'
-                    : 'no snapshot yet (first run) — localStorage in charge, creating mirror';
+            // Read main snapshot; if missing/corrupt try the prev generation; last
+            // resort the v1_keep era copy (only useful if main+prev both died).
+            let decoded = null, usedFile = null;
+            const files = [[OPFS_SNAPSHOT_FILE, 'main'], [OPFS_PREV_FILE, 'prev'], [OPFS_KEEP_FILE, 'keep']];
+            for (let fi = 0; fi < files.length; fi++) {
+                try {
+                    const fh = await st.dir.getFileHandle(files[fi][0]);
+                    const f = await fh.getFile();
+                    const buf = new Uint8Array(await f.arrayBuffer());
+                    const d = opfsDecodeSnap(buf);
+                    if (d) { decoded = d; usedFile = files[fi][1]; break; }
+                } catch (e) { /* file absent/unreadable — next candidate */ }
             }
+            const lsHasData = opfsLocalStorageHasData();
+            if (decoded) {
+                dsHydrateFromSnap(decoded.snap);
+                st.snapSeq = decoded.snap.seq;
+                st.snapBytes = decoded.bytes.length;
+                st.snapSavedAt = decoded.snap.savedAt || null;
+                st.snapKeys = Object.keys(decoded.snap.keys).length;
+                st.prevBytes = (usedFile === 'main') ? decoded.bytes : null; // rotate from real main only
+                if (usedFile === 'keep') st.keepSaved = true; // era file proven present
+                const applied = dsApplyManagedLeftovers();
+                // Clean boot (main file, nothing normalized, no leftovers merged):
+                // adopt the fingerprint of exactly what collect() would store now,
+                // so the 10 s verifier does not force a redundant rewrite (seq +1)
+                // on every single boot.
+                if (usedFile === 'main' && !applied && !ds.dirty) {
+                    try { _opfsFingerprint = opfsFingerprintOf(opfsCollectKeys()); } catch (e) {}
+                }
+                st.active = true;
+                st.mode = 'opfs';
+                st.bootSource = 'opfs';
+                if (usedFile !== 'main') {
+                    st.bootReason = 'main snapshot missing/corrupt — recovered from ' + usedFile + ' generation (seq ' + decoded.snap.seq + ')' + (applied ? ', +' + applied + ' newer localStorage key(s)' : '');
+                    try { window.logError('OPFS boot fell back to ' + usedFile + ' snapshot generation', 'storage'); } catch (_) {}
+                    try { localStorage.setItem(OPFS_FELLBACK_KEY, new Date().toISOString()); } catch (e) {}
+                } else {
+                    st.bootReason = 'OPFS primary store (seq ' + decoded.snap.seq + ') hydrated' + (applied ? ' + ' + applied + ' newer localStorage key(s) merged' : '');
+                    try { localStorage.removeItem(OPFS_FELLBACK_KEY); } catch (e) {}
+                }
+                opfsStartAutoSync();
+                // Re-write immediately when we booted from a side generation or
+                // merged leftovers — main must catch up (verified, rotates prev).
+                if (usedFile !== 'main' || applied) opfsScheduleSnapshot(400);
+                return;
+            }
+            // No readable snapshot at all.
+            try { sessionStorage.removeItem(OPFS_RESTORE_GUARD); } catch (e) {}
+            if (lsHasData) {
+                // FIRST BOOT OF THE OPFS ERA on this device: migrate LZ/localStorage
+                // data forward, then write the brand-new primary file.
+                const n = dsMigrateFromLocalStorage();
+                ds.ready = true;
+                st.bootSource = 'opfs';
+                st.bootReason = 'first OPFS-primary boot — migrated ' + n + ' managed key(s) from localStorage into the verified primary file';
+                opfsStartAutoSync();
+                opfsScheduleSnapshot(300);
+                return;
+            }
+            // Genuine fresh install (or fully wiped device): empty DS is the truth;
+            // the first real save materializes the file.
+            ds.ready = true;
+            ds.migrated = true;
+            st.bootSource = 'opfs';
+            st.bootReason = 'no snapshot and no localStorage data — fresh start on the OPFS primary store';
             opfsStartAutoSync();
-            // First-run migration OR catch-up write (both read-back verified)
-            opfsScheduleSnapshot(400);
         }
 
-        // --- Dev Mode: STORAGE ENGINE indicator (answers "am I on OPFS or localStorage?") ---
+        // --- Dev Mode: STORAGE ENGINE indicator (OPFS-primary era) ---
         function opfsEngineHtml() {
             const st = window.__opfs;
             let badge, badgeCls, detail, sourceLine;
             if (st.mode === 'opfs' && st.active) {
-                badge = 'DUAL ✔ localStorage + OPFS in sync';
+                badge = 'OPFS PRIMARY ✔ verified plaintext';
                 badgeCls = 'bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/40';
-                detail = 'Every save is recorded in BOTH stores. The OPFS snapshot passed read-back verification (all keys compared string-for-string).';
-                sourceLine = 'reads/writes: <b>localStorage</b> · backup: <b>OPFS</b> (verified — auto-restores if localStorage is lost)';
+                detail = 'Your data is stored PLAIN (zero compression) in the OPFS file — every flush is read-back verified string-for-string. localStorage only keeps settings.';
+                sourceLine = 'reads/writes: <b>OPFS primary store</b> · localStorage: settings only · quota: disk-level';
             } else if (st.mode === 'restored') {
-                badge = 'RESTORED FROM OPFS';
+                badge = 'OPFS PRIMARY (recovered from snapshot)';
                 badgeCls = 'bg-blue-500/15 text-blue-600 dark:text-blue-400 border-blue-500/40';
                 detail = 'localStorage was empty or older this boot — your data was recovered from the verified OPFS snapshot.';
-                sourceLine = 'reads/writes: <b>localStorage</b> — this session\'s data came <b>from OPFS</b> (restored at boot)';
+                sourceLine = 'reads/writes: <b>OPFS primary store</b> — this session\'s data came <b>from the snapshot</b>';
             } else if (!st.supported) {
-                badge = 'localStorage ONLY';
+                badge = 'localStorage fallback (no OPFS)';
                 badgeCls = 'bg-gray-500/15 text-gray-500 dark:text-gray-400 border-gray-500/40';
-                detail = 'This browser has no OPFS support. Your data is safe in localStorage; use Export for backups.';
-                sourceLine = 'reads/writes: <b>localStorage</b> · backup: <b>none</b> (no OPFS in this browser — use Export)';
+                detail = 'This browser has no OPFS support. Data is kept as PLAINTEXT in localStorage (LZ-String retired era-wide); use Export / Cloud Sync for backups.';
+                sourceLine = 'reads/writes: <b>localStorage (plaintext)</b> · no OPFS in this browser';
             } else {
-                badge = 'localStorage (OPFS mirror pending)';
+                badge = 'primary store PENDING verification';
                 badgeCls = 'bg-yellow-500/15 text-yellow-600 dark:text-yellow-400 border-yellow-500/40';
-                detail = st.lastError ? ('Last OPFS error: ' + st.lastError) : 'Snapshot write in progress…';
-                sourceLine = 'reads/writes: <b>localStorage</b> · backup: OPFS mirror <b>not verified yet</b>';
+                detail = st.lastError ? ('Last OPFS error: ' + st.lastError + ' — in-memory data is safe and retried automatically every 10 s') : 'Primary store write in progress…';
+                sourceLine = 'reads/writes: <b>in-memory store</b> · file: <b>not verified yet</b>';
             }
             const sizeStr = st.snapBytes > 1024 ? (st.snapBytes / 1024).toFixed(1) + ' KB' : st.snapBytes + ' B';
             const snapStr = st.snapSeq >= 0 ? (sizeStr + ' · seq ' + st.snapSeq + ' · ' + st.snapKeys + ' keys') : 'none yet';
             const savedStr = st.snapSavedAt ? new Date(st.snapSavedAt).toLocaleString() : '—';
             const restoreStr = st.lastRestoreAt ? new Date(st.lastRestoreAt).toLocaleString() : 'never';
-            const bootSrc = st.bootSource === 'opfs' ? '<b>OPFS</b> ✔ read first' : (st.bootSource === 'localstorage' ? '<b>localStorage</b> (OPFS fallback)' : '—');
+            const bootSrc = st.bootSource === 'opfs' ? '<b>OPFS primary</b> ✔' : (st.bootSource === 'localstorage' ? '<b>localStorage</b> (fallback)' : '—');
             const bootLine = 'boot read: ' + bootSrc + (st.bootReason ? ' — ' + st.bootReason : '');
+            const persistStr = st.persisted === null ? 'checking…' : (st.persisted ? 'YES (eviction-protected)' : 'NO');
             return `
                 <div class="mb-3 p-2.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/60">
                     <div class="flex items-center justify-between gap-2 mb-1.5 flex-wrap">
@@ -2524,13 +2772,15 @@
                     </div>
                     <div class="text-[10px] text-gray-500 dark:text-gray-400 mb-1.5">${detail}</div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-0.5 text-[10px] font-mono text-gray-500 dark:text-gray-400">
-                        <span>OPFS snapshot: ${snapStr}</span>
-                        <span>localStorage seq: ${st.seq}</span>
-                        <span>Snapshot saved: ${savedStr}</span>
-                        <span>Last OPFS restore: ${restoreStr}</span>
+                        <span>Primary file: ${snapStr}</span>
+                        <span>Verified flush: ${st.lastWriteAt ? new Date(st.lastWriteAt).toLocaleString() : '—'}</span>
+                        <span>Backup generations: ${st.prevFile === false ? 'prev FAILED' : (st.prevBytes ? 'prev ✔' : 'prev (pending)')}${st.keepSaved ? ' · v1-keep ✔' : ' · v1-keep —'}</span>
+                        <span>Persisted: ${persistStr}</span>
+                        <span>Last legacy restore: ${restoreStr}</span>
+                        <span>DS dirty: ${window.__DS && window.__DS.dirty ? 'YES (awaiting verified flush)' : 'no'}</span>
                     </div>
                     <div class="flex gap-2 mt-2">
-                        <button onclick="opfsManualResync()" class="text-[10px] font-bold px-2.5 py-1 rounded bg-cyan-600 text-white hover:bg-cyan-500">Re-sync OPFS now</button>
+                        <button onclick="opfsManualResync()" class="text-[10px] font-bold px-2.5 py-1 rounded bg-cyan-600 text-white hover:bg-cyan-500">Re-sync primary file now</button>
                     </div>
                 </div>`;
         }
@@ -2650,11 +2900,10 @@
               : 'All',
           // Which card statuses are visible in the feed — user toggles per status.
           // Persisted in lootradar_feed_status_filter (restored only when remembered).
+          // 2026.11.19.1: stored value merged in hydrateAppStateFromStorage() —
+          // DS keys are hydrated async and must not be read at parse time.
           feedStatusFilter: Object.assign(
-              { unclaimed: true, claimed: true, expired: true, failed: true, paywall: true, accidental: true },
-              localStorage.getItem('lootradar_remember_filters') === '1'
-                  ? (() => { const s = loadSafeStorage('lootradar_feed_status_filter'); return (s && typeof s === 'object') ? s : {}; })()
-                  : {}
+              { unclaimed: true, claimed: true, expired: true, failed: true, paywall: true, accidental: true }
           ),
           showExpiringOnly: localStorage.getItem('lootradar_remember_filters') === '1'
               && localStorage.getItem('lootradar_expiring_filter') === '1',
@@ -2668,16 +2917,36 @@
               } catch (e) { return []; }
           })(),
           isLoading: false,
-          claimedGames: sanitizeClaimed(loadSafeStorage('lootradar_claimed_v2') || loadSafeStorage('lootradar_claimed') || {}),
+          // 2026.11.19.1: OPFS-primary era — claimedGames/deletedHistory live in
+          // the async data store; filled by hydrateAppStateFromStorage() before
+          // init(). Placeholders only — NOTHING renders before hydration.
+          claimedGames: {},
           totalSaved: parseFloat(localStorage.getItem('lootradar_saved_money')) || 0,
           libSort: localStorage.getItem('lootradar_lib_sort') || 'claimed_date_desc',
           libFilter: 'All',
           libView: localStorage.getItem('lootradar_lib_view') || 'grid',
-          deletedHistory: sanitizeHistory(loadSafeStorage('lootradar_deleted_history')),
+          deletedHistory: [],
           // 2026.09.24.2: transient search queries — NEVER persisted, a refresh clears them
           searchQuery: '',
           libSearch: ''
         };
+
+        // 2026.11.19.1: fill the DS-backed parts of `state` AFTER initStorageLayer()
+        // resolved (snapshot hydrated / migrated / fresh start), then run the
+        // rescue check — which must NEVER fire on placeholder values.
+        function hydrateAppStateFromStorage() {
+            try {
+                state.claimedGames = sanitizeClaimed(loadSafeStorage('lootradar_claimed_v2') || loadSafeStorage('lootradar_claimed') || {});
+                state.deletedHistory = sanitizeHistory(loadSafeStorage('lootradar_deleted_history'));
+                if (localStorage.getItem('lootradar_remember_filters') === '1') {
+                    const s = loadSafeStorage('lootradar_feed_status_filter');
+                    if (s && typeof s === 'object') Object.assign(state.feedStatusFilter, s);
+                }
+            } catch (e) {
+                try { window.logError('hydrateAppStateFromStorage: ' + (e && e.message ? e.message : e), 'storage'); } catch (_) {}
+            }
+            rescueFromLastSyncPayload();
+        }
 
         // 2026.09.02.4: ONE-SHOT RESCUE from the last Cloud Sync export.
         // Every successful export saves the full plain-JSON payload to
@@ -2686,7 +2955,10 @@
         // snapshot still holds games, restore it — the user's library is
         // worth more than the unreadable bytes. Runs only when BOTH live
         // sources are empty, so healthy devices are never touched.
-        (function rescueFromLastSyncPayload() {
+        // 2026.11.19.1: named function called from hydrateAppStateFromStorage (was
+        // a parse-time IIFE — in the OPFS era live data only exists after async
+        // hydration, so an early run would "rescue" every healthy boot).
+        function rescueFromLastSyncPayload() {
             try {
                 const hasLiveData = Object.keys(state.claimedGames).length > 0 || state.deletedHistory.length > 0;
                 if (hasLiveData) return;
@@ -2699,14 +2971,14 @@
                 try { if (payload.lootradar_deleted_history) historyArr = JSON.parse(payload.lootradar_deleted_history); } catch (e) { /* partial rescue still helps */ }
                 const hasPayloadData = (claimedObj && Object.keys(claimedObj).length > 0) || (Array.isArray(historyArr) && historyArr.length > 0);
                 if (!hasPayloadData) return;
-                // Write the plain JSON straight back — loadSafeStorage reads
-                // uncompressed '{'/'[' payloads natively.
+                // 2026.11.19.1: write the plain JSON straight into the primary
+                // store (DS.setRaw self-persists to localStorage in fallback era).
                 if (claimedObj && Object.keys(claimedObj).length > 0) {
-                    localStorage.setItem('lootradar_claimed_v2', payload.lootradar_claimed_v2);
+                    window.__DS.setRaw('lootradar_claimed_v2', payload.lootradar_claimed_v2);
                     state.claimedGames = sanitizeClaimed(claimedObj);
                 }
                 if (Array.isArray(historyArr) && historyArr.length > 0) {
-                    localStorage.setItem('lootradar_deleted_history', payload.lootradar_deleted_history);
+                    window.__DS.setRaw('lootradar_deleted_history', payload.lootradar_deleted_history);
                     state.deletedHistory = sanitizeHistory(historyArr);
                 }
                 window.__lootRescued = true;
@@ -2714,18 +2986,17 @@
             } catch (e) {
                 window.logError('rescueFromLastSyncPayload: ' + (e && e.message ? e.message : e), 'storage');
             }
-        })();
-        if (window.__lootRescued) {
-            document.addEventListener('DOMContentLoaded', function() {
-                const langPack = (typeof i18n !== 'undefined' && i18n[state.lang]) ? i18n[state.lang] : {};
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!window.__lootRescued) return;
+            const langPack = (typeof i18n !== 'undefined' && i18n[state.lang]) ? i18n[state.lang] : {};
                 const msg = langPack.rescueDone || 'Data recovered! Your library was restored from your last cloud backup.';
                 const banner = document.createElement('div');
                 banner.style.cssText = 'position:fixed;bottom:96px;left:50%;transform:translateX(-50%);z-index:9999;background:#059669;color:#fff;padding:14px 22px;border-radius:16px;font-weight:700;font-size:14px;box-shadow:0 8px 30px rgba(5,150,105,0.45);max-width:88%;text-align:center;line-height:1.4;';
                 banner.textContent = msg;
                 document.body.appendChild(banner);
                 setTimeout(function() { if (banner.parentNode) banner.remove(); }, 12000);
-            });
-        }
+        });
     
         const platforms = [
             { id: 'All', icon: 'ph-infinity', matches: [], excludes: [] },
@@ -3576,13 +3847,17 @@
             
                     const parsedData = JSON.parse(jsonStr);
 
-                    // Overwrite LocalStorage
-                    if(parsedData.lootradar_claimed_v2) localStorage.setItem('lootradar_claimed_v2', parsedData.lootradar_claimed_v2);
+                    // 2026.11.19.1: route the incoming plain-JSON strings into the
+                    // PRIMARY store (DS); saved_money stays a localStorage setting.
+                    // The forced verified flush runs BEFORE the reload so the new
+                    // device's import can never die in the debounce window.
+                    if(parsedData.lootradar_claimed_v2) window.__DS.setRaw('lootradar_claimed_v2', parsedData.lootradar_claimed_v2);
                     if(parsedData.lootradar_saved_money) localStorage.setItem('lootradar_saved_money', parsedData.lootradar_saved_money);
-                    if(parsedData.lootradar_claimed) localStorage.setItem('lootradar_claimed', parsedData.lootradar_claimed);
-                    
+                    if(parsedData.lootradar_claimed) window.__DS.setRaw('lootradar_claimed', parsedData.lootradar_claimed);
+
                     // ADD THIS ROW TO UNPACK THE INCOMING DELETED LOGS SAFELY:
-                    if(parsedData.lootradar_deleted_history) localStorage.setItem('lootradar_deleted_history', parsedData.lootradar_deleted_history);
+                    if(parsedData.lootradar_deleted_history) window.__DS.setRaw('lootradar_deleted_history', parsedData.lootradar_deleted_history);
+                    try { await opfsWriteSnapshot('force'); } catch (e) {}
                                         
                     btn.classList.replace('bg-blue-600', 'bg-green-500');
                     btn.classList.replace('dark:bg-neon-blue', 'dark:bg-green-500');
@@ -9749,95 +10024,143 @@
         };
 
         // ===== DEVELOPER MODE: Storage Analyzer =====
+        // 2026.11.19.1 OPFS era: rows = DS map (primary) + localStorage census; TOTAL vs disk-quota estimate.
+        // TOTAL STORAGE USED = plaintext bytes of the primary data store (DS →
+        // OPFS file) + settings bytes left in localStorage, measured against the
+        // REAL origin quota from navigator.storage.estimate() (disk-level, GBs).
+        // The ~5 MB localStorage ceiling era is over: the graded warning bar and
+        // the publish_dates cleanup hint are retired with it. Disk usage and the
+        // on-disk file size are shown as separate rows for full transparency.
         function analyzeStorage() {
             const report = document.getElementById('dev-storage-report');
-            const keysWithDesc = [
-                { key: 'lootradar_claimed_v2', desc: 'Your claimed games library (LZ-String compressed)' },
-                { key: 'lootradar_publish_dates', desc: 'All apps ever seen in feed — used for date sorting (cumulative, never auto-deleted)' },
-                { key: 'lootradar_deleted_history', desc: 'Apps you deleted with reason (expired/failed/paywall/etc)' },
-                { key: 'lootradar_lib_view', desc: 'Library view mode preference (grid or list)' },
-                { key: 'lootradar_lib_dropdown_collapsed', desc: 'Mobile filter dropdown collapsed state' },
-                { key: 'lootradar_total_saved', desc: 'Your total lifetime savings amount ($)' },
-                { key: 'lootradar_theme', desc: 'Theme preference (light or dark)' },
-                { key: 'lootradar_lang', desc: 'Language preference (en, zh-CN, etc.)' }
-            ];
-
-            let totalSize = 0;
+            const st = window.__opfs;
+            const ds = window.__DS;
+            const fmtB = function (n) {
+                if (n >= 1073741824) return (n / 1073741824).toFixed(2) + ' GB';
+                if (n >= 1048576) return (n / 1048576).toFixed(2) + ' MB';
+                if (n >= 1024) return (n / 1024).toFixed(1) + ' KB';
+                return n + ' B';
+            };
+            const KEY_DESC = {
+                'lootradar_claimed_v2': 'Your claimed games library (plain JSON, OPFS primary)',
+                'lootradar_publish_dates': 'All apps ever seen in feed — used for date sorting (cumulative, never auto-deleted)',
+                'lootradar_deleted_history': 'Apps you deleted with reason (expired/failed/paywall/etc)',
+                'lootradar_feed_status_filter': 'Feed status filter toggles (when Remember My Filters is on)',
+                'lootradar_merged_xsrc_ids': 'Cross-source duplicate merge bookkeeping',
+                'lootradar_claimed': 'Legacy claimed key (kept for compatibility)',
+                'lootradar_lib_view': 'Library view mode preference (grid or list)',
+                'lootradar_lib_sort': 'Library sort preference',
+                'lootradar_lib_dropdown_collapsed': 'Mobile filter dropdown collapsed state',
+                'lootradar_total_saved': 'Your total lifetime savings amount ($)',
+                'lootradar_saved_money': 'Savings counter (dollars)',
+                'lootradar_theme': 'Theme preference (light or dark)',
+                'theme': 'Theme preference (legacy key)',
+                'lang': 'Language preference (legacy key)',
+                'lootradar_lang': 'Language preference (en, zh-CN, etc.)',
+                'sync_last_payload': 'Last Cloud Sync export payload (local rescue copy)',
+                'lootradar_error_log': 'Developer Mode error ring buffer',
+                'lootradar_disabled_platforms': 'Platform visibility toggles',
+                'lootradar_remember_filters': 'Remember My Filters switch',
+                'lootradar_expiring_filter': 'Expiring Soon filter state',
+                'lootradar_platform_tab': 'Last selected platform tab',
+                'lootradar_feed_status_filter_v1': 'Feed filter legacy alias'
+            };
+            const BOOKKEEP = OPFS_BOOKKEEP;
+            const inDS = {};
             let rows = '';
-            keysWithDesc.forEach(({ key, desc }) => {
-                const raw = localStorage.getItem(key);
-                const compressedSize = raw ? new Blob([raw]).size : 0;
-                totalSize += compressedSize;
+            let dataBytes = 0;    // counted toward TOTAL
+            let diskBytes = 0;    // localStorage raw total (incl. bookkeeping)
+            Object.keys(ds.map).forEach(function (k) { inDS[k] = true; });
 
-                // Try to get uncompressed size by attempting decompression
-                let uncompressedSize = compressedSize;
-                let isCompressed = false;
-                try {
-                    if (raw) {
-                        // If it starts with { or [, it's plain JSON (not compressed)
-                        if (raw.startsWith('{') || raw.startsWith('[')) {
-                            isCompressed = false;
-                            uncompressedSize = compressedSize;
-                        } else {
-                            // Try to decompress — if it works, data is compressed
-                            const decompressed = LZString.decompressFromUTF16(raw);
-                            if (decompressed && decompressed.length > 0) {
-                                uncompressedSize = new Blob([decompressed]).size;
-                                isCompressed = uncompressedSize !== compressedSize;
-                            }
-                        }
-                    }
-                } catch(e) {}
-
-                const compressedStr = compressedSize > 1024 ? (compressedSize / 1024).toFixed(1) + ' KB' : compressedSize + ' B';
-                const uncompressedStr = uncompressedSize > 1024 ? (uncompressedSize / 1024).toFixed(1) + ' KB' : uncompressedSize + ' B';
-                const ratio = uncompressedSize > 0 ? ((1 - compressedSize / uncompressedSize) * 100).toFixed(0) : 0;
-
-                const itemCount = getItemCount(key);
-
+            // (a) PRIMARY data store rows — the DS map (what actually persists
+            // to the OPFS file, string-for-string verified on every flush).
+            Object.keys(ds.map).sort().forEach(function (key) {
+                const v = ds.map[key];
+                const bytes = (typeof v === 'string') ? new Blob([v]).size : 0;
+                dataBytes += bytes;
+                const managed = DS_MANAGED_KEYS.indexOf(key) !== -1;
+                const itemCount = managed ? getItemCount(key) : '';
                 rows += `
                     <div class="text-xs">
                         <div class="flex items-center gap-3 mb-0.5">
                             <span onclick="toggleDevCell(this)" class="dev-expand-cell font-mono font-bold text-gray-600 dark:text-gray-300 flex-1 truncate cursor-pointer" title="Tap to expand · ${key}">${key}</span>
-                            <span class="font-bold text-purple-500 w-24 text-right">${compressedStr}${isCompressed ? ' <i class="ph-bold ph-arrows-in-simple text-[8px]"></i>' : ''}</span>
-                            <span class="text-gray-400 w-12 text-right">${itemCount} items</span>
+                            <span class="font-bold text-purple-500 w-24 text-right">${fmtB(bytes)}</span>
+                            <span class="text-gray-400 w-12 text-right">${itemCount}</span>
                         </div>
-                        <div class="text-[10px] text-gray-400 mb-1 italic">${desc}</div>
-                        <div class="flex items-center gap-3 text-[10px] text-gray-400">
-                            <span class="flex-1">${isCompressed ? `Raw: ${uncompressedStr} → Stored: ${compressedStr}` : `Not compressed: ${compressedStr}`}</span>
-                            <span class="w-20 text-right text-green-500 font-bold">${isCompressed ? `-${ratio}%` : ''}</span>
-                        </div>
+                        <div class="text-[10px] text-gray-400 mb-1 italic">${KEY_DESC[key] || 'Primary data store entry'} · <b class="text-purple-500">OPFS primary</b> · plain JSON</div>
                     </div>`;
             });
 
-            const totalStr = totalSize > 1024 ? (totalSize / 1024).toFixed(1) + ' KB' : totalSize + ' B';
-            // 2026.09.28.4: quota context — localStorage has no queryable quota API
-            // (navigator.storage.estimate() reports the whole-origin DISK quota,
-            // tens of GB, misleading here), so the de-facto per-origin ~5 MB limit
-            // is the honest reference. Bar graded green <70% / yellow ≥70% / red ≥85%;
-            // pct truncated, never rounded up (house convention).
-            const QUOTA_BYTES = 5 * 1024 * 1024;
-            const quotaPct = Math.min((totalSize / QUOTA_BYTES) * 100, 100);
-            const quotaPctStr = quotaPct >= 10 ? String(Math.floor(quotaPct)) : String(Math.floor(quotaPct * 10) / 10);
-            const quotaBarColor = quotaPct >= 85 ? 'bg-red-500' : quotaPct >= 70 ? 'bg-yellow-500' : 'bg-green-500';
-            const quotaBarWidth = Math.max(quotaPct, 1); // min visible sliver
-            const quotaWarnHtml = quotaPct >= 70 ? `
-                <div class="text-[10px] ${quotaPct >= 85 ? 'text-red-500' : 'text-yellow-600 dark:text-yellow-500'} mt-1.5">
-                    Approaching the ~5 MB localStorage limit. <span class="font-mono">lootradar_publish_dates</span> is the only key that never auto-deletes — clearing it (Dev Mode → Clear Selective Data) reclaims the most.
-                </div>` : '';
+            // (b) localStorage rows — settings (+ fallback-era leftovers & bookkeeping).
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (!key) continue;
+                const raw = localStorage.getItem(key) || '';
+                const bytes = new Blob([raw]).size;
+                diskBytes += bytes;
+                const isBookkeep = BOOKKEEP.indexOf(key) !== -1;
+                const dupOfDS = inDS[key] && DS_MANAGED_KEYS.indexOf(key) !== -1;
+                if (dupOfDS) {
+                    // A managed key still present in localStorage = newer leftover
+                    // from an OPFS outage; it IS counted (it rides into the next
+                    // flush) but flagged so the user sees why it appears twice.
+                    rows += `
+                        <div class="text-xs">
+                            <div class="flex items-center gap-3 mb-0.5">
+                                <span class="font-mono font-bold text-gray-400 dark:text-gray-500 flex-1 truncate">${key}</span>
+                                <span class="font-bold text-gray-400 w-24 text-right">${fmtB(bytes)}</span>
+                            </div>
+                            <div class="text-[10px] text-yellow-600 dark:text-yellow-500 italic mb-1">newer localStorage copy — will be merged into the primary store</div>
+                        </div>`;
+                    dataBytes += bytes;
+                    continue;
+                }
+                if (isBookkeep) continue; // derived counters — invisible noise for users
+                const managedButNoDS = DS_MANAGED_KEYS.indexOf(key) !== -1;
+                rows += `
+                    <div class="text-xs">
+                        <div class="flex items-center gap-3 mb-0.5">
+                            <span onclick="toggleDevCell(this)" class="dev-expand-cell font-mono font-bold text-gray-600 dark:text-gray-300 flex-1 truncate cursor-pointer" title="Tap to expand · ${key}">${key}</span>
+                            <span class="font-bold text-blue-500 w-24 text-right">${fmtB(bytes)}</span>
+                            <span class="text-gray-400 w-12 text-right">${managedButNoDS ? getItemCount(key) : ''}</span>
+                        </div>
+                        <div class="text-[10px] text-gray-400 mb-1 italic">${KEY_DESC[key] || 'Preference / misc setting'} · <b class="text-blue-500">localStorage</b>${managedButNoDS ? ' (primary store unavailable — fallback era)' : ''}</div>
+                    </div>`;
+                dataBytes += bytes; // settings count toward the user-visible total
+            }
+
+            // (c) TOTAL vs REAL quota (estimate), era-appropriate.
+            const quota = st.quotaBytes || 0;
+            const usage = st.usageBytes || 0;
+            const totalStr = fmtB(dataBytes);
+            let totalRight, quotaBarColor, quotaBarWidth, quotaWarnHtml = '';
+            if (quota > 0) {
+                const quotaPct = Math.min((usage / quota) * 100, 100);
+                const quotaPctStr = quotaPct >= 10 ? String(Math.floor(quotaPct))
+                    : (quotaPct >= 0.01 ? quotaPct.toFixed(2) : String(quotaPct.toFixed(4)));
+                totalRight = `${totalStr} data · disk ${fmtB(usage)} / ${fmtB(quota)} (${quotaPctStr}%)`;
+                quotaBarColor = quotaPct >= 85 ? 'bg-red-500' : quotaPct >= 70 ? 'bg-yellow-500' : 'bg-green-500';
+                quotaBarWidth = Math.max(quotaPct, 0.5);
+                quotaWarnHtml = quotaPct >= 85 ? `
+                    <div class="text-[10px] text-red-500 mt-1.5">
+                        Device disk quota is running low. Free up space or export a backup.
+                    </div>` : '';
+            } else {
+                totalRight = `${totalStr} data${usage ? ' · disk ' + fmtB(usage) : ''}`;
+                quotaBarColor = 'bg-green-500';
+                quotaBarWidth = 0.5;
+            }
             rows += `
                 <div class="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
                     <div class="flex items-center gap-3 text-xs">
                         <span class="font-bold text-yellow-500 flex-1">TOTAL STORAGE USED</span>
-                        <span class="font-bold text-yellow-500 text-right">${totalStr} / ~5 MB (${quotaPctStr}%)</span>
+                        <span class="font-bold text-yellow-500 text-right">${totalRight}</span>
                     </div>
                     <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full mt-1.5 overflow-hidden">
                         <div class="h-full ${quotaBarColor} rounded-full" style="width: ${quotaBarWidth}%"></div>
                     </div>${quotaWarnHtml}
                 </div>`;
-            // 2026.10.05.2: STORAGE ENGINE header — tells the user whether the
-            // active data lives in localStorage only or is dual-written + verified
-            // in OPFS (answers "现在是用 opfs 数据还是 local storage 数据").
+            // STORAGE ENGINE header — OPFS-primary status, generations, persist.
             report.innerHTML = '<div id="dev-opfs-engine">' + opfsEngineHtml() + '</div>' + rows;
             restoreDevCellStates();
         }
@@ -9985,6 +10308,10 @@
                 'lootradar_claimed_v2',
                 'lootradar_publish_dates',
                 'lootradar_deleted_history',
+                // 2026.11.19.1: these two were managed-key data all along but had
+                // slipped out of the backup list — include them for completeness.
+                'lootradar_claimed',
+                'lootradar_merged_xsrc_ids',
                 'lootradar_lib_view',
                 'lootradar_lib_sort',
                 'lootradar_lib_dropdown_collapsed',
@@ -10013,6 +10340,11 @@
             // exactly the big keys that overflow the quota. Prefer the override
             // so this JSON backup stays 100% faithful even over quota.
             const readRawFaithful = function(key) {
+                // 2026.11.19.1: OPFS era — the DS map holds the newest plaintext
+                // for managed keys (localStorage copies were deleted at migration).
+                if (window.__DS && Object.prototype.hasOwnProperty.call(window.__DS.map, key)) {
+                    return window.__DS.map[key];
+                }
                 if (window.__opfsOverrides && typeof window.__opfsOverrides[key] === 'string') {
                     return window.__opfsOverrides[key];   // newest — last write overflowed
                 }
@@ -10085,9 +10417,18 @@
                                     'Backup: ' + Object.keys(data.claimed_games || {}).length + ' claimed games\n\n' +
                                     'Continue?')) {
 
-                            // Import localStorage data if available (new format)
+                            // Import localStorage data if available (new format).
+                            // 2026.11.19.1: managed keys route into the PRIMARY
+                            // store (values may still be LZ-era raw strings —
+                            // dsPlaintext normalizes; leftovers that cannot be
+                            // decoded stay in localStorage, never destroyed).
                             if (data.localStorage) {
                                 Object.entries(data.localStorage).forEach(([key, value]) => {
+                                    if (typeof value !== 'string') return;
+                                    if (DS_MANAGED_KEYS.indexOf(key) !== -1) {
+                                        const plain = dsPlaintext(value);
+                                        if (plain !== null) { window.__DS.setRaw(key, plain); return; }
+                                    }
                                     localStorage.setItem(key, value);
                                 });
                             }
@@ -10142,7 +10483,7 @@
         };
 
         // ===== DEVELOPER MODE: Clear Selective Data =====
-        window.clearSelectiveData = function(key) {
+        window.clearSelectiveData = async function(key) {
             const warnings = {
                 'publish_dates': 'This will remove ALL app feed history — every app that has ever appeared in your feed (including expired offers). Your claimed games are safe, but date sorting will reset.',
                 'deleted_history': 'This will remove deletion history. Deleted games may reappear in your feed as unclaimed.',
@@ -10158,14 +10499,28 @@
                 'claimed_games': 'lootradar_claimed_v2'
             };
 
-            localStorage.removeItem(storageKeys[key]);
+            // 2026.11.19.1: managed keys live in the primary store now. Removal
+            // clears BOTH the DS map and any leftover localStorage copy (a stale
+            // ls copy would otherwise be treated as a newer write and resurrect
+            // on next boot). Then force a VERIFIED snapshot flush BEFORE the
+            // reload — a debounced write would race the page teardown.
+            if (DS_MANAGED_KEYS.indexOf(storageKeys[key]) !== -1) {
+                window.__DS.remove(storageKeys[key]);
+                try { localStorage.removeItem(storageKeys[key]); } catch (e) {}
+            } else {
+                localStorage.removeItem(storageKeys[key]);
+            }
 
             if (key === 'claimed_games') {
+                // legacy claimed key must die with v2 or it resurrects the library
+                window.__DS.remove('lootradar_claimed');
+                try { localStorage.removeItem('lootradar_claimed'); } catch (e) {}
                 state.claimedGames = {};
                 state.totalSaved = 0;
                 localStorage.setItem('lootradar_saved_money', '0');
                 updateWalletUI();
             }
+            try { await opfsWriteSnapshot('force'); } catch (e) {}
 
             alert('Data cleared. Refresh the page to see changes.');
             location.reload();
@@ -13020,7 +13375,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.18.4';
+        window.BUILD_VERSION = '2026.11.19.1';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;
@@ -13063,21 +13418,54 @@
             logError(event.reason || 'Unhandled Promise Rejection', 'Promise');
         });
 
-        // 2026.10.05.2: bring up the OPFS mirror layer BEFORE the app inits.
-        // Any failure must never kill boot — fall back to pure localStorage and
-        // run init() regardless (2026.09.02.6 boot-kill rule).
-        window.addEventListener('DOMContentLoaded', function () {
-            Promise.resolve()
-                .then(function () { return initStorageLayer(); })
-                .catch(function (e) {
-                    try { window.logError('initStorageLayer: ' + (e && e.message ? e.message : e), 'storage'); } catch (_) {}
+        // 2026.10.05.2: bring up the storage layer BEFORE the app inits.
+        // 2026.11.19.1: OPFS-primary era — the layer now hydrates the DATA store
+        // (state fields are placeholders until then), so init() MUST wait for it.
+        // Boot-timeout guard: if the storage layer ever hangs (a browser bug, a
+        // stalled OPFS), the app still starts after 6 s on the plaintext-
+        // localStorage fallback (2026.09.02.6 boot-kill rule).
+        (function bootLootRadar() {
+            let storageDone = false;
+            function startApp() {
+                if (storageDone) return;
+                storageDone = true;
+                try { hydrateAppStateFromStorage(); } catch (e) {
+                    try { window.logError('hydrateAppStateFromStorage: ' + (e && e.message ? e.message : e), 'storage'); } catch (_) {}
+                }
+                try { init(); } catch (e) {
+                    try { window.logError('init: ' + (e && e.message ? e.message : e), 'boot'); } catch (_) {}
+                }
+            }
+            window.addEventListener('DOMContentLoaded', function () {
+                let timedOut = false;
+                setTimeout(function () {
+                    // Healthy boot already finished → the watchdog must go silent,
+                    // NOT log a false timeout nor clobber the real boot decision.
+                    if (storageDone) return;
+                    timedOut = true;
+                    try { window.logError('initStorageLayer: boot timeout 6s — starting on fallback', 'storage'); } catch (_) {}
                     try {
                         window.__opfs.mode = 'localstorage';
-                        window.__opfs.lastError = (e && e.message) ? e.message : String(e);
+                        window.__opfs.lastError = 'storage layer boot timed out (6s)';
+                        window.__opfs.bootSource = 'localstorage';
+                        window.__opfs.bootReason = 'storage layer stalled — app started on the plaintext localStorage fallback';
                     } catch (_) {}
-                })
-                .then(function () { init(); });
-        });
+                    startApp();
+                }, 6000);
+                Promise.resolve()
+                    .then(function () { return initStorageLayer(); })
+                    .catch(function (e) {
+                        try { window.logError('initStorageLayer: ' + (e && e.message ? e.message : e), 'storage'); } catch (_) {}
+                        try {
+                            window.__opfs.mode = 'localstorage';
+                            window.__opfs.lastError = (e && e.message) ? e.message : String(e);
+                            window.__opfs.bootSource = 'localstorage';
+                            window.__opfs.bootReason = 'storage layer failed — plaintext localStorage fallback';
+                        } catch (_) {}
+                    })
+                    .then(function () { if (!timedOut) startApp(); });
+            });
+        })();
     </script>
 </body>
 </html>

@@ -2209,9 +2209,15 @@
         // file IS the primary data store. Managed keys (see DS_MANAGED_KEYS) live
         // in window.__DS (plain JSON strings) and persist to the verified OPFS
         // file; localStorage keeps only settings keys (never LZ-compressed anyway).
-        //   • file format UNCHANGED (magic v1, seq, keys) — pre-OPFS-era builds
-        //   can still restore it, which is the rollback bridge;
-        //   • values in the file are now PLAIN JSON (zero LZ on any storage path);
+        //   • 2026.11.19.2 PHASE B.1: the ENVELOPE is now native gzip (v2),
+        //     files self-describe by magic bytes. *_prev.bin + *_v1_keep.bin
+        //     are FROZEN untouched v1 originals = the rollback ladder: revert
+        //     this deploy and the older build falls through its chain to them
+        //     and auto-restores everything. lz-string stays bundled until B.2.
+        //     (The pre-B.1 statement "file format unchanged (magic v1)" held
+        //     only for the Phase A era; the ladder files keep it true.)
+        //   • values in the file stay PLAIN JSON inside the container (zero
+        //     per-key LZ storage encoding);
         //   • every write stays READ-BACK VERIFIED (string-for-string), plus a
         //     one-shot *_v1_keep.bin leave-good-era copy + *_prev.bin generation
         //     rotation so a torn/poisoned main file can never strand the user;
@@ -2239,6 +2245,14 @@
         const OPFS_SNAPSHOT_FILE = 'lootradar_snapshot.bin';
         const OPFS_KEEP_FILE = 'lootradar_snapshot_v1_keep.bin';
         const OPFS_PREV_FILE = 'lootradar_snapshot_prev.bin';
+        // 2026.11.19.2 PHASE B.1: the gzip era rotates its backup into a NEW
+        // file. prev.bin + keep.bin are NEVER written again — they stay as the
+        // untouched v1 (LZ-container) originals that form the ROLLBACK LADDER:
+        // if this build is ever reverted, the older build cannot read the gzip
+        // main file, falls through its own chain, and auto-restores the whole
+        // library from the frozen v1 prev/keep. lz-string stays bundled until
+        // Phase B.2 (which deletes it after days of proven stability).
+        const OPFS_V2PREV_FILE = 'lootradar_snapshot_v2_prev.bin';
         const OPFS_SEQ_KEY = 'lootradar_opfs_seq';
         const OPFS_RESTORE_GUARD = 'lootradar_opfs_restored';
         const OPFS_LAST_RESTORE_KEY = 'lootradar_opfs_last_restore';
@@ -2291,6 +2305,36 @@
                 });
             }
             return keys;
+        }
+
+        // --- 2026.11.19.2 PHASE B.1 native gzip container helpers ---
+        // Files are SELF-DESCRIBING: first bytes 1f 8b = gzip (v2 envelope),
+        // anything else = legacy LZ-string envelope (v1). No format flag to
+        // trust, no false positives in practice (an LZ-packed UTF16 payload
+        // essentially never starts with the gzip magic; and even if it did,
+        // the gunzip would fail and the buffer is simply reported corrupt —
+        // the boot chain just moves to the next generation file).
+        function opfsLooksGzip(buf) {
+            return !!buf && buf.length > 2 && buf[0] === 0x1f && buf[1] === 0x8b;
+        }
+        async function opfsGzipBytes(text) {
+            const cs = new CompressionStream('gzip');
+            const stream = new Blob([text]).stream().pipeThrough(cs);
+            return new Uint8Array(await new Response(stream).arrayBuffer());
+        }
+        async function opfsGunzipText(buf) {
+            const ds = new DecompressionStream('gzip');
+            const stream = new Blob([buf]).stream().pipeThrough(ds);
+            return await new Response(stream).text();
+        }
+        // Pack the snapshot envelope. Every browser with OPFS has
+        // CompressionStream (Chrome 80+/Safari 16.4+/Firefox 113+); the LZ
+        // fallback only exists so a weird engine keeps working, never dies.
+        async function opfsPackEnvelope(payloadJson) {
+            if (typeof CompressionStream === 'function' && typeof DecompressionStream === 'function') {
+                try { return await opfsGzipBytes(payloadJson); } catch (e) {}
+            }
+            return LZString.compressToUint8Array(payloadJson);
         }
 
         // djb2 content hash — the fingerprint must notice value CHANGES that
@@ -2350,13 +2394,13 @@
                 const seq = st.seq + 1;
                 const payload = JSON.stringify({
                     magic: 'lootradar-opfs-snapshot',
-                    version: 1,
+                    version: 2, // 2026.11.19.2 B.1: gzip container, plain values. v1 readers choke safely (garbage → treated corrupt → fall through).
                     seq: seq,
                     savedAt: new Date().toISOString(),
                     appVersion: window.BUILD_VERSION || '',
                     keys: keys
                 });
-                const bytes = LZString.compressToUint8Array(payload);
+                const bytes = await opfsPackEnvelope(payload);
                 // ONE-TIME LEAVE-GOOD-ERA-FILE: before the FIRST write of the
                 // OPFS-primary era, copy the old dual-write snapshot (values still
                 // LZ-compressed = the exact pre-migration bytes) to *_v1_keep.bin.
@@ -2397,8 +2441,14 @@
                     const rh = await st.dir.getFileHandle(OPFS_SNAPSHOT_FILE);
                     const rf = await rh.getFile();
                     back = new Uint8Array(await rf.arrayBuffer());
-                    const json = LZString.decompressFromUint8Array(back);
-                    parsed = json ? JSON.parse(json) : null;
+                    // Format-aware verify: gunzip our own v2 bytes, or LZ-decode
+                    // the legacy fallback bytes — the comparison stays strict.
+                    // A torn/garbage buffer must land in the RETRY path below,
+                    // never throw past the attempt loop (gunzip is stricter than
+                    // the old LZ decoder, which happily returned garbage).
+                    let json = null;
+                    try { json = opfsLooksGzip(back) ? await opfsGunzipText(back) : LZString.decompressFromUint8Array(back); } catch (e) { json = null; }
+                    try { parsed = json ? JSON.parse(json) : null; } catch (e) { parsed = null; }
                     if (parsed && parsed.magic === 'lootradar-opfs-snapshot' && parsed.seq === seq && parsed.keys) {
                         const wantNames = Object.keys(keys);
                         let mismatch = null;
@@ -2416,14 +2466,14 @@
                     if (attempt === 0) continue;
                     throw new Error('read-back failed (bad payload)');
                 }
-                // 2026.11.19.1 PREV GENERATION: rotate the previous verified file's
-                // bytes into *_prev.bin (best-effort; never blocks the commit).
-                // Rotated on EVERY verified write so prev is always exactly one
-                // generation behind main. Main file torn (killed mid-write) or
-                // poisoned content → boot reads prev via readOpfsSnapshot.
+                // 2026.11.19.1 PREV GENERATION → 2026.11.19.2 B.1: rotation now
+                // targets the v2-era file. *_prev.bin and *_v1_keep.bin are FROZEN
+                // v1 originals — the rollback ladder for older builds that cannot
+                // read gzip. Rotated on every verified write so v2prev is always
+                // one generation behind main.
                 if (back && st.prevBytes) {
                     try {
-                        const ph = await st.dir.getFileHandle(OPFS_PREV_FILE, { create: true });
+                        const ph = await st.dir.getFileHandle(OPFS_V2PREV_FILE, { create: true });
                         const pw = await ph.createWritable();
                         await pw.write(st.prevBytes);
                         await pw.close();
@@ -2536,6 +2586,20 @@
                 if (parsed && parsed.magic === 'lootradar-opfs-snapshot' && parsed.keys && typeof parsed.seq === 'number') return { snap: parsed, bytes: buf };
             } catch (e) {}
             return null;
+        }
+        // 2026.11.19.2 B.1: the boot chain's format-aware decode. gzip bytes go
+        // through native gunzip; everything else (the frozen v1 ladder files,
+        // legacy-era mains) goes through the retained lz-string reader.
+        async function opfsDecodeSnapAny(buf) {
+            if (opfsLooksGzip(buf)) {
+                try {
+                    const json = await opfsGunzipText(buf);
+                    const parsed = json ? JSON.parse(json) : null;
+                    if (parsed && parsed.magic === 'lootradar-opfs-snapshot' && parsed.keys && typeof parsed.seq === 'number') return { snap: parsed, bytes: buf };
+                } catch (e) {}
+                return null;
+            }
+            return opfsDecodeSnap(buf);
         }
         // Fill the DS map from a snapshot's keys. 2026.11.19.1: values are
         // NORMALIZED to plaintext — the first boot on an old dual-era snapshot
@@ -2658,16 +2722,17 @@
             requestOpfsPersist();
             try { st.seq = parseInt(localStorage.getItem(OPFS_SEQ_KEY) || '0', 10) || 0; } catch (e) { st.seq = 0; }
             try { st.lastRestoreAt = localStorage.getItem(OPFS_LAST_RESTORE_KEY) || null; } catch (e) {}
-            // Read main snapshot; if missing/corrupt try the prev generation; last
-            // resort the v1_keep era copy (only useful if main+prev both died).
+            // Read main snapshot; if missing/corrupt try the v2-prev generation;
+            // then the FROZEN v1 ladder (prev.bin → keep.bin) so this build can
+            // still boot on devices mid-experiment. Format-aware decode (B.1).
             let decoded = null, usedFile = null;
-            const files = [[OPFS_SNAPSHOT_FILE, 'main'], [OPFS_PREV_FILE, 'prev'], [OPFS_KEEP_FILE, 'keep']];
+            const files = [[OPFS_SNAPSHOT_FILE, 'main'], [OPFS_V2PREV_FILE, 'v2-prev'], [OPFS_PREV_FILE, 'prev'], [OPFS_KEEP_FILE, 'keep']];
             for (let fi = 0; fi < files.length; fi++) {
                 try {
                     const fh = await st.dir.getFileHandle(files[fi][0]);
                     const f = await fh.getFile();
                     const buf = new Uint8Array(await f.arrayBuffer());
-                    const d = opfsDecodeSnap(buf);
+                    const d = await opfsDecodeSnapAny(buf);
                     if (d) { decoded = d; usedFile = files[fi][1]; break; }
                 } catch (e) { /* file absent/unreadable — next candidate */ }
             }
@@ -2734,7 +2799,7 @@
             if (st.mode === 'opfs' && st.active) {
                 badge = 'OPFS PRIMARY ✔ verified plaintext';
                 badgeCls = 'bg-green-500/15 text-green-600 dark:text-green-400 border-green-500/40';
-                detail = 'Your data is stored PLAIN (zero compression) in the OPFS file — every flush is read-back verified string-for-string. localStorage only keeps settings.';
+                detail = 'Your data lives as PLAIN JSON inside a gzip-compressed OPFS envelope (B.1 era) — every flush is read-back verified string-for-string. localStorage only keeps settings.';
                 sourceLine = 'reads/writes: <b>OPFS primary store</b> · localStorage: settings only · quota: disk-level';
             } else if (st.mode === 'restored') {
                 badge = 'OPFS PRIMARY (recovered from snapshot)';
@@ -2774,7 +2839,7 @@
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-0.5 text-[10px] font-mono text-gray-500 dark:text-gray-400">
                         <span>Primary file: ${snapStr}</span>
                         <span>Verified flush: ${st.lastWriteAt ? new Date(st.lastWriteAt).toLocaleString() : '—'}</span>
-                        <span>Backup generations: ${st.prevFile === false ? 'prev FAILED' : (st.prevBytes ? 'prev ✔' : 'prev (pending)')}${st.keepSaved ? ' · v1-keep ✔' : ' · v1-keep —'}</span>
+                        <span>Backup generations: ${st.prevFile === false ? 'v2-prev FAILED' : (st.prevFile === true ? 'v2-prev ✔' : 'v2-prev (pending)')}${st.keepSaved ? ' · v1-ladder ✔ frozen' : ' · v1-ladder —'}</span>
                         <span>Persisted: ${persistStr}</span>
                         <span>Last legacy restore: ${restoreStr}</span>
                         <span>DS dirty: ${window.__DS && window.__DS.dirty ? 'YES (awaiting verified flush)' : 'no'}</span>
@@ -3799,8 +3864,23 @@
                     return;
                 }
         
-                // 3. Compress and Send to your existing Worker
-                const compressed = LZString.compressToEncodedURIComponent(jsonStr);
+                // 3. Compress and Send to your existing Worker.
+                // 2026.11.19.2 B.1: wire stays COMPRESSED (user rule: data must
+                // not blow up the store) but moves to native gzip with a
+                // self-describing 'GZ1:' prefix; browsers without
+                // CompressionStream keep the legacy LZ wire. Import accepts
+                // BOTH formats, so no PIN is ever stranded into garbage.
+                let compressed;
+                if (typeof CompressionStream === 'function') {
+                    try {
+                        const gzBytes = await opfsGzipBytes(jsonStr);
+                        let binStr = '';
+                        for (let bi = 0; bi < gzBytes.length; bi += 1024) binStr += String.fromCharCode.apply(null, gzBytes.subarray(bi, bi + 1024));
+                        compressed = 'GZ1:' + btoa(binStr);
+                    } catch (e) { compressed = LZString.compressToEncodedURIComponent(jsonStr); }
+                } else {
+                    compressed = LZString.compressToEncodedURIComponent(jsonStr);
+                }
                 const response = await fetch('https://cloud-sync-api.yikchun1234.workers.dev/api/export?app=loot', {
                     method: 'POST',
                     body: compressed
@@ -3841,8 +3921,20 @@
                         throw new Error('Network error');
                     }
             
-                    const compressed = await response.text();
-                    const jsonStr = LZString.decompressFromEncodedURIComponent(compressed);
+                    const payloadStr = await response.text();
+                    // B.1: 'GZ1:' native-gzip wire, else the legacy LZ-URI wire.
+                    // Wrong format never crashes — it just yields null below.
+                    let jsonStr = null;
+                    if (payloadStr.indexOf('GZ1:') === 0) {
+                        try {
+                            const bin = atob(payloadStr.slice(4));
+                            const bytes = new Uint8Array(bin.length);
+                            for (let bi = 0; bi < bin.length; bi++) bytes[bi] = bin.charCodeAt(bi);
+                            if (typeof DecompressionStream === 'function') jsonStr = await opfsGunzipText(bytes);
+                        } catch (e) {}
+                    } else {
+                        try { jsonStr = LZString.decompressFromEncodedURIComponent(payloadStr); } catch (e) {}
+                    }
                     if (!jsonStr) throw new Error('Data corrupted');
             
                     const parsedData = JSON.parse(jsonStr);
@@ -13375,7 +13467,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.19.1';
+        window.BUILD_VERSION = '2026.11.19.2';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;

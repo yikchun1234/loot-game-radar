@@ -3857,9 +3857,17 @@
                 const lastPin = localStorage.getItem('sync_last_pin');
                 const lastTime = localStorage.getItem('sync_last_time');
                 const lastPayload = localStorage.getItem('sync_last_payload');
+                // 2026.11.20.1 PHASE C: OPFS-primary devices retire the full local
+                // backup copy (sync_last_payload) — the verified snapshot chain IS
+                // the rescue copy now. PIN reuse keeps working via a cheap content
+                // fingerprint; no-OPFS fallback devices keep the legacy payload-
+                // equality behavior untouched. USER DATA IS NEVER PRUNED — only
+                // this redundant backup duplicate goes away.
+                const retiredEra = !!(window.__opfs && window.__opfs.active && window.__DS && window.__DS.ready);
+                const fpStr = jsonStr.length + '_' + opfsHashOf(jsonStr);
                 const now = Date.now();
         
-                if (lastPin && lastTime && lastPayload === jsonStr && (now - parseInt(lastTime)) < 840000) {
+                if (lastPin && lastTime && (retiredEra ? localStorage.getItem('sync_last_fp') === fpStr : lastPayload === jsonStr) && (now - parseInt(lastTime)) < 840000) {
                     statusEl.innerHTML = `<div class="bg-light-surface dark:bg-dark-card border border-light-border dark:border-gray-800 rounded-2xl w-full py-6 shadow-inner"><p class="text-5xl font-black tracking-widest text-blue-600 dark:text-neon-blue">${lastPin}</p></div>`;
                     return;
                 }
@@ -3892,7 +3900,12 @@
                 // 4. Save Cache Metadata
                 localStorage.setItem('sync_last_pin', data.pin);
                 localStorage.setItem('sync_last_time', now.toString());
-                localStorage.setItem('sync_last_payload', jsonStr);
+                if (retiredEra) {
+                    localStorage.setItem('sync_last_fp', fpStr);
+                    try { localStorage.removeItem('sync_last_payload'); } catch (e) {}
+                } else {
+                    localStorage.setItem('sync_last_payload', jsonStr);
+                }
         
                 statusEl.innerHTML = `<div class="bg-light-surface dark:bg-dark-card border border-light-border dark:border-gray-800 rounded-2xl w-full py-6 shadow-inner"><p class="text-5xl font-black tracking-widest text-blue-600 dark:text-neon-blue">${data.pin}</p></div>`;
             } catch (e) {
@@ -10149,7 +10162,8 @@
                 'theme': 'Theme preference (legacy key)',
                 'lang': 'Language preference (legacy key)',
                 'lootradar_lang': 'Language preference (en, zh-CN, etc.)',
-                'sync_last_payload': 'Last Cloud Sync export payload (local rescue copy)',
+                'sync_last_payload': 'Legacy backup copy (pre-2026.11.20 — auto-retired on OPFS devices)',
+                'sync_last_fp': 'Fingerprint of the last export payload (replaces the full backup copy)',
                 'lootradar_error_log': 'Developer Mode error ring buffer',
                 'lootradar_disabled_platforms': 'Platform visibility toggles',
                 'lootradar_remember_filters': 'Remember My Filters switch',
@@ -13467,7 +13481,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.19.2';
+        window.BUILD_VERSION = '2026.11.20.1';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;
@@ -13524,6 +13538,17 @@
                 try { hydrateAppStateFromStorage(); } catch (e) {
                     try { window.logError('hydrateAppStateFromStorage: ' + (e && e.message ? e.message : e), 'storage'); } catch (_) {}
                 }
+                // 2026.11.20.1 PHASE C one-shot retire: on OPFS-primary devices the
+                // uncompressed backup copy sync_last_payload is pure duplication of
+                // data the verified snapshot chain already protects — drop it. The
+                // rescue fallback stays intact for no-OPFS fallback devices (and
+                // for legacy snapshots that still carry the key). USER DATA ITSELF
+                // IS NEVER PRUNED — data lives forever per user decision.
+                try {
+                    if (window.__opfs && window.__opfs.active && window.__DS && window.__DS.ready) {
+                        localStorage.removeItem('sync_last_payload');
+                    }
+                } catch (e) {}
                 try { init(); } catch (e) {
                     try { window.logError('init: ' + (e && e.message ? e.message : e), 'boot'); } catch (_) {}
                 }

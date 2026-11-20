@@ -2229,7 +2229,7 @@
         window.__opfs = {
             supported: false, active: false,
             mode: 'localstorage', // 'opfs' = primary & verified | 'restored' | 'localstorage'
-            seq: 0, snapSeq: -1, snapBytes: 0, snapSavedAt: null, snapKeys: 0,
+            seq: 0, snapSeq: -1, snapBytes: 0, snapSavedAt: null, snapKeys: 0, snapGzip: null,
             lastError: null, lastWriteAt: null, lastRestoreAt: null, lastAttemptAt: 0,
             writing: false, pending: false, autoSyncStarted: false, dir: null,
             // 2026.10.05.4: OPFS-first boot authority — which store the boot
@@ -2484,6 +2484,7 @@
                 st.seq = seq;
                 st.snapSeq = seq;
                 st.snapBytes = back.length;
+                st.snapGzip = opfsLooksGzip(back); // 2026.11.20.2: format of the verified main file (analyzer recap)
                 st.snapSavedAt = parsed.savedAt;
                 st.snapKeys = Object.keys(parsed.keys).length;
                 st.active = true;
@@ -2741,6 +2742,7 @@
                 dsHydrateFromSnap(decoded.snap);
                 st.snapSeq = decoded.snap.seq;
                 st.snapBytes = decoded.bytes.length;
+                st.snapGzip = opfsLooksGzip(decoded.bytes); // 2026.11.20.2: recap format flag
                 st.snapSavedAt = decoded.snap.savedAt || null;
                 st.snapKeys = Object.keys(decoded.snap.keys).length;
                 st.prevBytes = (usedFile === 'main') ? decoded.bytes : null; // rotate from real main only
@@ -10256,6 +10258,20 @@
                 quotaBarColor = 'bg-green-500';
                 quotaBarWidth = 0.5;
             }
+            // 2026.11.20.2: plaintext → COMPRESSED recap — the LZ-era analyzer used to
+            // show how much the store shrank the data; restored for the gzip era.
+            // Compares the user-visible data total against the VERIFIED main snapshot
+            // file (st.snapBytes). Deliberately NOT the disk row: disk also carries the
+            // backup generations and the PWA offline cache (the ladder is the point).
+            let snapRecapHtml = '';
+            if (st.active && st.snapBytes > 0 && dataBytes > 0) {
+                const saved = dataBytes - st.snapBytes;
+                const savedPct = saved > 0 ? Math.round((saved / dataBytes) * 100) : 0;
+                snapRecapHtml = `
+                    <div class="text-[10px] text-gray-400 mt-1 italic">
+                        stored compressed: ${totalStr} data → <b class="text-green-600 dark:text-green-400">${fmtB(st.snapBytes)} ${st.snapGzip ? 'gzip' : 'LZ envelope'}</b>${saved > 0 ? ' · ' + savedPct + '% smaller (saves ' + fmtB(saved) + ')' : ''} — the disk row also holds backup generations + offline cache
+                    </div>`;
+            }
             rows += `
                 <div class="border-t border-gray-200 dark:border-gray-700 pt-2 mt-2">
                     <div class="flex items-center gap-3 text-xs">
@@ -10264,7 +10280,7 @@
                     </div>
                     <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full mt-1.5 overflow-hidden">
                         <div class="h-full ${quotaBarColor} rounded-full" style="width: ${quotaBarWidth}%"></div>
-                    </div>${quotaWarnHtml}
+                    </div>${quotaWarnHtml}${snapRecapHtml}
                 </div>`;
             // STORAGE ENGINE header — OPFS-primary status, generations, persist.
             report.innerHTML = '<div id="dev-opfs-engine">' + opfsEngineHtml() + '</div>' + rows;
@@ -13481,7 +13497,7 @@
         // file from the repo and shows a one-tap update pill when a newer
         // build has been deployed.
         // DEPLOY RULE: bump version.txt AND window.BUILD_VERSION together.
-        window.BUILD_VERSION = '2026.11.20.1';
+        window.BUILD_VERSION = '2026.11.20.2';
         (function () {
             const VERSION_URL = 'https://raw.githubusercontent.com/yikchun1234/loot-game-radar/main/version.txt';
             let toastShown = false;
